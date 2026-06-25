@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer — See how quantum computers protect themselves</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* --- Design tokens copied verbatim from index.html --- */
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.brand{font-family:'Instrument Serif',serif;font-size:22px}
+.brand em{font-style:italic;color:var(--purple)}
+.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
+  text-transform:uppercase;margin-left:10px}
+.topbar .links{display:flex;gap:20px}
+.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.topbar a:hover{color:var(--txt)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 80px}
+
+/* Hero */
+.hero{padding:72px 0 36px;max-width:820px}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:18px}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(40px,6.5vw,68px);line-height:1.03;font-weight:400;margin-bottom:22px}
+.hero h1 em{font-style:italic;color:var(--purple)}
+.hero p{color:var(--txt);font-size:19px;font-weight:300;line-height:1.65;margin-bottom:16px}
+.hero p.sub{color:var(--dim);font-size:17px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px}
+.cta{padding:13px 24px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;transition:all .15s;
+  display:inline-flex;align-items:center;gap:8px}
+.cta.primary{background:var(--purple);color:#08080c;border:1px solid var(--purple)}
+.cta.primary:hover{filter:brightness(1.1)}
+.cta.ghost{background:transparent;color:var(--txt);border:1px solid var(--bdr2)}
+.cta.ghost:hover{border-color:var(--purple)}
+
+/* Why it matters */
+.section{margin-top:64px}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--coral);margin-bottom:14px}
+.section h2{font-family:'Instrument Serif',serif;font-size:clamp(28px,4vw,40px);font-weight:400;margin-bottom:18px;max-width:760px}
+.section h2 em{font-style:italic;color:var(--purple)}
+.prose{max-width:720px;color:var(--dim);font-size:16.5px;line-height:1.75}
+.prose p{margin-bottom:16px}
+.prose b{color:var(--txt);font-weight:500}
+
+.why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media(max-width:820px){.why-grid{grid-template-columns:1fr}}
+.why-card{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px}
+.why-card .ic{font-size:26px;margin-bottom:12px}
+.why-card h3{font-family:'Instrument Serif',serif;font-size:21px;font-weight:400;margin-bottom:8px}
+.why-card p{color:var(--dim);font-size:14px;line-height:1.6}
+.why-card.drug{border-top:2px solid var(--teal)}
+.why-card.crypto{border-top:2px solid var(--coral)}
+.why-card.optim{border-top:2px solid var(--blue)}
+
+/* The catch */
+.catch{margin-top:56px;background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:34px 38px;position:relative;overflow:hidden}
+.catch::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--coral),var(--purple))}
+.catch h2{font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;margin-bottom:12px}
+.catch p{color:var(--dim);font-size:16px;line-height:1.7;max-width:720px}
+.catch p b{color:var(--txt);font-weight:500}
+
+/* Explore the modules */
+.modules{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media(max-width:820px){.modules{grid-template-columns:1fr}}
+.mod{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:22px;text-decoration:none;
+  color:inherit;display:block;transition:all .15s}
+.mod:hover{border-color:var(--purple);transform:translateY(-2px)}
+.mod .num{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:10px}
+.mod h3{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;margin-bottom:7px}
+.mod p{color:var(--dim);font-size:13.5px;line-height:1.55;margin-bottom:12px}
+.mod .go{font-size:12.5px;color:var(--teal);font-weight:500}
+
+/* Notebooks list */
+.nb-list{margin-top:24px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:820px){.nb-list{grid-template-columns:1fr}}
+.nb{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:15px 18px;display:flex;gap:14px;align-items:baseline}
+.nb .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--purple);font-weight:500;white-space:nowrap}
+.nb .t{font-size:14px;color:var(--txt)}
+.nb .t small{display:block;color:var(--hint);font-size:12px;margin-top:2px}
+
+footer{max-width:1080px;margin:0 auto;padding:40px 28px;border-top:1px solid var(--bdr);
+  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.8}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
+footer a:hover{color:var(--txt)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.mod:hover{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span>Open Source</span></div>
+  <div class="links">
+    <a href="index.html">Playground</a>
+    <a href="research.html">Research</a>
+    <a href="https://github.com/kondshk/QEC-Explorer">GitHub ↗</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO — plain English, no jargon in the first two paragraphs -->
+  <div class="hero">
+    <div class="eyebrow">An interactive, open-source tour of quantum error correction</div>
+    <h1>Quantum computers make mistakes <em>constantly</em>. Here's how we catch them.</h1>
+    <p>A quantum computer's building blocks are so delicate that a stray vibration or a flicker of heat can scramble an answer mid-calculation. Left unchecked, the errors pile up faster than any useful work gets done.</p>
+    <p class="sub">The fix is one of the most beautiful ideas in computing — and you can <b style="color:var(--txt);font-weight:500">click through every piece of it here</b>, from a single error to the algorithms that undo it, with the real math running live in your browser.</p>
+    <div class="cta-row">
+      <a class="cta primary" href="index.html">Start exploring →</a>
+      <a class="cta ghost" href="#why">Why does this matter?</a>
+    </div>
+  </div>
+
+  <!-- WHY IT MATTERS — for a non-physicist -->
+  <div class="section" id="why">
+    <div class="section-eyebrow">Why anyone should care</div>
+    <h2>If we get this right, the payoff is <em>enormous</em></h2>
+    <div class="prose">
+      <p>A working large-scale quantum computer wouldn't just be a faster laptop — it would do things no ordinary computer ever can, because it computes with the strange rules of quantum physics instead of plain ones. A handful of problems that are effectively impossible today would suddenly be in reach.</p>
+      <p>But none of it works unless we can stop the machine from drowning in its own errors. <b>Error correction is the bridge</b> between today's fragile, experimental devices and the world-changing applications below.</p>
+    </div>
+
+    <div class="why-grid">
+      <div class="why-card drug">
+        <div class="ic">🧬</div>
+        <h3>New medicines</h3>
+        <p>Simulating how molecules really behave — the key to designing drugs and materials — is brutally hard for normal computers. Quantum machines are naturally suited to it, which could speed up discovering new treatments and clean-energy materials.</p>
+      </div>
+      <div class="why-card crypto">
+        <div class="ic">🔐</div>
+        <h3>Breaking (and rebuilding) encryption</h3>
+        <p>Much of today's online security relies on math that's hard for normal computers but easy for a big enough quantum one. That's a threat — and the reason the world is already racing to build quantum-proof encryption.</p>
+      </div>
+      <div class="why-card optim">
+        <div class="ic">📦</div>
+        <h3>Impossible logistics</h3>
+        <p>Routing deliveries, scheduling power grids, optimizing supply chains — problems with astronomically many possibilities. Quantum computers offer new ways to search those possibilities far more efficiently.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE CATCH -->
+  <div class="catch">
+    <h2>The catch — and the whole point of this project</h2>
+    <p>Every one of those applications needs a quantum computer that runs <b>long, accurate calculations</b>. Real qubits can't do that on their own — they're far too noisy. The answer isn't a perfect qubit (physics forbids it); it's bundling many imperfect qubits together so that errors can be <b>spotted and reversed</b> before they ruin the answer. That technique is <b>quantum error correction</b>, and it's exactly what QEC Explorer lets you see, step by step, with real working code instead of hand-waving.</p>
+  </div>
+
+  <!-- EXPLORE THE MODULES -->
+  <div class="section">
+    <div class="section-eyebrow">Three interactive tools</div>
+    <h2>Click your way through the whole idea</h2>
+    <div class="prose"><p>Each module runs the genuine physics and algorithms — no cartoons. Start at detection and work toward the research frontier.</p></div>
+    <div class="modules">
+      <a class="mod" href="index.html">
+        <div class="num">Module 1 · Detection</div>
+        <h3>Catch an error</h3>
+        <p>Click qubits to inject errors and watch the detectors light up — the only clue a real quantum computer ever gets.</p>
+        <div class="go">Open the playground →</div>
+      </a>
+      <a class="mod" href="decoder.html">
+        <div class="num">Module 2 · Decoding</div>
+        <h3>Race three decoders</h3>
+        <p>Hand the same error to three real algorithms and watch them compete — and sometimes fail — to undo it.</p>
+        <div class="go">Watch the race →</div>
+      </a>
+      <a class="mod" href="noise.html">
+        <div class="num">Module 3 · Threshold</div>
+        <h3>Find the breaking point</h3>
+        <p>Crank up the noise and run a real Monte Carlo to see when bigger codes start helping — or stop helping.</p>
+        <div class="go">Run the experiment →</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- NOTEBOOKS -->
+  <div class="section">
+    <div class="section-eyebrow">Go deeper — the math, built by hand</div>
+    <h2>Five Colab notebooks, from first principles to the <em>research frontier</em></h2>
+    <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python — and proves it matches the interactive tools above.</p></div>
+    <div class="nb-list">
+      <div class="nb"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, syndromes — from zero</small></span></div>
+      <div class="nb"><span class="n">NB 2</span><span class="t">Decoding by hand<small>Three real decoders, built and tested</small></span></div>
+      <div class="nb"><span class="n">NB 3</span><span class="t">Noise, Monte Carlo & the threshold<small>The experiment behind Module 3</small></span></div>
+      <div class="nb"><span class="n">NB 4</span><span class="t">Beyond the surface code: qLDPC<small>Bivariate-bicycle codes &amp; the overhead problem</small></span></div>
+      <div class="nb"><span class="n">NB 5</span><span class="t">Learned decoding with a GNN<small>A real neural decoder, trained &amp; benchmarked honestly</small></span></div>
+    </div>
+    <div class="prose" style="margin-top:18px">
+      <p style="font-size:14px;color:var(--hint)">The notebooks live in the <a href="https://github.com/kondshk/QEC-Explorer" style="color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none">GitHub repository</a> and run in Google Colab. See the <a href="research.html" style="color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none">research connection</a> for how they tie into current work.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  QEC Explorer · An open-source educational project on quantum error correction · MIT licensed<br>
+  <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+</footer>
+
+</body>
+</html>

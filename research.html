@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer — Research Connection</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* --- Design tokens copied verbatim from index.html --- */
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.brand{font-family:'Instrument Serif',serif;font-size:22px}
+.brand em{font-style:italic;color:var(--purple)}
+.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
+  text-transform:uppercase;margin-left:10px}
+.topbar .links{display:flex;gap:20px}
+.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.topbar a:hover{color:var(--txt)}
+
+/* Project strip — research marked active */
+.project-strip{max-width:1080px;margin:18px auto 0;padding:0 28px}
+.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
+  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
+.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--purple);white-space:nowrap}
+.project-strip .crumb b{color:var(--txt);font-weight:500}
+.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
+  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
+.project-strip a.pill:hover{border-color:var(--purple);color:var(--txt)}
+.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.project-strip .arrow{color:var(--hint)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:32px 28px 80px}
+
+.lead{margin-bottom:36px;max-width:780px}
+.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:12px}
+.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:16px}
+.lead h1 em{font-style:italic;color:var(--purple)}
+.lead p{color:var(--dim);font-size:17px;font-weight:300;line-height:1.7}
+
+/* arXiv placeholder banner */
+.arxiv{background:var(--s1);border:1px dashed var(--bdr2);border-radius:10px;padding:22px 26px;margin-bottom:40px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.arxiv .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:#08080c;background:var(--gold);padding:4px 10px;border-radius:5px;font-weight:600}
+.arxiv .txt{flex:1;min-width:240px;font-size:14.5px;color:var(--dim)}
+.arxiv .txt b{color:var(--txt);font-weight:500}
+
+.section{margin-top:48px;max-width:820px}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:12px}
+.section-eyebrow.a{color:var(--teal)}
+.section-eyebrow.b{color:var(--coral)}
+.section-eyebrow.c{color:var(--blue)}
+.section h2{font-family:'Instrument Serif',serif;font-size:clamp(26px,3.6vw,36px);font-weight:400;margin-bottom:18px}
+.section h2 em{font-style:italic;color:var(--purple)}
+.prose{color:var(--dim);font-size:16px;line-height:1.78}
+.prose p{margin-bottom:16px}
+.prose b{color:var(--txt);font-weight:500}
+.prose a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(46,196,160,.3)}
+.prose a:hover{border-color:var(--teal)}
+
+.callout{background:var(--s1);border:1px solid var(--bdr);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;
+  padding:16px 20px;margin:20px 0;font-size:14.5px;color:var(--dim);line-height:1.6}
+.callout b{color:var(--txt);font-weight:500}
+
+.tie{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:24px}
+@media(max-width:720px){.tie{grid-template-columns:1fr}}
+.tie a{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:16px 18px;text-decoration:none;
+  color:inherit;display:block;transition:all .15s}
+.tie a:hover{border-color:var(--purple)}
+.tie .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);margin-bottom:6px}
+.tie .t{font-size:14px;color:var(--txt);font-weight:500}
+.tie .d{font-size:12.5px;color:var(--dim);margin-top:3px;line-height:1.5}
+
+.refs{margin-top:48px;max-width:820px;background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px 28px}
+.refs h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--hint);margin-bottom:14px}
+.refs ol{margin-left:18px;color:var(--dim);font-size:13.5px;line-height:1.7}
+.refs li{margin-bottom:9px}
+.refs a{color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none}
+.refs a:hover{color:var(--txt)}
+
+footer{max-width:1080px;margin:0 auto;padding:40px 28px;border-top:1px solid var(--bdr);
+  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.8}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
+footer a:hover{color:var(--txt)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span>Research</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">Playground</a>
+    <a href="https://github.com/kondshk/QEC-Explorer">GitHub ↗</a>
+  </div>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Research connection</div>
+    <div class="steps">
+      <a class="pill" href="index.html">1 · Detect</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="decoder.html">2 · Decode</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="noise.html">3 · Noise</a>
+      <span class="arrow">→</span>
+      <span class="pill now">Research</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Where this project meets current research</div>
+    <h1>From a clickable toy to the <em>real</em> frontier</h1>
+    <p>QEC Explorer isn't just a teaching demo — it's built around two questions that the quantum-computing field is actively working on right now: <b style="color:var(--txt);font-weight:500">how do we build codes that don't waste enormous numbers of qubits</b>, and <b style="color:var(--txt);font-weight:500">how do we decode them well enough to matter</b>. This page connects the interactive modules and notebooks to that research, in plain terms.</p>
+  </div>
+
+  <!-- arXiv placeholder -->
+  <div class="arxiv">
+    <span class="tag">Manuscript</span>
+    <div class="txt"><b>A manuscript on this work is in preparation.</b> The arXiv preprint link will appear here once it's submitted. <span style="color:var(--hint)">[ arXiv link — placeholder, to be added on submission ]</span></div>
+  </div>
+
+  <!-- THREAD 1: better codes (qLDPC) -->
+  <div class="section">
+    <div class="section-eyebrow a">Research thread 1 · Better codes</div>
+    <h2>The qubit-overhead problem, and qLDPC codes</h2>
+    <div class="prose">
+      <p>The surface code you play with in Module 1 is the field's current workhorse, and for good reason: every check it makes only involves neighboring qubits on a flat grid, which is exactly what today's hardware can build. But that convenience has a steep price. To protect a single piece of quantum information well enough to run a real algorithm, a surface code needs <b>hundreds to thousands of physical qubits per logical qubit</b>. Scale that to the millions of physical qubits a useful machine would need, and the overhead becomes the central engineering obstacle.</p>
+      <p>A newer family — <b>quantum low-density parity-check (qLDPC) codes</b> — keeps the good property that each check still only touches a few qubits, but relaxes the demand that those qubits be physical neighbors. By allowing a small number of longer-range connections, these codes pack <b>many</b> logical qubits into far fewer physical ones. IBM's <b>bivariate-bicycle codes</b> are the headline example: their "gross code" protects 12 logical qubits with 144 data qubits at the same distance where a surface code would protect just one — roughly a <b>tenfold cut in overhead</b>.</p>
+      <p>The trade-off is honest and real: those longer-range links are harder to wire in hardware, and they make decoding harder — which is exactly where the second research thread comes in.</p>
+    </div>
+    <div class="callout">
+      <b>Explore it yourself:</b> Notebook 4 works through the overhead math with real numbers, draws how a bivariate-bicycle code's connectivity graph differs from the surface code's, and is explicit about what it does and doesn't implement — no claim of a working qLDPC decoder it didn't build.
+    </div>
+  </div>
+
+  <!-- THREAD 2: better decoders (GNN) -->
+  <div class="section">
+    <div class="section-eyebrow b">Research thread 2 · Better decoders</div>
+    <h2>Learned decoding with neural networks</h2>
+    <div class="prose">
+      <p>A decoder is the algorithm that looks at the pattern of lit detectors and guesses what error occurred — the puzzle you watch three real decoders attempt in Module 2. The catch, which you can see for yourself, is that <b>the syndrome never uniquely determines the error</b>: many different errors light up the same detectors. Decoding is fundamentally a problem of <b>inference under ambiguity</b>, and the best general-purpose classical method (belief propagation) actually <b>fails</b> on the surface code, as Notebook 3 demonstrates honestly.</p>
+      <p>The frontier response is to <b>learn</b> a decoder from data instead of hand-designing it. Google's <b>AlphaQubit</b> (2024) is the landmark result: a neural network trained on enormous amounts of error data that decodes large surface codes better than the classical standards. Notebook 5 builds a small, real version of this idea — a <b>graph neural network</b> that passes messages over the same detector graph the other decoders use — trains it on synthetic noise, and benchmarks it against belief propagation.</p>
+      <p>And here's the honest part, which is the whole point: at the tiny scale a teaching notebook can train, <b>the neural decoder does not beat the classical baseline.</b> Notebook 5 reports that real result rather than rigging a win, and explains exactly why scale is what makes learned decoders succeed. That gap between a small honest demo and a state-of-the-art result <i>is</i> the research.</p>
+    </div>
+    <div class="callout">
+      <b>Connection to my own interests:</b> this graph-neural-network decoding direction — message passing on the code's structure, learned rather than fixed — is the thread that links QEC Explorer to current decoder research, including learned decoders for the high-rate qLDPC codes from thread 1, where good decoders matter most and are hardest to build.
+    </div>
+  </div>
+
+  <!-- How the pieces tie together -->
+  <div class="section">
+    <div class="section-eyebrow c">The throughline</div>
+    <h2>Two threads, one goal: <em>practical</em> fault tolerance</h2>
+    <div class="prose">
+      <p>Better codes (fewer qubits) and better decoders (smarter inference) are the two halves of making quantum error correction practical. QEC Explorer walks the full path to that frontier — every step backed by code you can read and run.</p>
+    </div>
+    <div class="tie">
+      <a href="index.html"><div class="k">Module 1 + Notebook 1</div><div class="t">Detection & the surface code</div><div class="d">The faithful physics everything else builds on.</div></a>
+      <a href="decoder.html"><div class="k">Module 2 + Notebook 2</div><div class="t">Three real decoders</div><div class="d">Where the inference-under-ambiguity problem becomes visible.</div></a>
+      <a href="noise.html"><div class="k">Module 3 + Notebook 3</div><div class="t">Noise & the threshold</div><div class="d">When protection holds, when it breaks, and BP's honest failure.</div></a>
+      <a href="https://github.com/kondshk/QEC-Explorer"><div class="k">Notebooks 4 & 5</div><div class="t">qLDPC codes & GNN decoding</div><div class="d">The two research threads, built and benchmarked honestly.</div></a>
+    </div>
+  </div>
+
+  <!-- References -->
+  <div class="refs">
+    <h3>Key references</h3>
+    <ol>
+      <li>S. Bravyi, A. W. Cross, J. M. Gambetta, D. Maslov, P. Rall, T. J. Yoder, "High-threshold and low-overhead fault-tolerant quantum memory," <i>Nature</i> <b>627</b>, 778–782 (2024) — bivariate-bicycle codes and the [[144,12,12]] gross code.</li>
+      <li>J. Bausch et al. (Google DeepMind / Quantum AI), "Learning high-accuracy error decoding for quantum processors" (AlphaQubit), <i>Nature</i> (2024) — neural-network surface-code decoding.</li>
+      <li>The Error Correction Zoo, <a href="https://errorcorrectionzoo.org/c/qcga">"Bivariate bicycle code"</a> and <a href="https://errorcorrectionzoo.org/c/gross">"[[144,12,12]] gross code"</a> entries — code parameters and connectivity.</li>
+      <li>IBM Quantum, <a href="https://www.ibm.com/quantum/blog/nature-qldpc-error-correction">"Landmark IBM error correction paper on Nature cover"</a> and IBM's large-scale fault-tolerant quantum computing roadmap — the reported ~10× overhead reduction.</li>
+    </ol>
+    <p style="font-size:12px;color:var(--hint);margin-top:14px;line-height:1.6">Note: specific figures (e.g. surface-code overhead "per logical qubit," the ~10× improvement) are drawn from the sources above; where a notebook uses a round number for illustration rather than a single sourced constant, it says so explicitly. This summary is written in the author's own words.</p>
+  </div>
+
+</div>
+
+<footer>
+  QEC Explorer · Research connection · Open-source<br>
+  <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+</footer>
+
+</body>
+</html>

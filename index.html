@@ -38,7 +38,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-
 .project-strip .crumb b{color:var(--txt);font-weight:500}
 .project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
 .project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
-  white-space:nowrap}
+  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
+a.project-strip .pill:hover,.project-strip a.pill:hover{border-color:var(--purple);color:var(--txt)}
 .project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
 .project-strip .pill.soon{color:var(--hint)}
 .project-strip .arrow{color:var(--hint)}
@@ -174,7 +175,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 .next-card p{color:var(--dim);font-size:14px;line-height:1.6;max-width:580px}
 .next-card .roadmap{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .next-card .step{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--bdr);
-  border-radius:7px;padding:14px 16px}
+  border-radius:7px;padding:14px 16px;text-decoration:none;color:inherit;display:block;transition:border-color .15s}
+a.next-card .step:hover,.next-card a.step:hover{border-color:var(--purple)}
 .next-card .step .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
   text-transform:uppercase;margin-bottom:6px}
 .next-card .step.done .lbl{color:var(--teal)}
@@ -211,9 +213,9 @@ footer a:hover{color:var(--txt)}
     <div class="steps">
       <span class="pill now">1 · Detect errors</span>
       <span class="arrow">→</span>
-      <span class="pill soon">2 · Decoder race (soon)</span>
+      <a class="pill" href="decoder.html">2 · Decoder race</a>
       <span class="arrow">→</span>
-      <span class="pill soon">3 · Noise explorer (soon)</span>
+      <a class="pill" href="noise.html">3 · Noise explorer</a>
     </div>
   </div>
 </div>
@@ -313,18 +315,18 @@ footer a:hover{color:var(--txt)}
         <div class="d">Inject errors, watch syndromes fire. The faithful physics layer.</div>
         <span class="badge live">Live now</span>
       </div>
-      <div class="step next">
-        <div class="lbl">Module 2 · Next</div>
+      <a class="step next" href="decoder.html">
+        <div class="lbl">Module 2 · Live</div>
         <div class="t">Decoder race</div>
-        <div class="d">Watch decoders compete to fix the same error pattern, step by step.</div>
-        <span class="badge wip">In progress</span>
-      </div>
-      <div class="step later">
-        <div class="lbl">Module 3 · Later</div>
+        <div class="d">Watch three real decoders compete to fix the same error pattern, step by step.</div>
+        <span class="badge live">Live now</span>
+      </a>
+      <a class="step later" href="noise.html">
+        <div class="lbl">Module 3 · Live</div>
         <div class="t">Noise-model explorer</div>
-        <div class="d">Slide the error rate and bias; see how protection holds or breaks.</div>
-        <span class="badge wip">Planned</span>
-      </div>
+        <div class="d">Slide the error rate and bias; watch a real Monte Carlo show protection hold or break.</div>
+        <span class="badge live">Live now</span>
+      </a>
     </div>
   </div>
 
