@@ -8,3 +8,8 @@ Thumbs.db
 
 # Local preview / launch config
 .claude/
+
+# Local Python virtualenvs used for notebook execution (never committed)
+_cleanenv/
+*.venv/
+.ipynb_checkpoints/
