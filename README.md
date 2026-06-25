@@ -28,11 +28,25 @@ The lattice connectivity, stabilizer construction, and syndrome parity are physi
 
 ## Roadmap
 
+**Interactive modules** (all live):
+
 | Module | Status |
 |--------|--------|
-| **1 · Surface-code detection** | ✅ Live |
-| **2 · Decoder race** — watch decoders compete to fix the same error | 🔨 In progress |
-| **3 · Noise-model explorer** — slide error rate & bias, see protection hold or break | 📋 Planned |
+| **1 · Surface-code detection** — inject errors, watch syndromes fire | ✅ Live |
+| **2 · Decoder race** — three real decoders compete to fix the same error | ✅ Live |
+| **3 · Noise explorer** — Monte Carlo over error rate & bias; hunt the threshold | ✅ Live |
+
+**Companion Colab notebooks** (build it all from scratch in plain Python):
+
+| Notebook | Topic |
+|----------|-------|
+| **1 · Building the surface code by hand** | Data qubits, stabilizers, syndromes — proven to match the live tool |
+| **2 · Decoding by hand** | Lookup, MWPM, and BP decoders, verified against `decoders.js` |
+| **3 · Noise, Monte Carlo & the threshold** | The experiment behind Module 3, with an honest look at what d=3–7 can show |
+| **4 · Beyond the surface code: qLDPC** | Bivariate-bicycle codes and the qubit-overhead problem (conceptual) |
+| **5 · Learned decoding with a GNN** | A real PyTorch graph-neural-network decoder, trained and benchmarked honestly |
+
+A plain-English [landing page](landing.html) and a [research-connection page](research.html) tie the whole thing together.
 
 ## Run it locally
 
