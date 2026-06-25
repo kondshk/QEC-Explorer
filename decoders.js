@@ -152,13 +152,20 @@ function buildLookupTable(code) {
 
   const syndKey = (errors) => computeSyndromeFor(code, errors).join("");
 
-  // helper: record if this syndrome not yet seen, or seen with higher weight
+  // helper: record if this syndrome not yet seen, or seen with higher weight.
+  // If we meet a DIFFERENT correction of EQUAL weight for an already-seen
+  // syndrome, that syndrome is degenerate — several distinct minimal-weight
+  // corrections explain it equally well, and from the syndrome alone the
+  // decoder cannot tell which actually occurred. We flag that honestly
+  // (the stored correction is still a valid minimal one; we just mark the tie).
   const consider = (errors) => {
     const key = syndKey(errors);
     const w = errorWeight(errors);
     const prev = table.get(key);
     if (!prev || w < prev.weight) {
-      table.set(key, { weight: w, correction: cloneErrors(errors) });
+      table.set(key, { weight: w, correction: cloneErrors(errors), degenerate: false });
+    } else if (w === prev.weight && diffErrorKeys(prev.correction, errors).length > 0) {
+      prev.degenerate = true; // a genuinely different equal-weight correction exists
     }
   };
 
@@ -196,10 +203,13 @@ function lookupDecode(code, table, errors) {
     // syndrome not in our weight<=2 table (rare at d=3, e.g. weight-3+ errors)
     return { available: true, correction: {}, note: "Syndrome not in the weight≤2 table (error too heavy for this small lookup). No correction proposed." };
   }
-  let note = "Looked up syndrome → minimal-weight correction.";
-  // detect degeneracy: are there other weight-equal corrections for this syndrome?
-  // (We stored the first; flag that ties exist as a known limitation.)
-  return { available: true, correction: cloneErrors(hit.correction), note, steps: ["Looked up syndrome → correction"] };
+  // If this syndrome had several equally-likely minimal-weight corrections,
+  // say so plainly — the table stored one valid choice, but the decoder
+  // genuinely cannot know which physical error occurred from the syndrome.
+  const note = hit.degenerate
+    ? "Looked up syndrome → one of several equally likely corrections (this is degeneracy — the decoder can't distinguish which is physically correct from the syndrome alone)."
+    : "Looked up syndrome → minimal-weight correction.";
+  return { available: true, correction: cloneErrors(hit.correction), note, degenerate: !!hit.degenerate, steps: ["Looked up syndrome → correction"] };
 }
 
 /* ============================================================

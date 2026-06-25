@@ -321,7 +321,7 @@ footer a:hover{color:var(--txt)}
         <span class="badge2 live">Live now</span>
       </div>
       <div class="step later">
-        <div class="lbl">Module 3 · Later</div>
+        <div class="lbl">Module 3 · Noise explorer (soon)</div>
         <div class="t">Noise-model explorer</div>
         <div class="d">Slide error rate and bias; see protection hold or break.</div>
         <span class="badge2 wip">Planned</span>
@@ -426,7 +426,7 @@ function buildMini(id) {
     circ.style.cursor = "pointer";
     circ.setAttribute("tabindex", "0");
     circ.setAttribute("role", "button");
-    circ.setAttribute("aria-label", `Data qubit row ${r + 1}, column ${c + 1}`);
+    circ.setAttribute("aria-label", `Data qubit row ${r + 1}, column ${c + 1}, no error`);
     circ.addEventListener("click", () => { toggleSharedError(key); });
     circ.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleSharedError(key); }
@@ -455,14 +455,29 @@ function fillForError(e) {
   return "#2a2a3a";
 }
 
+/* Same wording convention as index.html's errorWord() — keep in sync so
+   the shared-error aria-labels read identically across both modules. */
+function errorWord(e) {
+  if (!e) return "no error";
+  if (e.x && e.z) return "Y error (X and Z flip)";
+  if (e.x) return "X error";
+  if (e.z) return "Z error";
+  return "no error";
+}
+
 function paintShared() {
   const synd = computeSyndrome(CODE); // uses state.errors (shared)
   for (const id of DECODERS) {
     const nm = nodeMaps[id];
     if (!nm) continue;
-    // qubit error colors
+    // qubit error colors + live aria-labels (match index.html: update the
+    // label every time the error state changes, not just on build)
     for (const key in nm.qubits) {
-      nm.qubits[key].circle.setAttribute("fill", fillForError(state.errors[key]));
+      const e = state.errors[key];
+      const [r, c] = key.split(",").map(Number);
+      nm.qubits[key].circle.setAttribute("fill", fillForError(e));
+      nm.qubits[key].circle.setAttribute("aria-label",
+        `Data qubit row ${r + 1}, column ${c + 1}, ${errorWord(e)}`);
       // reset correction rings + paths when error changes
       nm.qubits[key].ring.setAttribute("stroke", "transparent");
     }
