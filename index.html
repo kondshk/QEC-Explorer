@@ -250,7 +250,7 @@ footer a:hover{color:var(--txt)}
       </div>
 
       <button class="btn" id="randomBtn">⚡ Inject random errors</button>
-      <button class="btn" id="copyBtn">🔗 Copy link to this pattern</button>
+      <button class="btn" id="copyBtn">🔗 Share this pattern</button>
       <button class="btn danger" id="clearBtn">Clear all errors</button>
 
       <div class="note">
@@ -751,11 +751,24 @@ document.getElementById("randomBtn").addEventListener("click", () => {
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
   const url = location.origin + location.pathname + "#" + encodeState();
+  const shareText = "I found a quantum error pattern — see what happens:";
+  // Prefer the native share sheet on supported devices (mobile especially)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "QEC Explorer", text: shareText, url });
+      showToast(`Shared — <b>your exact error pattern</b>.`);
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;  // user dismissed the sheet
+      // otherwise fall through to clipboard
+    }
+  }
+  // Clipboard fallback: copy the message + link together
   try {
-    await navigator.clipboard.writeText(url);
-    showToast(`Link copied — <b>share this exact error pattern</b>.`);
+    await navigator.clipboard.writeText(`${shareText} ${url}`);
+    showToast(`Link + message copied — <b>paste it anywhere to share</b>.`);
   } catch (err) {
-    // Fallback for file:// or clipboard-blocked contexts
+    // Last resort (file:// or clipboard-blocked): put the link in the URL bar
     history.replaceState(null, "", "#" + encodeState());
     showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`);
   }

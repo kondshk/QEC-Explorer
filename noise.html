@@ -260,6 +260,7 @@ footer a:hover{color:var(--txt)}
           </div>
           <div class="cap" id="threshCap">Press <b>Run experiment</b> in sweep mode. This runs the Monte Carlo loop at ~9 error rates for each of d = 3, 5, 7 and plots three curves on log-log axes.</div>
           <div class="cap honest" id="threshHonest"></div>
+          <button class="btn" id="shareSweepBtn" style="display:none;width:auto;margin-top:14px">🔗 Share these results</button>
         </div>
       </div>
 
@@ -301,6 +302,7 @@ const PARAMS = {
   bias: 30,
   decoder: "mwpm",
   trials: 200,
+  seed: 12345,             // explicit RNG seed -> exact reproducibility via shared link
 };
 
 /* ---------- log-scaled p slider: slider 0..1000 -> p in [0.001, 0.5] ---------- */
@@ -345,11 +347,12 @@ let runToken = 0;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function runSinglePoint(token) {
-  const { d, model, bias, decoder, trials } = PARAMS;
+  const { d, model, bias, decoder, trials, seed } = PARAMS;
   const p = currentP();
   const code = buildCode(d);
   const table = decoder === "lookup" ? buildLookupTable(code) : null;
-  const rng = mulberry32((Date.now() & 0xffffff) ^ (d * 7919) ^ Math.round(p * 1e6));
+  // Seeded from PARAMS.seed (not Date.now) so a shared link reproduces the EXACT run.
+  const rng = mulberry32((seed >>> 0) ^ (d * 7919) ^ Math.round(p * 1e6));
 
   let failures = 0;
   const cumul = []; // {t, ler}
@@ -382,7 +385,7 @@ async function runSinglePoint(token) {
 /* sweep: for each distance, run MC at a set of log-spaced p values */
 const SWEEP_PS = [0.01, 0.02, 0.03, 0.05, 0.07, 0.10, 0.15, 0.22, 0.30];
 async function runSweep(token) {
-  const { model, bias, decoder, trials } = PARAMS;
+  const { model, bias, decoder, trials, seed } = PARAMS;
   const dists = decoder === "lookup" ? [3] : [3, 5, 7];
   const curves = {}; // d -> [{p, ler}]
   dists.forEach(d => curves[d] = []);
@@ -393,7 +396,8 @@ async function runSweep(token) {
     const code = buildCode(d);
     const table = decoder === "lookup" ? buildLookupTable(code) : null;
     for (const p of SWEEP_PS) {
-      const rng = mulberry32((d * 31 + 7) ^ Math.round(p * 1e6) ^ 0x9e3779b9);
+      // Seed includes PARAMS.seed so the whole sweep is reproducible from a link.
+      const rng = mulberry32((seed >>> 0) ^ (d * 31 + 7) ^ Math.round(p * 1e6) ^ 0x9e3779b9);
       let failures = 0;
       for (let t = 1; t <= trials; t++) {
         const err = sampleError(code, p, model, bias, rng);
@@ -538,10 +542,16 @@ function describeThreshold(curves, dists) {
   document.getElementById("threshCap").innerHTML =
     `Three curves, one per distance, from the live Monte Carlo run above.`;
   document.getElementById("threshHonest").innerHTML = txt;
+  // stash a plain-text version (tags stripped) for the Share button to reuse
+  lastSweepSummary = txt.replace(/<[^>]+>/g, "");
+  // reveal the "Share these results" button now that a sweep has completed
+  const sb = document.getElementById("shareSweepBtn");
+  if (sb) sb.style.display = "";
   // log raw numbers to console for verification
   console.log("[noise.html] sweep result:", JSON.stringify(
     Object.fromEntries(dists.map(d => [d, curves[d].map(pt => ({ p: pt.p, ler: +pt.ler.toFixed(4) }))])), null, 0));
 }
+let lastSweepSummary = "";
 
 /* ============================================================
    CONTROL WIRING
@@ -645,12 +655,70 @@ function stop() {
 document.getElementById("runBtn").addEventListener("click", run);
 document.getElementById("stopBtn").addEventListener("click", stop);
 
+/* ============================================================
+   SHARE: encode the FULL parameter set (incl. RNG seed + slider
+   position) into the URL hash so a sweep reproduces EXACTLY.
+   Format:  #mode=sweep&d=3&pv=500&model=biased&bias=30&dec=mwpm&tr=200&seed=12345
+   ============================================================ */
+function encodeParams() {
+  const pv = +document.getElementById("pSlider").value;
+  const kv = {
+    mode: PARAMS.mode, d: PARAMS.d, pv, model: PARAMS.model,
+    bias: PARAMS.bias, dec: PARAMS.decoder, tr: PARAMS.trials, seed: PARAMS.seed,
+  };
+  return Object.entries(kv).map(([k, v]) => `${k}=${v}`).join("&");
+}
+function decodeParams(hash) {
+  try {
+    const s = hash.replace(/^#/, "");
+    if (!s) return false;
+    const kv = {};
+    s.split("&").forEach(pair => { const [k, v] = pair.split("="); if (k) kv[k] = v; });
+    if (kv.d && [3, 5, 7].includes(+kv.d)) PARAMS.d = +kv.d;
+    if (kv.model === "depolarizing" || kv.model === "biased") PARAMS.model = kv.model;
+    if (kv.bias != null) PARAMS.bias = Math.max(1, Math.min(100, +kv.bias || 30));
+    if (["mwpm", "bp", "lookup"].includes(kv.dec)) PARAMS.decoder = kv.dec;
+    if (kv.tr != null) PARAMS.trials = Math.max(10, Math.min(2000, +kv.tr || 200));
+    if (kv.seed != null && !isNaN(+kv.seed)) PARAMS.seed = +kv.seed;
+    if (kv.mode === "single" || kv.mode === "sweep") PARAMS.mode = kv.mode;
+    if (kv.pv != null && !isNaN(+kv.pv)) {
+      const pv = Math.max(0, Math.min(1000, +kv.pv));
+      document.getElementById("pSlider").value = pv;
+    }
+    return true;
+  } catch (err) { return false; }
+}
+
+/* Share button (appears after a sweep) — reuses describeThreshold's text. */
+document.getElementById("shareSweepBtn").addEventListener("click", async () => {
+  history.replaceState(null, "", "#" + encodeParams());
+  const url = location.origin + location.pathname + "#" + encodeParams();
+  const summary = lastSweepSummary || `${PARAMS.decoder.toUpperCase()} sweep, ${PARAMS.trials} trials/point.`;
+  const shareText = `I ran ${PARAMS.trials} trials at d=3,5,7 — ${summary}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: "QEC Explorer — Threshold Sweep", text: shareText, url });
+      showToast(`Shared — <b>this exact sweep</b>.`); return;
+    } catch (err) { if (err && err.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(`${shareText} ${url}`);
+    showToast(`Results + link copied — <b>paste it anywhere</b>.`);
+  } catch (err) { showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`); }
+});
+
 /* ---------- init ---------- */
+// Restore the full parameter set from a shared link, if present.
+const fromLink = location.hash && decodeParams(location.hash);
 document.getElementById("pVal").textContent = "p = " + currentP().toFixed(3);
+document.getElementById("trials").value = PARAMS.trials;
+document.getElementById("biasSlider").value = PARAMS.bias;
+document.getElementById("biasVal").textContent = "×" + PARAMS.bias;
+document.getElementById("biasWrap").classList.toggle("hide", PARAMS.model !== "biased");
 syncSegments();
 refreshDecoderAvailability();
-setMode("single");
-drawConvergence([], 200, currentP());
+setMode(PARAMS.mode);
+drawConvergence([], PARAMS.trials, currentP());
+// If arriving via a shared link, auto-run so the result reproduces on load.
+if (fromLink) { showToast(`Loaded a <b>shared experiment</b> — re-running…`); setTimeout(run, 350); }
 // expose a headless hook for verification (returns final numbers without UI)
 window.__mcSinglePoint = async function (d, p, model, bias, decoder, trials) {
   const code = buildCode(d);

@@ -79,6 +79,13 @@ a.pill:hover{border-color:var(--purple);color:var(--txt)}
 .btn.danger:hover{border-color:var(--red)}
 .spacer{flex:1}
 
+/* Famous-pattern quick-links (pre-built hash links) */
+.famous{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.famous-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--hint)}
+.famous-link{font-size:12.5px;padding:6px 12px;border-radius:20px;border:1px solid var(--bdr2);background:var(--s2);
+  color:var(--dim);text-decoration:none;transition:all .15s}
+.famous-link:hover{border-color:var(--purple);color:var(--txt)}
+
 /* Shared-error mini panel + note */
 .shared-note{background:var(--s2);border:1px solid var(--bdr);border-left:3px solid var(--gold);
   border-radius:0 7px 7px 0;padding:12px 16px;font-size:13px;color:var(--dim);line-height:1.55;margin-bottom:22px}
@@ -242,11 +249,25 @@ footer a:hover{color:var(--txt)}
         <button class="btn danger" id="clearBtn">Clear</button>
       </div>
     </div>
+    <div class="ctrl-group">
+      <span class="lbl">Share</span>
+      <div class="seg">
+        <button class="btn" id="shareBtn">🔗 Share this race</button>
+      </div>
+    </div>
     <div class="spacer"></div>
     <div class="ctrl-group">
       <span class="lbl">&nbsp;</span>
       <button class="btn primary" id="raceBtn">▶ Run race</button>
     </div>
+  </div>
+
+  <!-- Famous patterns: pre-built hash links that load + auto-run the race -->
+  <div class="famous" id="famous">
+    <span class="famous-lbl">Famous patterns:</span>
+    <a class="famous-link" href="#d3-AAgA" data-tip="A single Z on qubit (1,2) — equidistant from two boundary routes, so MWPM may pick the one that completes a logical operator.">⚠️ The boundary trap (Z@1,2)</a>
+    <a class="famous-link" href="#d3-QRAA" data-tip="A full column of X errors — invisible to every stabilizer, yet flips the logical qubit.">👻 Full-column logical error</a>
+    <a class="famous-link" href="#d3-AAEA" data-tip="A single X error every decoder fixes cleanly — the easy case.">✅ A clean single-error fix (X@1,1)</a>
   </div>
 
   <div class="shared-note">
@@ -519,6 +540,7 @@ function toggleSharedError(key) {
   else state.errors[key] = next;
   resetBadges();
   paintShared();
+  if (typeof scheduleHashSync === "function") scheduleHashSync();
 }
 
 /* ---------- correction ring colors per decoder ---------- */
@@ -790,11 +812,92 @@ function showToast(html) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
+/* ============================================================
+   SHARE: reuse index.html's EXACT hash scheme  d<distance>-<base64url>
+   (2 bits/qubit, X then Z, row-major). Same encoding so links are
+   interchangeable between Module 1 and Module 2.
+   ============================================================ */
+function encodeState() {
+  const d = state.d, n = d * d;
+  const bytes = new Uint8Array(Math.ceil((n * 2) / 8));
+  let bit = 0;
+  for (let r = 0; r < d; r++) for (let c = 0; c < d; c++) {
+    const e = state.errors[`${r},${c}`];
+    if (e && e.x) bytes[bit >> 3] |= (1 << (bit & 7)); bit++;
+    if (e && e.z) bytes[bit >> 3] |= (1 << (bit & 7)); bit++;
+  }
+  let bin = ""; for (const b of bytes) bin += String.fromCharCode(b);
+  const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `d${d}-${b64}`;
+}
+function decodeState(hash) {
+  try {
+    const m = hash.match(/^#?d(\d+)-(.*)$/);
+    if (!m) return false;
+    const d = parseInt(m[1], 10);
+    if (![3, 5, 7].includes(d)) return false;
+    let b64 = m[2].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    state.d = d; state.errors = {};
+    let bit = 0;
+    for (let r = 0; r < d; r++) for (let c = 0; c < d; c++) {
+      const xb = (bytes[bit >> 3] >> (bit & 7)) & 1; bit++;
+      const zb = (bytes[bit >> 3] >> (bit & 7)) & 1; bit++;
+      if (xb || zb) state.errors[`${r},${c}`] = { x: !!xb, z: !!zb };
+    }
+    return true;
+  } catch (err) { return false; }
+}
+let hashTimer;
+function scheduleHashSync() {
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(() => history.replaceState(null, "", "#" + encodeState()), 250);
+}
+
+/* Share button — same UX as Module 1 (native share -> clipboard fallback). */
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  history.replaceState(null, "", "#" + encodeState());
+  const url = location.origin + location.pathname + "#" + encodeState();
+  const shareText = "Watch three real decoders race on this exact error pattern:";
+  if (navigator.share) {
+    try { await navigator.share({ title: "QEC Explorer — Decoder Race", text: shareText, url });
+      showToast(`Shared — <b>this exact race</b>.`); return;
+    } catch (err) { if (err && err.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(`${shareText} ${url}`);
+    showToast(`Link + message copied — <b>paste it anywhere</b>.`);
+  } catch (err) { showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`); }
+});
+
+/* Famous-pattern links + browser back/forward: load the hash, then auto-run. */
+function loadFromHash(autoRun) {
+  if (!location.hash || !decodeState(location.hash)) return false;
+  // reflect distance buttons + rebuild lattices for the loaded state
+  [...document.getElementById("dist").children].forEach(b => {
+    const on = (+b.dataset.v === state.d);
+    b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  rebuildAll();
+  paintShared();
+  if (autoRun && errorWeight(state.errors) > 0) runRace();
+  return true;
+}
+document.getElementById("famous").addEventListener("click", (e) => {
+  const a = e.target.closest("a.famous-link"); if (!a) return;
+  // let the hash change, then load+run (hashchange handler does the work)
+});
+window.addEventListener("hashchange", () => loadFromHash(true));
+
 /* ---------- init ---------- */
 svgs.lookup = document.getElementById("svg-lookup");
 svgs.mwpm = document.getElementById("svg-mwpm");
 svgs.bp = document.getElementById("svg-bp");
 rebuildAll();
+// If arriving via a shared link, load that pattern and auto-run the race.
+if (location.hash) loadFromHash(true);
 </script>
 </body>
 </html>
