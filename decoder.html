@@ -26,6 +26,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-
 .brand em{font-style:italic;color:var(--purple)}
 .brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
   text-transform:uppercase;margin-left:10px}
+.topbar .links{display:flex;gap:20px}
 .topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
 .topbar a:hover{color:var(--txt)}
 
@@ -189,7 +190,11 @@ footer a:hover{color:var(--txt)}
 
 <div class="topbar">
   <div class="brand">QEC <em>Explorer</em><span>Decoder Race</span></div>
-  <a href="index.html">← Back to detection</a>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">← Back to detection</a>
+    <a href="research.html">Research</a>
+  </div>
 </div>
 
 <div class="project-strip">
@@ -200,7 +205,7 @@ footer a:hover{color:var(--txt)}
       <span class="arrow">→</span>
       <span class="pill now">2 · Decoder race</span>
       <span class="arrow">→</span>
-      <span class="pill soon">3 · Noise explorer (soon)</span>
+      <a class="pill" href="noise.html">3 · Noise explorer</a>
     </div>
   </div>
 </div>
@@ -320,12 +325,12 @@ footer a:hover{color:var(--txt)}
         <div class="d">Three real decoders compete on the same syndrome.</div>
         <span class="badge2 live">Live now</span>
       </div>
-      <div class="step later">
-        <div class="lbl">Module 3 · Noise explorer (soon)</div>
+      <a class="step later" href="noise.html">
+        <div class="lbl">Module 3 · Live</div>
         <div class="t">Noise-model explorer</div>
-        <div class="d">Slide error rate and bias; see protection hold or break.</div>
-        <span class="badge2 wip">Planned</span>
-      </div>
+        <div class="d">Slide error rate and bias; watch a real Monte Carlo show protection hold or break.</div>
+        <span class="badge2 live">Live now</span>
+      </a>
     </div>
   </div>
 </div>
