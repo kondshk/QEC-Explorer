@@ -191,6 +191,17 @@ footer a:hover{color:var(--txt)}
 .toast b{color:var(--purple)}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* Guide-me mode */
+#guideBtn.on{background:var(--teal);border-color:var(--teal);color:#08080c;font-weight:600}
+body.guiding .data-qubit{cursor:help}
+body.guiding .decoder{cursor:help}
+.guide-pop{position:fixed;z-index:90;max-width:260px;background:var(--s3);border:1px solid var(--teal);
+  border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--txt);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;transform:translateY(4px);pointer-events:none;
+  transition:opacity .15s,transform .15s}
+.guide-pop.show{opacity:1;transform:translateY(0)}
+.guide-pop .gk{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.guide-pop b{color:var(--gold);font-weight:500}
 </style>
 </head>
 <body>
@@ -253,6 +264,12 @@ footer a:hover{color:var(--txt)}
       <span class="lbl">Share</span>
       <div class="seg">
         <button class="btn" id="shareBtn">🔗 Share this race</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <span class="lbl">Learn</span>
+      <div class="seg">
+        <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
       </div>
     </div>
     <div class="spacer"></div>
@@ -358,6 +375,8 @@ footer a:hover{color:var(--txt)}
 
 <div class="toast" id="toast"></div>
 <div class="sr-only" id="srLive" aria-live="polite"></div>
+<!-- Guide-me popover: ONE reused element -->
+<div class="guide-pop" id="guidePop" role="status"></div>
 
 <footer>
   QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation) — view source.<br>
@@ -896,11 +915,89 @@ document.getElementById("famous").addEventListener("click", (e) => {
 });
 window.addEventListener("hashchange", () => loadFromHash(true));
 
+/* ============================================================
+   GUIDE-ME MODE — tour guide for the decoder race.
+   Keyed snippets + one reused popover; reuses existing nodes.
+   ============================================================ */
+let guideMode = false;
+const guidePop = document.getElementById("guidePop");
+const GUIDE_DECODER = {
+  lookup: { k: "Lookup decoder", t: "The <b>lookup table</b> precomputes the best correction for <i>every</i> possible syndrome ahead of time. Exact, but only practical at d=3 — the table explodes with code size. It's the perfect baseline to judge the others against." },
+  mwpm: { k: "MWPM decoder", t: "<b>Minimum-weight matching</b> treats lit detectors as points to pair up, then connects each pair along the shortest path. It's the real workhorse of surface-code decoding — fast and usually optimal." },
+  bp: { k: "Belief-propagation decoder", t: "<b>Belief propagation</b> passes probability messages around the code's graph until beliefs settle. It scales to huge codes, but — honestly — it <i>struggles</i> on the surface code, which is exactly why this race is interesting to watch." },
+};
+function guideQubit(err) {
+  if (!err) return { k: "Shared data qubit", t: "This qubit is shared across all three panels. With Guide off, clicking paints an error here — and the <i>same</i> error and syndrome go to every decoder." };
+  const w = err.x && err.z ? "a <b>Y error</b>" : err.x ? "an <b>X error</b>" : "a <b>Z error</b>";
+  return { k: "Errored qubit", t: `This qubit carries ${w}. Every decoder sees only the resulting <b>syndrome</b> — never the error itself — and has to guess a fix.` };
+}
+function showGuidePop(el, sn) {
+  guidePop.innerHTML = `<div class="gk">${sn.k}</div>${sn.t}`;
+  guidePop.classList.add("show");
+  const r = el.getBoundingClientRect();
+  const pw = 260, ph = guidePop.offsetHeight || 100;
+  let x = r.left + r.width / 2 - pw / 2, y = r.top - ph - 10;
+  x = Math.max(8, Math.min(x, window.innerWidth - pw - 8));
+  if (y < 8) y = r.bottom + 10;
+  guidePop.style.left = x + "px"; guidePop.style.top = y + "px"; guidePop.style.width = pw + "px";
+  document.getElementById("srLive").textContent = sn.k + ": " + sn.t.replace(/<[^>]+>/g, "");
+}
+function hideGuidePop() { guidePop.classList.remove("show"); }
+function setGuideMode(on) {
+  guideMode = on;
+  document.body.classList.toggle("guiding", on);
+  const b = document.getElementById("guideBtn");
+  b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+  if (!on) hideGuidePop();
+}
+document.getElementById("guideBtn").addEventListener("click", () => setGuideMode(!guideMode));
+document.addEventListener("click", (e) => {
+  if (!guideMode) return;
+  if (e.target.closest(".data-qubit, .decoder, #guidePop, #guideBtn")) return;
+  hideGuidePop();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGuidePop(); });
+
+// decoder-panel guide handlers (panels exist from page load, not rebuilt)
+["lookup", "mwpm", "bp"].forEach(id => {
+  const panel = document.getElementById("panel-" + id);
+  if (panel) panel.addEventListener("click", (ev) => {
+    if (!guideMode) return;
+    ev.stopPropagation();
+    showGuidePop(panel, GUIDE_DECODER[id]);
+  }, true); // capture so the panel explanation wins over inner clicks
+});
+
+// shared-qubit guide handlers, (re)wired after each buildMini
+function wireQubitGuide() {
+  for (const id of DECODERS) {
+    const nm = nodeMaps[id]; if (!nm) continue;
+    for (const key in nm.qubits) {
+      const circ = nm.qubits[key].circle;
+      if (circ && !circ._guideWired) {
+        circ._guideWired = true;
+        circ.addEventListener("click", (ev) => {
+          if (!guideMode) return;
+          ev.stopPropagation();
+          showGuidePop(circ, guideQubit(state.errors[key]));
+        }, true);
+      }
+    }
+  }
+}
+// suppress the normal toggle while guiding
+const _origToggleShared = toggleSharedError;
+toggleSharedError = function (key) { if (guideMode) return; return _origToggleShared(key); };
+
 /* ---------- init ---------- */
 svgs.lookup = document.getElementById("svg-lookup");
 svgs.mwpm = document.getElementById("svg-mwpm");
 svgs.bp = document.getElementById("svg-bp");
 rebuildAll();
+wireQubitGuide();
+// re-wire qubit guide handlers whenever the lattices rebuild (distance change)
+const _origRebuildAll = rebuildAll;
+rebuildAll = function () { _origRebuildAll(); wireQubitGuide(); };
 // If arriving via a shared link, load that pattern and auto-run the race.
 if (location.hash) loadFromHash(true);
 </script>

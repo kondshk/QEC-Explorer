@@ -215,12 +215,29 @@ footer a:hover{color:var(--txt)}
 /* Screen-reader-only live region */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Guide-me mode: active button + contextual popover */
+#guideBtn.on{background:var(--teal);border-color:var(--teal);color:#08080c;font-weight:600}
+body.guiding .data-qubit{cursor:help}
+.guide-pop{position:fixed;z-index:90;max-width:260px;background:var(--s3);border:1px solid var(--teal);
+  border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--txt);
+  box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;transform:translateY(4px);pointer-events:none;
+  transition:opacity .15s,transform .15s}
+.guide-pop.show{opacity:1;transform:translateY(0)}
+.guide-pop .gk{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.guide-pop b{color:var(--gold);font-weight:500}
+.guide-hint{font-size:12px;color:var(--teal);margin-top:8px;display:none}
+body.guiding .guide-hint{display:block}
 </style>
 </head>
 <body>
 
 <!-- Credit link shown only in embedded (?embed=1) views -> drives full-site visits -->
 <div class="embed-credit"><a href="index.html" target="_blank" rel="noopener">QEC Explorer ↗</a></div>
+
+<!-- Guide-me popover: ONE reused element, never recreated per click -->
+<div class="guide-pop" id="guidePop" role="status"></div>
 
 <div class="topbar">
   <div class="brand">QEC <em>Explorer</em><span>Surface Code Playground</span></div>
@@ -273,6 +290,7 @@ footer a:hover{color:var(--txt)}
       <button class="btn" id="randomBtn">⚡ Inject random errors</button>
       <button class="btn" id="copyBtn">🔗 Share this pattern</button>
       <button class="btn danger" id="clearBtn">Clear all errors</button>
+      <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
 
       <div class="note">
         <b>Tip:</b> Try placing two X errors next to each other on the same row. Watch how the syndromes <i>between</i> them stay dark — only the two <i>ends</i> of an error chain are visible. That ambiguity is exactly what makes decoding hard.
@@ -546,6 +564,7 @@ function buildLattice() {
   });
 
   paint(new Set());
+  if (typeof wireGuideHandlers === "function") wireGuideHandlers();
 }
 
 /* ---- CHEAP update: attribute-only, on every click ---- */
@@ -841,6 +860,94 @@ function showToast(html) {
     catch (err) { ta.select(); showToast(`Select-all done — press Ctrl/Cmd+C to copy.`); }
   });
 })();
+
+/* ============================================================
+   GUIDE-ME MODE: a tour guide that explains what you click.
+   Keyed text snippets + one reused popover; reuses the existing
+   nodeMap node references (no re-querying, no per-click DOM).
+   ============================================================ */
+let guideMode = false;
+const guidePop = document.getElementById("guidePop");
+
+function guideText(kind, ctx) {
+  // short (10-15s read) contextual snippets, distinct from the prose block
+  if (kind === "qubit") {
+    if (!ctx.err) return { k: "Data qubit", t: "This is a <b>data qubit</b> — it holds a sliver of the protected information. Right now it's error-free. With Guide off, clicking it injects an error of the type you've selected." };
+    const w = ctx.err.x && ctx.err.z ? "a <b>Y error</b> (both an X and a Z flip)" : ctx.err.x ? "an <b>X error</b> (a bit-flip)" : "a <b>Z error</b> (a phase-flip)";
+    return { k: "Errored qubit", t: `This qubit currently carries ${w}. Notice which nearby stabilizers lit up in response — that's how the code <i>detects</i> it without ever reading the qubit directly.` };
+  }
+  if (kind === "stab") {
+    const detects = ctx.type === "Z" ? "X (bit-flip)" : "Z (phase-flip)";
+    if (ctx.fired) return { k: "Lit stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> just <b>fired</b>. It detects ${detects} errors on its neighbors, and an <i>odd</i> number of them flipped — so it flags a problem. The set of all lit stabilizers is the <b>syndrome</b>.` };
+    return { k: "Quiet stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> checks its neighbors for ${detects} errors. It's currently <b>silent</b> (+1) — either no such error nearby, or an even number that cancel out in its parity check.` };
+  }
+  return { k: "", t: "" };
+}
+
+function showGuidePop(targetEl, snippet) {
+  guidePop.innerHTML = `<div class="gk">${snippet.k}</div>${snippet.t}`;
+  guidePop.classList.add("show");
+  // position near the clicked element, kept on-screen
+  const r = targetEl.getBoundingClientRect();
+  const pw = 260, ph = guidePop.offsetHeight || 90;
+  let x = r.left + r.width / 2 - pw / 2;
+  let y = r.top - ph - 10;
+  x = Math.max(8, Math.min(x, window.innerWidth - pw - 8));
+  if (y < 8) y = r.bottom + 10; // flip below if no room above
+  guidePop.style.left = x + "px";
+  guidePop.style.top = y + "px";
+  guidePop.style.width = pw + "px";
+  document.getElementById("srLive").textContent = snippet.k + ": " + snippet.t.replace(/<[^>]+>/g, "");
+}
+function hideGuidePop() { guidePop.classList.remove("show"); }
+
+function setGuideMode(on) {
+  guideMode = on;
+  document.body.classList.toggle("guiding", on);
+  const btn = document.getElementById("guideBtn");
+  btn.classList.toggle("on", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  if (!on) hideGuidePop();
+}
+document.getElementById("guideBtn").addEventListener("click", () => setGuideMode(!guideMode));
+// dismiss popover when clicking elsewhere / pressing Escape
+document.addEventListener("click", (e) => {
+  if (!guideMode) return;
+  if (e.target.closest(".data-qubit, .plaquette, #guidePop, #guideBtn")) return;
+  hideGuidePop();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGuidePop(); });
+
+/* Attach guide handlers to the EXISTING lattice nodes (called after buildLattice). */
+function wireGuideHandlers() {
+  for (const key in nodeMap.qubits) {
+    const { hit } = nodeMap.qubits[key];
+    if (hit && !hit._guideWired) {
+      hit._guideWired = true;
+      hit.addEventListener("click", (ev) => {
+        if (!guideMode) return;
+        ev.stopPropagation();
+        showGuidePop(hit, guideText("qubit", { err: state.errors[key] }));
+      }, true); // capture: runs before the toggle handler so we can suppress it
+    }
+  }
+  nodeMap.plaqs.forEach((p, i) => {
+    if (p.poly && !p.poly._guideWired) {
+      p.poly._guideWired = true;
+      p.poly.style.pointerEvents = "auto"; // plaquettes are decorative; enable clicks for guide
+      p.poly.addEventListener("click", (ev) => {
+        if (!guideMode) return;
+        ev.stopPropagation();
+        const synd = computeSyndrome(CODE);
+        showGuidePop(p.poly, guideText("stab", { type: p.type, fired: synd[i] === 1 }));
+      });
+    }
+  });
+}
+// In guide mode, the qubit's capture-phase handler must block the normal toggle.
+// We do that by gating toggleError on guideMode:
+const _origToggleError = toggleError;
+toggleError = function (key) { if (guideMode) return; return _origToggleError(key); };
 
 /* ---- init: restore from URL hash if present ---- */
 (function init() {
