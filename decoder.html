@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer — Decoder Race</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* --- Design tokens copied verbatim from index.html (do not redefine colors) --- */
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* Top bar (same pattern as module 1) */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.brand{font-family:'Instrument Serif',serif;font-size:22px}
+.brand em{font-style:italic;color:var(--purple)}
+.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
+  text-transform:uppercase;margin-left:10px}
+.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.topbar a:hover{color:var(--txt)}
+
+/* Project strip (same as module 1, Module 2 marked current) */
+.project-strip{max-width:1320px;margin:18px auto 0;padding:0 28px}
+.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
+  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
+.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--purple);white-space:nowrap}
+.project-strip .crumb b{color:var(--txt);font-weight:500}
+.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
+  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
+a.pill:hover{border-color:var(--purple);color:var(--txt)}
+.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.project-strip .pill.soon{color:var(--hint)}
+.project-strip .arrow{color:var(--hint)}
+
+.wrap{max-width:1320px;margin:0 auto;padding:32px 28px 80px}
+.lead{margin-bottom:24px}
+.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:12px}
+.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:14px}
+.lead h1 em{font-style:italic;color:var(--purple)}
+.lead p{color:var(--dim);font-size:16px;max-width:760px;font-weight:300}
+
+/* Control bar */
+.controls{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;
+  background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:20px 22px;margin-bottom:14px}
+.ctrl-group{display:flex;flex-direction:column;gap:7px}
+.ctrl-group .lbl{font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;
+  letter-spacing:1px;text-transform:uppercase}
+.seg{display:flex;gap:6px}
+.seg button{background:var(--s2);border:1px solid var(--bdr);color:var(--dim);
+  font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 14px;border-radius:5px;cursor:pointer;transition:all .15s}
+.seg button:hover{border-color:var(--bdr2);color:var(--txt)}
+.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.seg button.on{color:#08080c;font-weight:600}
+.seg.errtype button.on[data-v="X"]{background:var(--coral);border-color:var(--coral)}
+.seg.errtype button.on[data-v="Z"]{background:var(--blue);border-color:var(--blue)}
+.seg.errtype button.on[data-v="Y"]{background:var(--gold);border-color:var(--gold)}
+.seg.dist button.on{background:var(--purple);border-color:var(--purple)}
+.btn{padding:10px 16px;border-radius:6px;border:1px solid var(--bdr2);background:var(--s2);
+  color:var(--txt);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--purple);background:var(--s3)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.primary{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger:hover{border-color:var(--red)}
+.spacer{flex:1}
+
+/* Shared-error mini panel + note */
+.shared-note{background:var(--s2);border:1px solid var(--bdr);border-left:3px solid var(--gold);
+  border-radius:0 7px 7px 0;padding:12px 16px;font-size:13px;color:var(--dim);line-height:1.55;margin-bottom:22px}
+.shared-note b{color:var(--txt);font-weight:500}
+
+/* Three decoder panels */
+.race{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+@media(max-width:1040px){.race{grid-template-columns:1fr}}
+.decoder{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:18px;display:flex;flex-direction:column}
+.decoder h3{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;margin-bottom:2px}
+.decoder .sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.decoder .sub.x{color:var(--purple)}
+.decoder .sub.m{color:var(--teal)}
+.decoder .sub.b{color:var(--blue)}
+.mini-wrap{display:flex;align-items:center;justify-content:center;padding:6px 0 12px}
+svg.mini{width:100%;height:auto;max-width:300px}
+.mini .bond{stroke:var(--bdr);stroke-width:1.3}
+.mini .plaquette{stroke-width:1}
+.mini .data-qubit{transition:fill .2s}
+.mini .corr-ring{fill:none;stroke-dasharray:4 3;stroke-width:2.5;transition:opacity .3s}
+.mini .path-line{stroke-width:3;stroke-linecap:round;opacity:0;transition:opacity .3s}
+.mini .synd-dot{transition:opacity .25s}
+.synd-label{font-family:'JetBrains Mono',monospace;font-size:10px;pointer-events:none;
+  text-anchor:middle;dominant-baseline:central;font-weight:500;fill:#fff}
+
+.decoder .status{margin-top:auto;padding-top:12px;border-top:1px solid var(--bdr)}
+.badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;
+  padding:5px 11px;border-radius:5px;font-weight:600;margin-bottom:8px}
+.badge.fixed{background:rgba(46,196,160,.16);color:var(--teal);border:1px solid rgba(46,196,160,.4)}
+.badge.failed{background:rgba(224,64,64,.14);color:var(--red);border:1px solid rgba(224,64,64,.4)}
+.badge.idle{background:var(--s3);color:var(--hint);border:1px solid var(--bdr)}
+.badge.unavail{background:var(--s3);color:var(--hint);border:1px solid var(--bdr)}
+.decoder .meta{font-size:12px;color:var(--dim);line-height:1.5}
+.decoder .meta .it{font-family:'JetBrains Mono',monospace;color:var(--txt)}
+.decoder.disabled{opacity:.65}
+.decoder .unavail-msg{font-size:12.5px;color:var(--hint);line-height:1.55;padding:20px 4px;text-align:center}
+
+/* per-iteration BP counter chip */
+.itchip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:var(--s3);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;color:var(--blue);margin-left:6px}
+
+/* Agreement strip */
+.agreement{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:18px 22px;margin-bottom:22px}
+.agreement h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--coral);margin-bottom:10px}
+.agreement .body{font-size:14px;color:var(--dim);line-height:1.6}
+.agreement .body b{color:var(--txt);font-weight:500}
+.agreement code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--s3);
+  padding:1px 6px;border-radius:3px;color:var(--gold)}
+
+/* Legend row */
+.legend-bar{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim);
+  background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:14px 20px;margin-bottom:26px}
+.legend-bar .item{display:flex;align-items:center;gap:7px}
+.legend-bar .sw{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.legend-bar .sw.ring{background:transparent;border:2px dashed var(--teal);border-radius:50%}
+
+/* Insight card */
+.insight{max-width:840px;margin:8px auto 0;background:var(--s1);border:1px solid var(--bdr);
+  border-radius:10px;padding:26px 30px;position:relative;overflow:hidden}
+.insight::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(to bottom,var(--coral),var(--gold))}
+.insight .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--coral);margin-bottom:10px}
+.insight h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:10px}
+.insight p{color:var(--dim);font-size:14.5px;line-height:1.7}
+.insight p b{color:var(--txt);font-weight:500}
+
+/* What's next roadmap card (copied pattern from module 1) */
+.next-card{max-width:840px;margin:40px auto 0;background:var(--s1);border:1px solid var(--bdr);
+  border-radius:10px;padding:28px 30px;position:relative;overflow:hidden}
+.next-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(to bottom,var(--purple),var(--teal))}
+.next-card .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.next-card h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:8px}
+.next-card .roadmap{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.next-card .step{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:14px 16px;
+  text-decoration:none;display:block}
+a.step:hover{border-color:var(--purple)}
+.next-card .step .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:6px}
+.next-card .step.done .lbl{color:var(--teal)}
+.next-card .step.now .lbl{color:var(--purple)}
+.next-card .step.later .lbl{color:var(--hint)}
+.next-card .step .t{font-size:13.5px;font-weight:500;color:var(--txt);margin-bottom:3px}
+.next-card .step .d{font-size:12px;color:var(--dim);line-height:1.45}
+.next-card .badge2{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-top:8px}
+.next-card .badge2.live{background:rgba(46,196,160,.14);color:var(--teal)}
+.next-card .badge2.wip{background:rgba(92,91,114,.18);color:var(--hint)}
+
+footer{max-width:1320px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
+  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
+footer a:hover{color:var(--txt)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s3);border:1px solid var(--bdr2);color:var(--txt);padding:12px 22px;border-radius:8px;
+  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast b{color:var(--purple)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span>Decoder Race</span></div>
+  <a href="index.html">← Back to detection</a>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 2 — Decoding</div>
+    <div class="steps">
+      <a class="pill" href="index.html">1 · Detect errors</a>
+      <span class="arrow">→</span>
+      <span class="pill now">2 · Decoder race</span>
+      <span class="arrow">→</span>
+      <span class="pill soon">3 · Noise explorer (soon)</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Interactive · Three real decoders · Runs in your browser</div>
+    <h1>Watch three decoders <em>race</em> to fix it</h1>
+    <p>Inject an error, then hit <b>Run race</b>. The same syndrome is handed to three different decoding algorithms — a <b>lookup table</b>, <b>minimum-weight matching</b>, and <b>belief propagation</b> — and each guesses a correction independently. See where they agree, where they diverge, and which actually return the code to safety.</p>
+  </div>
+
+  <!-- Controls: same interaction model as module 1 -->
+  <div class="controls">
+    <div class="ctrl-group">
+      <span class="lbl">Paint error</span>
+      <div class="seg errtype" id="errType" role="group" aria-label="Error type">
+        <button data-v="X" class="on" aria-pressed="true">X</button>
+        <button data-v="Z" aria-pressed="false">Z</button>
+        <button data-v="Y" aria-pressed="false">Y</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <span class="lbl">Distance</span>
+      <div class="seg dist" id="dist" role="group" aria-label="Code distance">
+        <button data-v="3" class="on" aria-pressed="true">d=3</button>
+        <button data-v="5" aria-pressed="false">d=5</button>
+        <button data-v="7" aria-pressed="false">d=7</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
+      <span class="lbl">Actions</span>
+      <div class="seg">
+        <button class="btn" id="randomBtn">⚡ Random</button>
+        <button class="btn danger" id="clearBtn">Clear</button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="ctrl-group">
+      <span class="lbl">&nbsp;</span>
+      <button class="btn primary" id="raceBtn">▶ Run race</button>
+    </div>
+  </div>
+
+  <div class="shared-note">
+    <b>Same error, same syndrome — three guesses.</b> Click qubits on any panel below to paint the error; all three panels share the identical injected error and resulting syndrome. The colored dashed rings each decoder adds are <i>its</i> proposed correction.
+  </div>
+
+  <div class="legend-bar">
+    <div class="item"><span class="sw" style="background:var(--coral)"></span> X error</div>
+    <div class="item"><span class="sw" style="background:var(--blue)"></span> Z error</div>
+    <div class="item"><span class="sw" style="background:var(--gold)"></span> Y error</div>
+    <div class="item"><span class="sw" style="background:var(--purple)"></span> Lit syndrome</div>
+    <div class="item"><span class="sw ring"></span> Proposed correction (dashed ring)</div>
+  </div>
+
+  <!-- THREE DECODER PANELS -->
+  <div class="race">
+    <!-- Lookup -->
+    <div class="decoder" id="panel-lookup">
+      <h3>Lookup</h3>
+      <div class="sub x">Exhaustive syndrome table</div>
+      <div class="mini-wrap"><svg class="mini" id="svg-lookup" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="status">
+        <span class="badge idle" id="badge-lookup">Idle</span>
+        <div class="meta" id="meta-lookup">Press “Run race”.</div>
+      </div>
+    </div>
+    <!-- MWPM -->
+    <div class="decoder" id="panel-mwpm">
+      <h3>MWPM</h3>
+      <div class="sub m">Min-weight perfect matching</div>
+      <div class="mini-wrap"><svg class="mini" id="svg-mwpm" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="status">
+        <span class="badge idle" id="badge-mwpm">Idle</span>
+        <div class="meta" id="meta-mwpm">Press “Run race”.</div>
+      </div>
+    </div>
+    <!-- BP -->
+    <div class="decoder" id="panel-bp">
+      <h3>Belief propagation</h3>
+      <div class="sub b">Iterative message passing</div>
+      <div class="mini-wrap"><svg class="mini" id="svg-bp" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="status">
+        <span class="badge idle" id="badge-bp">Idle</span>
+        <div class="meta" id="meta-bp">Press “Run race”.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agreement strip -->
+  <div class="agreement">
+    <h4>Agreement</h4>
+    <div class="body" id="agreement-body">Run the race to compare the three corrections.</div>
+  </div>
+
+  <!-- The honest threshold-relevant insight -->
+  <div class="insight">
+    <div class="kicker">The point worth understanding</div>
+    <h3>A decoder can never be sure it's right</h3>
+    <p>Every decoder sees <b>only the syndrome</b> — never the actual error. But many different errors produce the <i>same</i> syndrome. A decoder picks the <b>most likely</b> explanation (usually the lowest-weight one), and most of the time that's correct. But when the real error is large — for instance a chain spanning the whole code — its syndrome can look identical to "nothing happened," and <b>no decoder can tell the difference using syndrome information alone</b>. That irreducible ambiguity is exactly why a code has a finite <i>threshold</i>: push the error rate too high and even a perfect decoder starts guessing wrong. Try a full-column X error below and watch all three "succeed" on the syndrome while a logical error silently slips through.</p>
+  </div>
+
+  <!-- What's next -->
+  <div class="next-card">
+    <div class="kicker">Where this is going</div>
+    <h3>Next: when does protection actually <em style="font-style:italic;color:var(--purple)">break</em>?</h3>
+    <div class="roadmap">
+      <a class="step done" href="index.html">
+        <div class="lbl">Module 1 · Done</div>
+        <div class="t">Surface-code detection</div>
+        <div class="d">Inject errors, watch syndromes fire.</div>
+        <span class="badge2 live">Live</span>
+      </a>
+      <div class="step now">
+        <div class="lbl">Module 2 · You are here</div>
+        <div class="t">Decoder race</div>
+        <div class="d">Three real decoders compete on the same syndrome.</div>
+        <span class="badge2 live">Live now</span>
+      </div>
+      <div class="step later">
+        <div class="lbl">Module 3 · Later</div>
+        <div class="t">Noise-model explorer</div>
+        <div class="d">Slide error rate and bias; see protection hold or break.</div>
+        <span class="badge2 wip">Planned</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="sr-only" id="srLive" aria-live="polite"></div>
+
+<footer>
+  QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation) — view source.<br>
+  <a href="index.html">← Back to the detection module</a>
+</footer>
+
+<!-- Shared physics + decoder algorithms (local scripts, no CDN) -->
+<script src="lattice-core.js"></script>
+<script src="decoders.js"></script>
+<script>
+/* ============================================================
+   decoder.html UI — Module 2
+   Renders three mini-lattices sharing one injected error, runs the
+   three real decoders from decoders.js, and animates the race.
+   ============================================================ */
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+// page state (note: `state` global comes from lattice-core.js)
+state.d = 3;
+state.paint = "X";
+state.errors = {};   // the SHARED injected error, used by all 3 panels
+
+let CODE = buildCode(state.d);
+let lookupTable = buildLookupTable(CODE);
+
+const DECODERS = ["lookup", "mwpm", "bp"];
+const svgs = {};
+const nodeMaps = {}; // id -> { qubits:{key:{circle,ring}}, plaqs:[poly], pathLayer }
+
+/* ---------- geometry for a mini-lattice ---------- */
+function miniGeo(d) {
+  const PAD = 44, SIZE = 320;
+  const span = SIZE - PAD * 2;
+  const step = span / (d - 1);
+  return {
+    d, PAD, step, SIZE,
+    toX: c => PAD + c * step,
+    toY: r => PAD + r * step,
+    visR: d <= 3 ? 11 : d <= 5 ? 8 : 6
+  };
+}
+
+/* ---------- build one mini-lattice (structure only) ---------- */
+function buildMini(id) {
+  const svg = svgs[id];
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const g = miniGeo(CODE.d);
+  const { d, toX, toY, visR } = g;
+  const nm = { qubits: {}, plaqs: [], pathLayer: null, g };
+
+  // bonds
+  for (let r = 0; r < d; r++) for (let c = 0; c < d; c++) {
+    if (c < d - 1) miniLine(svg, toX(c), toY(r), toX(c + 1), toY(r));
+    if (r < d - 1) miniLine(svg, toX(c), toY(r), toX(c), toY(r + 1));
+  }
+  // plaquettes
+  CODE.stabs.forEach((s, i) => {
+    const pts = s.data.map(k => { const [rr, cc] = k.split(",").map(Number); return [toX(cc), toY(rr)]; });
+    const cx = toX(s.cx), cy = toY(s.cy);
+    pts.sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx));
+    const poly = document.createElementNS(SVG_NS, "polygon");
+    poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+    poly.setAttribute("class", "plaquette");
+    svg.appendChild(poly);
+    const label = document.createElementNS(SVG_NS, "text");
+    label.setAttribute("x", cx); label.setAttribute("y", cy);
+    label.setAttribute("class", "synd-label"); label.textContent = "";
+    svg.appendChild(label);
+    nm.plaqs[i] = { poly, label, type: s.type, cx, cy };
+  });
+  // path layer (correction paths drawn above plaquettes, below qubits)
+  const pathLayer = document.createElementNS(SVG_NS, "g");
+  svg.appendChild(pathLayer);
+  nm.pathLayer = pathLayer;
+
+  // qubits + correction rings
+  CODE.data.forEach(({ r, c }) => {
+    const key = `${r},${c}`;
+    const ring = document.createElementNS(SVG_NS, "circle");
+    ring.setAttribute("cx", toX(c)); ring.setAttribute("cy", toY(r));
+    ring.setAttribute("r", visR + 5);
+    ring.setAttribute("class", "corr-ring");
+    ring.setAttribute("stroke", "transparent");
+    svg.appendChild(ring);
+
+    const circ = document.createElementNS(SVG_NS, "circle");
+    circ.setAttribute("cx", toX(c)); circ.setAttribute("cy", toY(r));
+    circ.setAttribute("r", visR);
+    circ.setAttribute("fill", "#2a2a3a");
+    circ.setAttribute("stroke", "#43435f"); circ.setAttribute("stroke-width", "1.4");
+    circ.setAttribute("class", "data-qubit");
+    circ.style.cursor = "pointer";
+    circ.setAttribute("tabindex", "0");
+    circ.setAttribute("role", "button");
+    circ.setAttribute("aria-label", `Data qubit row ${r + 1}, column ${c + 1}`);
+    circ.addEventListener("click", () => { toggleSharedError(key); });
+    circ.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleSharedError(key); }
+    });
+    svg.appendChild(circ);
+    nm.qubits[key] = { circle: circ, ring };
+  });
+
+  nodeMaps[id] = nm;
+}
+
+function miniLine(svg, x1, y1, x2, y2) {
+  const l = document.createElementNS(SVG_NS, "line");
+  l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+  l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+  l.setAttribute("class", "bond");
+  svg.appendChild(l);
+}
+
+/* ---------- paint shared error + syndrome on all three panels ---------- */
+function fillForError(e) {
+  if (!e) return "#2a2a3a";
+  if (e.x && e.z) return "var(--gold)";
+  if (e.x) return "var(--coral)";
+  if (e.z) return "var(--blue)";
+  return "#2a2a3a";
+}
+
+function paintShared() {
+  const synd = computeSyndrome(CODE); // uses state.errors (shared)
+  for (const id of DECODERS) {
+    const nm = nodeMaps[id];
+    if (!nm) continue;
+    // qubit error colors
+    for (const key in nm.qubits) {
+      nm.qubits[key].circle.setAttribute("fill", fillForError(state.errors[key]));
+      // reset correction rings + paths when error changes
+      nm.qubits[key].ring.setAttribute("stroke", "transparent");
+    }
+    // syndrome
+    nm.plaqs.forEach((p, i) => {
+      const fired = synd[i] === 1;
+      if (fired) {
+        p.poly.setAttribute("fill", "var(--purple)");
+        p.poly.setAttribute("fill-opacity", "0.55");
+        p.poly.setAttribute("stroke", "var(--purple)");
+        p.label.textContent = "!";
+      } else {
+        const bf = p.type === "Z" ? "rgba(46,196,160,1)" : "rgba(228,93,154,1)";
+        const bs = p.type === "Z" ? "var(--teal)" : "var(--pink)";
+        p.poly.setAttribute("fill", bf);
+        p.poly.setAttribute("fill-opacity", "0.10");
+        p.poly.setAttribute("stroke", bs);
+        p.label.textContent = "";
+      }
+    });
+    // clear any drawn paths
+    while (nm.pathLayer.firstChild) nm.pathLayer.removeChild(nm.pathLayer.firstChild);
+  }
+}
+
+/* ---------- interaction: toggle the shared error ---------- */
+function toggleSharedError(key) {
+  const cur = state.errors[key] || { x: false, z: false };
+  const next = { ...cur };
+  if (state.paint === "X") next.x = !next.x;
+  else if (state.paint === "Z") next.z = !next.z;
+  else { const both = cur.x && cur.z; next.x = !both; next.z = !both; }
+  if (!next.x && !next.z) delete state.errors[key];
+  else state.errors[key] = next;
+  resetBadges();
+  paintShared();
+}
+
+/* ---------- correction ring colors per decoder ---------- */
+const RING_COLOR = { lookup: "var(--purple)", mwpm: "var(--teal)", bp: "var(--blue)" };
+
+/* show a decoder's correction as dashed rings on its panel */
+function showCorrection(id, correction) {
+  const nm = nodeMaps[id];
+  for (const key in nm.qubits) {
+    const has = correction[key] && (correction[key].x || correction[key].z);
+    nm.qubits[key].ring.setAttribute("stroke", has ? RING_COLOR[id] : "transparent");
+    nm.qubits[key].ring.style.opacity = has ? "1" : "0";
+  }
+}
+
+/* draw a single MWPM matched path as a line through its qubits */
+function drawMwpmPath(path) {
+  const nm = nodeMaps.mwpm;
+  const g = nm.g;
+  if (!path.qubits.length) return;
+  // build a polyline through the qubit centers, in order
+  const pts = path.qubits.map(k => {
+    const [r, c] = k.split(",").map(Number);
+    return `${g.toX(c)},${g.toY(r)}`;
+  });
+  // connect to the two defect centers as endpoints for a clean visual
+  const a = `${g.toX(path.from.cx)},${g.toY(path.from.cy)}`;
+  const endPts = [a, ...pts];
+  if (path.to) endPts.push(`${g.toX(path.to.cx)},${g.toY(path.to.cy)}`);
+  const line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("points", endPts.join(" "));
+  line.setAttribute("class", "path-line");
+  line.setAttribute("fill", "none");
+  line.setAttribute("stroke", "var(--teal)");
+  nm.pathLayer.appendChild(line);
+  requestAnimationFrame(() => { line.style.opacity = "0.8"; });
+}
+
+/* ---------- badges / meta ---------- */
+function setBadge(id, cls, text) {
+  const b = document.getElementById("badge-" + id);
+  b.className = "badge " + cls; b.textContent = text;
+}
+function setMeta(id, html) { document.getElementById("meta-" + id).innerHTML = html; }
+function resetBadges() {
+  for (const id of DECODERS) {
+    if (id === "lookup" && CODE.d !== 3) continue; // keep unavailable message
+    setBadge(id, "idle", "Idle");
+    setMeta(id, "Press “Run race”.");
+  }
+}
+
+/* ---------- BP marginal animation: tint qubits by P(error) ---------- */
+function applyBpMarginals(margX, margZ, varKeys) {
+  const nm = nodeMaps.bp;
+  varKeys.forEach((k, i) => {
+    const pErr = Math.max(margX[i], margZ[i]); // show the stronger channel's belief
+    // intensity 0..1 -> blue glow on the ring
+    const ring = nm.qubits[k].ring;
+    if (pErr > 0.5) {
+      ring.setAttribute("stroke", "var(--blue)");
+      ring.style.opacity = String(0.3 + 0.7 * Math.min(1, (pErr - 0.5) * 2));
+    } else {
+      ring.setAttribute("stroke", "transparent");
+    }
+  });
+}
+
+/* ============================================================
+   RUN RACE — animate all three concurrently
+   ============================================================ */
+let raceToken = 0;
+const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+async function runRace() {
+  const myToken = ++raceToken; // cancel any in-flight race
+  const errors = cloneErrors(state.errors);
+  paintShared();
+
+  // launch all three concurrently
+  await Promise.all([
+    runLookup(myToken, errors),
+    runMwpm(myToken, errors),
+    runBp(myToken, errors),
+  ]);
+  if (myToken !== raceToken) return;
+  computeAgreement(errors);
+}
+
+async function runLookup(token, errors) {
+  const id = "lookup";
+  if (CODE.d !== 3) {
+    setBadge(id, "unavail", "Unavailable");
+    setMeta(id, "Lookup decoder is only practical at <b>d=3</b> — the table size grows exponentially with code distance.");
+    return;
+  }
+  setBadge(id, "idle", "Looking up…");
+  setMeta(id, "Looked up syndrome → correction");
+  await sleep(450);
+  if (token !== raceToken) return;
+  const res = lookupDecode(CODE, lookupTable, errors);
+  showCorrection(id, res.correction);
+  finishPanel(id, errors, res.correction, res.note);
+}
+
+async function runMwpm(token, errors) {
+  const id = "mwpm";
+  setBadge(id, "idle", "Matching…");
+  const res = mwpmDecode(CODE, errors);
+  // animate each matched path one at a time
+  setMeta(id, `Found ${res.paths.length} matched chain${res.paths.length !== 1 ? "s" : ""}. Drawing…`);
+  for (let i = 0; i < res.paths.length; i++) {
+    if (token !== raceToken) return;
+    await sleep(500);
+    drawMwpmPath(res.paths[i]);
+  }
+  await sleep(300);
+  if (token !== raceToken) return;
+  showCorrection(id, res.correction);
+  finishPanel(id, errors, res.correction, res.note);
+}
+
+async function runBp(token, errors) {
+  const id = "bp";
+  setBadge(id, "idle", "Iterating…");
+  const res = bpDecode(CODE, errors, true); // trace=true for per-iteration marginals
+  const itX = res.channels.X.iterMarginals;
+  const itZ = res.channels.Z.iterMarginals;
+  const varKeys = res.channels.X.varKeys;
+  const steps = Math.max(itX.length, itZ.length);
+  for (let i = 0; i < steps; i++) {
+    if (token !== raceToken) return;
+    setMeta(id, `Message-passing… <span class="itchip">iter ${i + 1}/${res.iters}</span>`);
+    applyBpMarginals(itX[Math.min(i, itX.length - 1)] || [], itZ[Math.min(i, itZ.length - 1)] || [], varKeys);
+    await sleep(420);
+  }
+  if (token !== raceToken) return;
+  // settle to final correction rings
+  showCorrection(id, res.correction);
+  finishPanel(id, errors, res.correction, res.note);
+}
+
+function finishPanel(id, errors, correction, note) {
+  const evalRes = evaluateCorrection(CODE, errors, correction);
+  setBadge(id, evalRes.ok ? "fixed" : "failed", evalRes.label);
+  const w = errorWeight(correction);
+  setMeta(id, `${note}<br>Correction weight: <span class="it">${w}</span>`);
+}
+
+/* ============================================================
+   AGREEMENT STRIP
+   ============================================================ */
+function computeAgreement(errors) {
+  // gather available corrections
+  const got = {};
+  const lookupAvail = (CODE.d === 3);
+  if (lookupAvail) got.lookup = lookupDecode(CODE, lookupTable, errors).correction;
+  got.mwpm = mwpmDecode(CODE, errors).correction;
+  got.bp = bpDecode(CODE, errors, false).correction;
+
+  const names = Object.keys(got);
+  const label = { lookup: "lookup", mwpm: "MWPM", bp: "BP" };
+  const body = document.getElementById("agreement-body");
+
+  // if no errors at all
+  if (errorWeight(errors) === 0) {
+    body.innerHTML = `No error injected — all decoders correctly propose <b>no correction</b>.`;
+    return;
+  }
+
+  // pairwise differences
+  const disagreements = [];
+  for (let i = 0; i < names.length; i++) {
+    for (let j = i + 1; j < names.length; j++) {
+      const d = diffErrorKeys(got[names[i]], got[names[j]]);
+      if (d.length) disagreements.push({ a: names[i], b: names[j], keys: d });
+    }
+  }
+
+  if (disagreements.length === 0) {
+    const which = lookupAvail ? "All three decoders" : "Both available decoders (MWPM and BP)";
+    body.innerHTML = `<b>${which} agree</b> — identical corrections on every qubit.`;
+    return;
+  }
+
+  // describe disagreements plainly
+  const parts = disagreements.map(dd => {
+    const qubits = dd.keys.map(k => `<code>(${k})</code>`).join(", ");
+    return `${label[dd.a]} and ${label[dd.b]} differ at ${qubits}`;
+  });
+  let note = "";
+  if (!lookupAvail) note = ` <span style="color:var(--hint)">(Lookup is unavailable at d=${CODE.d}.)</span>`;
+  body.innerHTML = `Decoders <b>disagree</b>: ${parts.join("; ")}.${note} ` +
+    `<span style="color:var(--hint)">Disagreement is expected — multiple corrections can be equally valid for the same syndrome.</span>`;
+}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+document.getElementById("errType").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.paint = b.dataset.v;
+  [...e.currentTarget.children].forEach(x => {
+    const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+});
+
+document.getElementById("dist").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.d = +b.dataset.v;
+  state.errors = {};
+  [...e.currentTarget.children].forEach(x => {
+    const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  rebuildAll();
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  state.errors = {};
+  resetBadges();
+  paintShared();
+  document.getElementById("agreement-body").innerHTML = "Run the race to compare the three corrections.";
+});
+
+document.getElementById("randomBtn").addEventListener("click", () => {
+  state.errors = {};
+  const p = 0.10;
+  CODE.data.forEach(({ r, c }) => {
+    if (Math.random() < p) {
+      const roll = Math.random();
+      state.errors[`${r},${c}`] = roll < 0.5 ? { x: true, z: false } : { x: false, z: true };
+    }
+  });
+  resetBadges();
+  paintShared();
+  document.getElementById("agreement-body").innerHTML = "Press “Run race” to decode this pattern.";
+});
+
+document.getElementById("raceBtn").addEventListener("click", runRace);
+
+/* ---------- (re)build everything for current distance ---------- */
+function rebuildAll() {
+  CODE = buildCode(state.d);
+  lookupTable = buildLookupTable(CODE); // null if d != 3
+  for (const id of DECODERS) buildMini(id);
+  paintShared();
+  // lookup availability message
+  if (CODE.d !== 3) {
+    document.getElementById("panel-lookup").classList.add("disabled");
+    setBadge("lookup", "unavail", "Unavailable");
+    setMeta("lookup", "Lookup decoder is only practical at <b>d=3</b> — the table size grows exponentially with code distance.");
+  } else {
+    document.getElementById("panel-lookup").classList.remove("disabled");
+    setBadge("lookup", "idle", "Idle");
+    setMeta("lookup", "Press “Run race”.");
+  }
+  // reset other badges
+  setBadge("mwpm", "idle", "Idle"); setMeta("mwpm", "Press “Run race”.");
+  setBadge("bp", "idle", "Idle"); setMeta("bp", "Press “Run race”.");
+  document.getElementById("agreement-body").innerHTML = "Run the race to compare the three corrections.";
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function showToast(html) {
+  const t = document.getElementById("toast");
+  t.innerHTML = html; t.classList.add("show");
+  document.getElementById("srLive").textContent = t.textContent;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+/* ---------- init ---------- */
+svgs.lookup = document.getElementById("svg-lookup");
+svgs.mwpm = document.getElementById("svg-mwpm");
+svgs.bp = document.getElementById("svg-bp");
+rebuildAll();
+</script>
+</body>
+</html>
