@@ -352,6 +352,8 @@ footer a:hover{color:var(--txt)}
   The lattice physics is real. <a href="#how">Read how it works ↑</a>
 </footer>
 
+<!-- Shared physics: buildCode / computeSyndrome / logicalStatus / hasAnyError -->
+<script src="lattice-core.js"></script>
 <script>
 /* ============================================================
    QEC EXPLORER — Rotated Surface Code (physically faithful)
@@ -370,117 +372,19 @@ footer a:hover{color:var(--txt)}
 const SVG_NS = "http://www.w3.org/2000/svg";
 const lattice = document.getElementById("lattice");
 
-const state = {
-  d: 3,
-  paint: "X",          // "X" | "Z" | "Y"
-  errors: {},          // key "r,c" -> {x:bool, z:bool}
-};
+/* `state` is declared in lattice-core.js (loaded first) so the shared
+   physics functions can read state.errors. We populate the page-specific
+   fields here rather than redeclaring it. */
+state.d = 3;
+state.paint = "X";          // "X" | "Z" | "Y"
+state.errors = {};          // key "r,c" -> {x:bool, z:bool}
 
-/* ---- Build the code structure for a given distance ---- */
-function buildCode(d) {
-  // Data qubits on a d×d grid. (r,c) with r,c in [0..d-1].
-  const data = [];
-  for (let r = 0; r < d; r++)
-    for (let c = 0; c < d; c++)
-      data.push({ r, c });
-
-  // Stabilizers sit on the "dual" grid, at half-integer positions.
-  // A plaquette at center (R+0.5, C+0.5) touches up to 4 data qubits:
-  //   (R,C),(R,C+1),(R+1,C),(R+1,C+1).
-  // Bulk plaquettes are full weight-4. Boundary stabilizers are the
-  // weight-2 "half" plaquettes on the top/bottom (one type) and
-  // left/right (other type) edges, giving the rotated code its shape.
-  // Coloring follows the checkerboard: (R+C) even = Z-type, odd = X-type.
-  const stabs = [];
-  for (let R = -1; R < d; R++) {
-    for (let C = -1; C < d; C++) {
-      const type = ((R + C) % 2 === 0) ? "Z" : "X"; // Z detects X, X detects Z
-      // candidate data sites
-      const cand = [
-        [R, C], [R, C + 1], [R + 1, C], [R + 1, C + 1]
-      ].filter(([rr, cc]) => rr >= 0 && rr < d && cc >= 0 && cc < d);
-      if (cand.length === 0) continue;
-
-      // Rotated-code boundary rule:
-      //  - Z-type (even) plaquettes only exist as weight-2 on the
-      //    LEFT/RIGHT boundaries (and weight-4 in bulk).
-      //  - X-type (odd) plaquettes only exist as weight-2 on the
-      //    TOP/BOTTOM boundaries (and weight-4 in bulk).
-      // Weight-1 or 3 candidate sets are not valid stabilizers; skip
-      // the boundary plaquettes that don't belong to that type.
-      const onTopBottom = (R === -1 || R === d - 1);
-      const onLeftRight = (C === -1 || C === d - 1);
-      if (cand.length === 2) {
-        if (type === "Z" && !onLeftRight) continue;
-        if (type === "X" && !onTopBottom) continue;
-      }
-      if (cand.length !== 2 && cand.length !== 4) continue;
-
-      stabs.push({
-        type,
-        cx: C + 0.5,
-        cy: R + 0.5,
-        data: cand.map(([rr, cc]) => `${rr},${cc}`)
-      });
-    }
-  }
-  return { d, data, stabs };
-}
-
-/* ---- Compute which stabilizers fire from current errors ---- */
-function computeSyndrome(code) {
-  return code.stabs.map(s => {
-    let parity = 0;
-    for (const key of s.data) {
-      const e = state.errors[key];
-      if (!e) continue;
-      // Z-type stabilizer anticommutes with X errors -> sensitive to X
-      // X-type stabilizer anticommutes with Z errors -> sensitive to Z
-      if (s.type === "Z" && e.x) parity ^= 1;
-      if (s.type === "X" && e.z) parity ^= 1;
-    }
-    return parity; // 1 = fired
-  });
-}
-
-/* ---- Detect logical error: an error chain spanning the code ---- */
-/* Verified against the rotated surface code (see commit notes):
-     - Logical X = a VERTICAL column of X errors (commutes with every
-       stabilizer -> fires zero syndromes).
-     - Logical Z = a HORIZONTAL row of Z errors (likewise silent).
-   A logical flip has occurred iff the syndrome is fully clear AND the
-   net error commutes with all stabilizers while ANTIcommuting with a
-   logical observable. We measure that by parity against representative
-   observables:
-     - logical-Z observable = X-parity along any single column. We use
-       column 0; for a syndrome-free X configuration this parity is a
-       homology invariant, so column 0 is a valid representative.
-     - logical-X observable = Z-parity along row 0. */
-function logicalStatus(code) {
-  const synd = computeSyndrome(code);
-  const anyFired = synd.some(v => v === 1);
-  if (anyFired) return { logical: false, hasErr: hasAnyError() };
-
-  // Zero syndrome -> the error is a product of stabilizers and/or a
-  // logical operator. Read the two logical observables.
-  const d = code.d;
-  let xObsCol0 = 0;  // X-parity down column 0  -> flips logical Z
-  let zObsRow0 = 0;  // Z-parity across row 0   -> flips logical X
-  for (let r = 0; r < d; r++) {
-    const e = state.errors[`${r},0`];
-    if (e && e.x) xObsCol0 ^= 1;
-  }
-  for (let c = 0; c < d; c++) {
-    const e = state.errors[`0,${c}`];
-    if (e && e.z) zObsRow0 ^= 1;
-  }
-  const logical = (xObsCol0 === 1 || zObsRow0 === 1);
-  return { logical, hasErr: hasAnyError() };
-}
-
-function hasAnyError() {
-  return Object.values(state.errors).some(e => e && (e.x || e.z));
-}
+/* ============================================================
+   Physics functions (buildCode / computeSyndrome / logicalStatus /
+   hasAnyError) now live in lattice-core.js, loaded before this
+   script. They are unchanged — only relocated — and continue to
+   read the shared global `state.errors` exactly as before.
+   ============================================================ */
 
 /* ============================================================
    RENDERING
