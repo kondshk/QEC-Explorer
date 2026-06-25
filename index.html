@@ -580,6 +580,7 @@ function toggleError(key) {
   paint(new Set([key]));
   updateRibbon(key);
   scheduleHashSync();
+  if (window.QECCounter) QECCounter.bumpErrorsExplored();
 }
 
 function updateRibbon(lastKey) {
@@ -797,5 +798,9 @@ function showToast(html) {
   }
 })();
 </script>
+
+<!-- Community counter: count error patterns explored (graceful-degrades if unreachable) -->
+<script src="counter.js"></script>
+<script>if (window.QECCounter) QECCounter.init();</script>
 </body>
 </html>

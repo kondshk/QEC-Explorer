@@ -110,6 +110,10 @@ footer{max-width:1080px;margin:0 auto;padding:40px 28px;border-top:1px solid var
   color:var(--hint);font-size:12.5px;text-align:center;line-height:1.8}
 footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
 footer a:hover{color:var(--txt)}
+/* Community counter (hidden until real numbers load; degrades to display:none) */
+.qec-counter{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);
+  margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bdr)}
+.qec-counter b{color:var(--teal);font-weight:500}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.mod:hover{transform:none}}
 </style>
 </head>
@@ -231,6 +235,7 @@ footer a:hover{color:var(--txt)}
 </div>
 
 <footer>
+  <div id="qecCounter" class="qec-counter" style="display:none"></div>
   QEC Explorer · An open-source educational project on quantum error correction · MIT licensed<br>
   <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
@@ -356,6 +361,10 @@ footer a:hover{color:var(--txt)}
   });
 })();
 </script>
+
+<!-- Community counter (external service, graceful-degrades to hidden if unreachable) -->
+<script src="counter.js"></script>
+<script>if (window.QECCounter) QECCounter.init();</script>
 
 </body>
 </html>

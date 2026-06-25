@@ -541,6 +541,7 @@ function toggleSharedError(key) {
   resetBadges();
   paintShared();
   if (typeof scheduleHashSync === "function") scheduleHashSync();
+  if (window.QECCounter) QECCounter.bumpErrorsExplored();
 }
 
 /* ---------- correction ring colors per decoder ---------- */
@@ -779,7 +780,11 @@ document.getElementById("randomBtn").addEventListener("click", () => {
   document.getElementById("agreement-body").innerHTML = "Press “Run race” to decode this pattern.";
 });
 
-document.getElementById("raceBtn").addEventListener("click", runRace);
+document.getElementById("raceBtn").addEventListener("click", () => {
+  // count only user-initiated races (not the auto-run from a shared link)
+  if (window.QECCounter) QECCounter.bumpRacesRun();
+  runRace();
+});
 
 /* ---------- (re)build everything for current distance ---------- */
 function rebuildAll() {
@@ -899,5 +904,9 @@ rebuildAll();
 // If arriving via a shared link, load that pattern and auto-run the race.
 if (location.hash) loadFromHash(true);
 </script>
+
+<!-- Community counter (graceful-degrades if unreachable) -->
+<script src="counter.js"></script>
+<script>if (window.QECCounter) QECCounter.init();</script>
 </body>
 </html>
