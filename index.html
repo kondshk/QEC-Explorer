@@ -18,6 +18,24 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
 
+/* ---- Embedded mode (index.html?embed=1): strip everything but the interactive unit ---- */
+body.embed .topbar,
+body.embed .project-strip,
+body.embed .lead,
+body.embed .next-card,
+body.embed #how,
+body.embed footer,
+body.embed .embed-tools{display:none !important}
+body.embed .wrap{padding:14px 14px 56px}
+body.embed{min-height:100vh}
+/* corner credit link, only in embed view */
+.embed-credit{display:none}
+body.embed .embed-credit{display:block;position:fixed;right:10px;bottom:8px;z-index:60;
+  font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(8,8,12,.78);
+  border:1px solid var(--bdr);border-radius:6px;padding:5px 10px}
+.embed-credit a{color:var(--purple);text-decoration:none}
+.embed-credit a:hover{color:var(--txt)}
+
 /* Top bar */
 .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
   padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
@@ -201,6 +219,9 @@ footer a:hover{color:var(--txt)}
 </head>
 <body>
 
+<!-- Credit link shown only in embedded (?embed=1) views -> drives full-site visits -->
+<div class="embed-credit"><a href="index.html" target="_blank" rel="noopener">QEC Explorer ↗</a></div>
+
 <div class="topbar">
   <div class="brand">QEC <em>Explorer</em><span>Surface Code Playground</span></div>
   <a href="#how">How it works ↓</a>
@@ -328,6 +349,15 @@ footer a:hover{color:var(--txt)}
         <span class="badge live">Live now</span>
       </a>
     </div>
+  </div>
+
+  <!-- EMBED TOOLS (hidden in embed view) -->
+  <div class="embed-tools" style="max-width:760px;margin:48px auto 0;background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px 28px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Embed this</div>
+    <h3 style="font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;margin-bottom:8px">Drop the live lattice into your own page</h3>
+    <p style="color:var(--dim);font-size:14px;line-height:1.6;margin-bottom:14px">Paste this snippet anywhere — it embeds just the interactive surface-code lattice (no nav, no prose), fully clickable.</p>
+    <textarea id="embedCode" readonly rows="3" style="width:100%;background:var(--s2);border:1px solid var(--bdr2);color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:6px;resize:vertical;line-height:1.5"></textarea>
+    <button class="btn" id="copyEmbedBtn" style="margin-top:10px;width:auto;padding:9px 16px">📋 Copy embed code</button>
   </div>
 
   <!-- HOW IT WORKS -->
@@ -786,6 +816,31 @@ function showToast(html) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
 }
+
+/* ============================================================
+   EMBED MODE (?embed=1): strip to just controls + lattice + readout
+   ============================================================ */
+(function embedSetup() {
+  const params = new URLSearchParams(location.search);
+  const fullUrl = location.origin + location.pathname;   // no embed param -> full site
+  // credit link (shown only in embed view) opens the full site in a new tab
+  const credit = document.querySelector(".embed-credit a");
+  if (credit) credit.href = fullUrl;
+  if (params.get("embed") === "1") {
+    document.body.classList.add("embed");
+  }
+  // populate the "Get embed code" snippet (non-embed view)
+  const ta = document.getElementById("embedCode");
+  if (ta) {
+    const src = fullUrl + "?embed=1";
+    ta.value = `<iframe src="${src}" width="520" height="640" style="border:1px solid #2a2a42;border-radius:10px" title="QEC Explorer — interactive surface code" loading="lazy"></iframe>`;
+  }
+  const copyEmbed = document.getElementById("copyEmbedBtn");
+  if (copyEmbed) copyEmbed.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(ta.value); showToast(`Embed code copied — <b>paste it into any page</b>.`); }
+    catch (err) { ta.select(); showToast(`Select-all done — press Ctrl/Cmd+C to copy.`); }
+  });
+})();
 
 /* ---- init: restore from URL hash if present ---- */
 (function init() {
