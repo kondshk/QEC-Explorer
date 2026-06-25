@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer — Launch Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.65;overflow-x:hidden}
+
+/* Hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 40px;position:relative;overflow:hidden;max-width:1200px;margin:0 auto}
+.hero::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(155,109,255,.08),transparent 70%);top:-200px;right:-100px;pointer-events:none}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--purple);margin-bottom:20px;opacity:0;animation:fadeUp .6s .2s forwards}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(48px,8vw,88px);line-height:1;font-weight:400;margin-bottom:24px;opacity:0;animation:fadeUp .6s .3s forwards}
+.hero h1 em{font-style:italic;color:var(--purple)}
+.hero-desc{font-size:18px;color:var(--dim);max-width:640px;font-weight:300;opacity:0;animation:fadeUp .6s .4s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Section */
+.section{max-width:1200px;margin:0 auto;padding:0 40px 80px}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral);margin-bottom:12px}
+.section h2{font-family:'Instrument Serif',serif;font-size:36px;font-weight:400;margin-bottom:8px}
+.section h2 em{font-style:italic;color:var(--purple)}
+.section>p{color:var(--dim);font-size:15px;max-width:700px;margin-bottom:32px}
+
+/* Gap analysis */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--bdr);border:1px solid var(--bdr);margin-bottom:48px}
+@media(max-width:700px){.gap-grid{grid-template-columns:1fr}}
+.gap-card{background:var(--s1);padding:28px 32px}
+.gap-card h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.gap-card.exists h3{color:var(--teal)}
+.gap-card.missing h3{color:var(--coral)}
+.gap-card p{font-size:14px;color:var(--dim);line-height:1.6}
+.gap-card ul{list-style:none;margin-top:8px}
+.gap-card li{font-size:13px;color:var(--txt);padding:4px 0;padding-left:16px;position:relative}
+.gap-card li::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;border-radius:50%}
+.gap-card.exists li::before{background:var(--teal)}
+.gap-card.missing li::before{background:var(--coral)}
+
+/* Project definition */
+.def-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:48px}
+@media(max-width:800px){.def-grid{grid-template-columns:1fr}}
+.def-card{background:var(--s1);border:1px solid var(--bdr);padding:28px;border-radius:4px}
+.def-card h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:12px}
+.def-card p,.def-card li{font-size:14px;color:var(--dim);line-height:1.6}
+.def-card ul{list-style:none;margin-top:8px}
+.def-card li{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.def-card li:last-child{border:none}
+.def-card li strong{color:var(--txt);font-weight:500}
+
+/* Tech stack */
+.tech-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:48px}
+.tech-chip{background:var(--s2);border:1px solid var(--bdr);padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--txt);border-radius:2px;transition:border-color .2s}
+.tech-chip:hover{border-color:var(--purple)}
+.tech-chip span{color:var(--dim);font-size:10px;display:block;margin-top:2px}
+
+/* Timeline */
+.tl-container{position:relative;padding-left:48px;margin-bottom:48px}
+.tl-line{position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--purple),var(--teal),var(--gold),var(--green))}
+.tl-phase{margin-bottom:40px;position:relative}
+.tl-dot{position:absolute;left:-38px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bg)}
+.tl-phase-title{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:4px}
+.tl-phase-dates{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:16px}
+.tl-tasks{display:flex;flex-direction:column;gap:8px}
+.tl-task{background:var(--s1);border:1px solid var(--bdr);border-left:3px solid var(--bdr);padding:16px 20px;border-radius:0 4px 4px 0;transition:border-left-color .2s}
+.tl-task:hover{border-left-color:var(--purple)}
+.tl-task-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.tl-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+.tag-build{background:rgba(155,109,255,.12);color:var(--purple)}
+.tag-content{background:rgba(46,196,160,.12);color:var(--teal)}
+.tag-promote{background:rgba(212,168,85,.12);color:var(--gold)}
+.tag-measure{background:rgba(74,143,231,.12);color:var(--blue)}
+.tag-network{background:rgba(228,93,154,.12);color:var(--pink)}
+.tl-task-title{font-weight:500;font-size:14px}
+.tl-task-desc{font-size:13px;color:var(--dim);line-height:1.55}
+.tl-task-tip{margin-top:8px;padding:8px 12px;background:rgba(212,168,85,.05);border-left:2px solid var(--gold);font-size:12px;color:var(--gold);line-height:1.5}
+
+/* Features grid */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:48px}
+@media(max-width:800px){.feat-grid{grid-template-columns:1fr}}
+.feat-card{background:var(--s1);border:1px solid var(--bdr);padding:24px;border-radius:4px}
+.feat-num{font-family:'Instrument Serif',serif;font-size:36px;color:var(--purple);font-weight:400;line-height:1}
+.feat-card h4{font-size:15px;font-weight:500;margin:8px 0 6px}
+.feat-card p{font-size:13px;color:var(--dim);line-height:1.55}
+
+/* Promotion */
+.promo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:48px}
+@media(max-width:700px){.promo-grid{grid-template-columns:1fr}}
+.promo-card{background:var(--s1);border:1px solid var(--bdr);padding:24px;border-radius:4px}
+.promo-card h4{font-size:14px;font-weight:600;margin-bottom:8px}
+.promo-card p{font-size:13px;color:var(--dim);line-height:1.55}
+.promo-card .hot{color:var(--coral);font-weight:500}
+
+/* Metrics */
+.metrics-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--bdr);border:1px solid var(--bdr);margin-bottom:48px}
+@media(max-width:700px){.metrics-bar{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--s1);padding:24px;text-align:center}
+.metric-val{font-family:'Instrument Serif',serif;font-size:32px;color:var(--teal)}
+.metric-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-top:4px}
+
+/* Application connection */
+.app-block{background:var(--s1);border:1px solid var(--bdr);padding:36px;margin-bottom:48px;border-radius:4px}
+.app-block h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:16px}
+.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
+@media(max-width:700px){.app-grid{grid-template-columns:1fr}}
+.app-item h4{font-size:14px;font-weight:600;color:var(--purple);margin-bottom:6px}
+.app-item p{font-size:13px;color:var(--dim);line-height:1.55}
+
+/* Risk */
+.risk-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:48px}
+@media(max-width:800px){.risk-grid{grid-template-columns:1fr}}
+.risk-card{background:var(--s1);border:1px solid var(--bdr);padding:24px;border-radius:4px}
+.risk-card h4{font-size:13px;font-weight:600;color:var(--coral);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.risk-card p{font-size:13px;color:var(--dim);line-height:1.55}
+.risk-card .solve{color:var(--teal);margin-top:6px;display:block;font-weight:500}
+
+/* Footer */
+.footer{max-width:1200px;margin:0 auto;padding:60px 40px;border-top:1px solid var(--bdr);text-align:center}
+.footer p{color:var(--hint);font-size:13px}
+.footer .sig{font-family:'Instrument Serif',serif;font-size:28px;color:var(--txt);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Passion Project Launch Plan</div>
+  <h1>QEC <em>Explorer</em></h1>
+  <p class="hero-desc">An open-source, interactive visualization tool that lets anyone see how quantum error correction works — watch errors propagate, decoders compete, and codes protect information in real time. Built with Qiskit. Designed for the world.</p>
+</div>
+
+<!-- WHY THIS PROJECT -->
+<div class="section">
+  <div class="section-label">The Gap</div>
+  <h2>What exists vs. what <em>doesn't</em></h2>
+  <p>The quantum error correction ecosystem has powerful research tools — but nothing that makes QEC visually intuitive for students and newcomers.</p>
+
+  <div class="gap-grid">
+    <div class="gap-card exists">
+      <h3>What already exists</h3>
+      <ul>
+        <li><strong>qiskit-qec</strong> — IBM's open-source QEC framework. Developer-facing, requires deep Python + QEC knowledge. No visualization layer.</li>
+        <li><strong>STIM</strong> — Google's fast stabilizer simulator. Command-line tool, outputs raw statistics. No interactive exploration.</li>
+        <li><strong>PyMatching / MWPM decoders</strong> — Research-grade decoding libraries. Zero educational scaffolding.</li>
+        <li><strong>IBM Quantum Learning</strong> — Excellent Qiskit courses, but QEC coverage is minimal and not interactive.</li>
+        <li><strong>Microsoft QDK for Error Correction</strong> — Just announced Jan 2026, full release expected late 2026. Research-focused, not educational.</li>
+      </ul>
+    </div>
+    <div class="gap-card missing">
+      <h3>What's missing (your niche)</h3>
+      <ul>
+        <li><strong>Visual, interactive QEC</strong> — No tool lets you SEE a surface code lattice, inject errors, and watch a decoder correct them in real time.</li>
+        <li><strong>Decoder comparison</strong> — No educational tool benchmarks BP vs. MWPM vs. GNN decoders side-by-side visually.</li>
+        <li><strong>Beginner-accessible entry point</strong> — Everything assumes graduate-level knowledge. Nothing bridges "I know what a qubit is" to "I understand why error correction matters."</li>
+        <li><strong>A high school student's perspective</strong> — All existing tools are built by PhD researchers. Your tool would be built by someone who recently learned this material and remembers what was confusing.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT DEFINITION -->
+<div class="section">
+  <div class="section-label">Project Scope</div>
+  <h2>What you're <em>building</em></h2>
+  <p>A web-based interactive tool with three layers — from accessible to advanced — so it serves both curious beginners and serious students.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-num">1</div>
+      <h4>Visual surface code playground</h4>
+      <p>Interactive lattice where users click to inject X, Y, Z errors on data qubits. Syndrome measurements highlight automatically. Users see how errors create detectable patterns — the "aha moment" of QEC. No code required.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">2</div>
+      <h4>Decoder race visualization</h4>
+      <p>Side-by-side comparison of decoding strategies on the same error pattern. Show BP (your research area), MWPM, and a simple lookup decoder. Animate the correction process step-by-step. Highlight where decoders agree and disagree.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">3</div>
+      <h4>Interactive Jupyter notebooks</h4>
+      <p>A series of 5-6 guided notebooks using Qiskit that walk users from "what is a stabilizer code" to "how do neural network decoders work." Each notebook includes exercises. Hosted on GitHub, runnable in Google Colab (free, no install).</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">4</div>
+      <h4>Noise model explorer</h4>
+      <p>Sliders for physical error rate, bias (X vs. Z), and drift — let users see how different noise environments change decoder performance. Directly connected to your research on biased + drifting noise models.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">5</div>
+      <h4>"Why QEC matters" explainer</h4>
+      <p>A non-technical landing page explaining quantum error correction's real-world importance — drug discovery, cryptography, materials science. This page is what gets shared on social media and reaches non-physicists.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-num">6</div>
+      <h4>Research connection page</h4>
+      <p>Link your tool to your actual research paper (when published). Explain how the GNN-FiLM decoder you developed relates to what users just visualized. Bridge from education to your contribution to the field.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="section">
+  <div class="section-label">Technology</div>
+  <h2>Tech stack</h2>
+  <p>Tools you already know or can learn quickly. Everything is free and open-source.</p>
+
+  <div class="tech-strip">
+    <div class="tech-chip">Python + Qiskit<span>Backend simulations</span></div>
+    <div class="tech-chip">STIM<span>Fast stabilizer simulation</span></div>
+    <div class="tech-chip">JavaScript + D3.js<span>Interactive lattice visualization</span></div>
+    <div class="tech-chip">React or plain HTML/CSS<span>Web interface</span></div>
+    <div class="tech-chip">Jupyter + Google Colab<span>Notebook tutorials (zero install)</span></div>
+    <div class="tech-chip">GitHub Pages<span>Free hosting</span></div>
+    <div class="tech-chip">GitHub Actions<span>CI/CD for testing</span></div>
+    <div class="tech-chip">PyPI (optional)<span>Package distribution</span></div>
+  </div>
+</div>
+
+<!-- WEEK-BY-WEEK TIMELINE -->
+<div class="section">
+  <div class="section-label">Timeline</div>
+  <h2>Week-by-week <em>launch plan</em></h2>
+  <p>14 weeks from start to fully promoted tool. Designed to fit alongside SAT prep, research, and school — roughly 8-12 hours/week.</p>
+
+  <div class="tl-container">
+    <div class="tl-line"></div>
+
+    <!-- Phase 1 -->
+    <div class="tl-phase">
+      <div class="tl-dot" style="background:var(--purple)"></div>
+      <div class="tl-phase-title">Phase 1: Foundation</div>
+      <div class="tl-phase-dates">Weeks 1–3 · April 7–27</div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Set up GitHub repository with README, LICENSE (MIT), and contribution guidelines</div>
+          <div class="tl-task-desc">Name the project (e.g., "QEC Explorer" or "qec-viz"). Write a compelling README explaining what the tool does and why it matters. Add a CONTRIBUTING.md so others can help. Choose MIT license for maximum openness.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Build the surface code lattice visualization (Feature #1)</div>
+          <div class="tl-task-desc">This is your MVP. Create an interactive grid using D3.js or plain SVG/Canvas. Users click data qubits to toggle X/Z errors. Syndrome qubits highlight based on stabilizer checks. Start with the [[d,1,d]] rotated surface code for d=3 and d=5. This is the visual foundation everything else builds on.</div>
+          <div class="tl-task-tip">Technical tip: use STIM's detector error model to compute syndromes efficiently. The lattice is a 2D grid — d3.js force layout is overkill; use a simple SVG grid with click handlers.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-content">Content</span></div>
+          <div class="tl-task-title">Write Jupyter Notebook #1: "What is a quantum error?"</div>
+          <div class="tl-task-desc">Start from "what's a qubit" and build to "what happens when noise flips a qubit." Use Qiskit to show a simple circuit, inject an error, and measure the result. Include exercises. This is the entry point for complete beginners.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-network">Network</span></div>
+          <div class="tl-task-title">Email Dr. Raveendran and Greg Pitz about the project</div>
+          <div class="tl-task-desc">Share your vision. Ask Dr. Raveendran to review technical accuracy. Ask Greg Pitz if he'd be willing to share it with his IBM network once it's ready. Neither request requires much of their time — you're just planting the seed early.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="tl-phase">
+      <div class="tl-dot" style="background:var(--teal)"></div>
+      <div class="tl-phase-title">Phase 2: Core features</div>
+      <div class="tl-phase-dates">Weeks 4–7 · April 28 – May 25</div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Implement decoder comparison visualization (Feature #2)</div>
+          <div class="tl-task-desc">Add at least two decoders: a simple MWPM decoder (use PyMatching, which has a Python API) and a basic BP decoder. Show both attempting to correct the same error pattern side-by-side. Animate the correction steps. This is the feature that makes the tool unique — no one else visualizes decoder competition.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Add noise model sliders (Feature #4)</div>
+          <div class="tl-task-desc">Let users adjust physical error rate (p = 0.001 to 0.1), X/Z bias ratio, and optionally drift. Re-run the simulation and show how decoder performance changes. This connects directly to your QLDPC paper's focus on biased + drifting noise.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-content">Content</span></div>
+          <div class="tl-task-title">Write Notebooks #2–3: "Stabilizer codes" and "Surface codes"</div>
+          <div class="tl-task-desc">NB #2: What are stabilizers? How do they detect errors without measuring the data? Use Qiskit to build a 3-qubit code. NB #3: The surface code — why it's the leading QEC architecture. Connect to the interactive visualization.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-content">Content</span></div>
+          <div class="tl-task-title">Write the "Why QEC matters" landing page (Feature #5)</div>
+          <div class="tl-task-desc">Non-technical page aimed at the general public and admissions readers. Explain: quantum computers make errors → errors compound → error correction is the key bottleneck → this tool lets you see how it works. Include a one-paragraph version of YOUR research contribution.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Deploy to GitHub Pages</div>
+          <div class="tl-task-desc">Your interactive web tool should be live and accessible at yourusername.github.io/qec-explorer. The notebooks should be linked from the README with "Open in Colab" badges. Anyone in the world can now use your tool with zero installation.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="tl-phase">
+      <div class="tl-dot" style="background:var(--gold)"></div>
+      <div class="tl-phase-title">Phase 3: Launch and promote</div>
+      <div class="tl-phase-dates">Weeks 8–10 · May 26 – June 15</div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-content">Content</span></div>
+          <div class="tl-task-title">Write Notebooks #4–5: "Decoders" and "Neural network decoders"</div>
+          <div class="tl-task-desc">NB #4: What is a decoder? Compare MWPM, BP, lookup. NB #5: How machine learning improves decoding — introduce the concept of GNN-assisted decoding (connecting to your actual research). This is where serious students engage and where your tool transitions from educational to research-adjacent.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-promote">Promote</span></div>
+          <div class="tl-task-title">Share with Qiskit community</div>
+          <div class="tl-task-desc">Post to the Qiskit Slack (#education channel), Qiskit Community GitHub discussions, and Reddit r/QuantumComputing. Tag @qaborr on Twitter/X (IBM Quantum education lead). Ask Greg Pitz to share with his LinkedIn network. These communities actively boost student-built educational tools.</div>
+          <div class="tl-task-tip">The Qiskit community has historically amplified tools like this. Two high school Qubit by Qubit alumni had their capstone projects featured at MIT's Undergraduate Research Tech Conference and published in IEEE Xplore. Your tool is more ambitious than those projects.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-promote">Promote</span></div>
+          <div class="tl-task-title">Share with your local network</div>
+          <div class="tl-task-desc">Present the tool to your physics teacher, your school's CS club, and at your passion project workshops (if running the Arizona pipeline program in parallel). Ask Dr. Raveendran to share with his research group and mention it to other Arizona physics educators.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-promote">Promote</span></div>
+          <div class="tl-task-title">Write a blog post or Twitter/X thread explaining the project</div>
+          <div class="tl-task-desc">Title something like: "I built an open-source tool to visualize quantum error correction — here's what I learned." This serves triple duty: promotion, writing sample, and content you can reference in your MIT essays about communicating technical ideas to non-experts.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="tl-phase">
+      <div class="tl-dot" style="background:var(--green)"></div>
+      <div class="tl-phase-title">Phase 4: Scale and measure</div>
+      <div class="tl-phase-dates">Weeks 11–14 · June 16 – July 13</div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Build</span></div>
+          <div class="tl-task-title">Add QLDPC code support (Feature #6 — the research connection)</div>
+          <div class="tl-task-desc">Extend the visualizer beyond surface codes to include QLDPC codes — specifically the [[144,12,12]] bivariate bicycle code from your paper. Add a page explaining how your GNN-FiLM decoder works, with a simplified visualization. This is the bridge between your educational tool and your actual research contribution.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-measure">Measure</span></div>
+          <div class="tl-task-title">Set up analytics and collect impact data</div>
+          <div class="tl-task-desc">Add a simple, privacy-respecting analytics counter (e.g., GoatCounter — free, open-source, no cookies). Track: unique visitors, notebook opens (via Colab click counts), GitHub stars, forks, and any issues/PRs from the community. This data goes directly into your MIT activities list.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-promote">Promote</span></div>
+          <div class="tl-task-title">Submit to IBM Quantum education team</div>
+          <div class="tl-task-desc">Email Qiskit education contacts (or ask Greg Pitz to introduce you) to propose your tool for inclusion in IBM Quantum Learning resources or the Qiskit Community page. Even a retweet from @IBMQuantum reaches 100K+ followers.</div>
+        </div>
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-measure">Measure</span></div>
+          <div class="tl-task-title">Write an impact summary</div>
+          <div class="tl-task-desc">Compile: total users, GitHub metrics, community feedback (quote specific messages), any educators or institutions using the tool, and the connection to your research. This document feeds directly into your STS essays, MIT Research Questionnaire, and Common App activities descriptions.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ongoing -->
+    <div class="tl-phase">
+      <div class="tl-dot" style="background:var(--blue)"></div>
+      <div class="tl-phase-title">Ongoing: August – November 1</div>
+      <div class="tl-phase-dates">Maintenance mode · 2-3 hrs/week</div>
+      <div class="tl-tasks">
+        <div class="tl-task">
+          <div class="tl-task-header"><span class="tl-tag tag-build">Maintain</span></div>
+          <div class="tl-task-title">Respond to GitHub issues, merge community contributions, update notebooks</div>
+          <div class="tl-task-desc">The tool is built — now you maintain it while focusing on essays and applications. Any new features or community contributions are updates you can report via MIT's February Updates form if deferred. Consider recruiting a co-maintainer (great for the "successor" narrative UILG recommends).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMOTION STRATEGY -->
+<div class="section">
+  <div class="section-label">Distribution</div>
+  <h2>How it <em>reaches</em> people</h2>
+  <p>The tool promotes itself if it's good — but strategic seeding accelerates everything.</p>
+
+  <div class="promo-grid">
+    <div class="promo-card">
+      <h4>IBM / Qiskit ecosystem</h4>
+      <p><span class="hot">Your strongest channel.</span> Greg Pitz (AzSEF judge) → IBM quantum team. Qiskit Slack #education channel has thousands of active members. IBM Quantum blog has published student projects before. Qiskit Advocates program may feature your tool.</p>
+    </div>
+    <div class="promo-card">
+      <h4>Reddit + Twitter/X</h4>
+      <p>r/QuantumComputing (130K+ members), r/physics, #QuantumComputing on X. A well-written thread showing the visualization in action gets shared. Post GIFs/videos of the decoder race — visual content performs best.</p>
+    </div>
+    <div class="promo-card">
+      <h4>University research groups</h4>
+      <p>Ask Dr. Raveendran to share with the UArizona STAR Lab, ASU physics, and Colgate contacts. University professors often share educational tools with their students. One course adoption = hundreds of users.</p>
+    </div>
+    <div class="promo-card">
+      <h4>Quantum computing education orgs</h4>
+      <p>Qubit by Qubit, The Coding School, QWorld, Quantum Open Source Foundation (QOSF). These organizations actively curate and promote educational tools. QOSF even has a mentorship program for open-source quantum projects.</p>
+    </div>
+    <div class="promo-card">
+      <h4>High school STEM networks</h4>
+      <p>Your chess club, Paradise Valley HS, former middle school. If running the Arizona pipeline program, your tool IS the curriculum. Summit STEM Fellowship network. Share with other UILG students doing physics.</p>
+    </div>
+    <div class="promo-card">
+      <h4>Hacker News / Product Hunt</h4>
+      <p>A "Show HN: I built an interactive quantum error correction visualizer as a high school student" post is exactly the kind of thing HN upvotes. Product Hunt's education category has a dedicated following. Both are high-traffic, high-credibility platforms.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TARGET METRICS -->
+<div class="section">
+  <div class="section-label">Impact</div>
+  <h2>Target metrics by <em>November 1</em></h2>
+  <p>These are realistic targets if you promote through the channels above. Any one of these is impressive for a high school student's open-source project.</p>
+
+  <div class="metrics-bar">
+    <div class="metric"><div class="metric-val">500+</div><div class="metric-label">Unique visitors</div></div>
+    <div class="metric"><div class="metric-val">50+</div><div class="metric-label">GitHub stars</div></div>
+    <div class="metric"><div class="metric-val">200+</div><div class="metric-label">Notebook opens</div></div>
+    <div class="metric"><div class="metric-val">5+</div><div class="metric-label">Community forks/PRs</div></div>
+  </div>
+</div>
+
+<!-- APPLICATION CONNECTION -->
+<div class="section">
+  <div class="section-label">Application Integration</div>
+  <h2>How this shows up in your <em>applications</em></h2>
+
+  <div class="app-block">
+    <h3>Every component of your MIT application can reference this project</h3>
+    <div class="app-grid">
+      <div class="app-item">
+        <h4>MIT Research Questionnaire</h4>
+        <p>"Beyond conducting research, I built an open-source tool to make quantum error correction accessible. It visualizes the same surface codes and decoders my paper analyzes, and has been used by [X] people across [Y] countries." The questionnaire asks about broader impact — this IS your answer.</p>
+      </div>
+      <div class="app-item">
+        <h4>MIT Essay: Educational trail-blazing</h4>
+        <p>The prompt asks how you've gone beyond the expected path. Building open-source infrastructure to democratize your research area — as a high school student — is the definition of trail-blazing.</p>
+      </div>
+      <div class="app-item">
+        <h4>MIT Essay: Something you do for pleasure</h4>
+        <p>Describe the genuine joy of watching someone's first "aha moment" when they see error correction work visually. This is authentic — you're not performing service, you're sharing something you love.</p>
+      </div>
+      <div class="app-item">
+        <h4>MIT Activity Slot (1 of 4)</h4>
+        <p>"Creator, QEC Explorer — open-source quantum error correction visualization tool. [X] GitHub stars, [Y] users, [Z] notebook completions. Built with Qiskit/STIM/D3.js. Promoted by IBM Quantum network."</p>
+      </div>
+      <div class="app-item">
+        <h4>Common App Activities (1 of 10)</h4>
+        <p>150-character description: "Built open-source QEC visualization tool (GitHub). [X] users, [Y] stars. Featured by [IBM/Qiskit community]. 5 tutorial notebooks."</p>
+      </div>
+      <div class="app-item">
+        <h4>Regeneron STS Application</h4>
+        <p>STS essays ask about your identity as a scientist and your vision for science's role in society. This tool IS your answer — you believe cutting-edge research should be accessible, not locked in journals.</p>
+      </div>
+      <div class="app-item">
+        <h4>The AzSEF → IBM → Tool narrative</h4>
+        <p>The full arc: presented research at AzSEF → industry expert validation → IBM connection → used that connection to amplify an educational tool reaching hundreds of people. This is the "independent curiosity → community impact" story MIT wants to see.</p>
+      </div>
+      <div class="app-item">
+        <h4>Davidson Fellows Application</h4>
+        <p>Davidson evaluates "significance of contribution." A published paper PLUS an open-source tool that makes the research accessible demonstrates both technical depth and societal impact — the exact combination Davidson looks for.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RISKS -->
+<div class="section">
+  <div class="section-label">Risk Mitigation</div>
+  <h2>What could go <em>wrong</em></h2>
+
+  <div class="risk-grid">
+    <div class="risk-card">
+      <h4>Time crunch with SAT + research</h4>
+      <p>The tool competes with SAT prep (Apr–Jun) and STS drafting (Jun–Oct) for your hours.</p>
+      <span class="solve">Mitigation: The MVP (Feature #1 alone) is viable in ~20 hours of coding. Build incrementally. Even a surface code visualizer with no decoders is impressive. Don't aim for perfection — ship early, iterate.</span>
+    </div>
+    <div class="risk-card">
+      <h4>Low GitHub traction</h4>
+      <p>You build it but nobody finds it. GitHub stars stay in single digits.</p>
+      <span class="solve">Mitigation: The IBM/Qiskit channel is your ace. One share from Greg Pitz or one Qiskit Slack post can drive 50+ stars overnight. Also: even modest numbers are impressive for a high school project. MIT knows GitHub metrics.</span>
+    </div>
+    <div class="risk-card">
+      <h4>Technical scope creep</h4>
+      <p>You try to build a full-featured QEC simulator and never ship.</p>
+      <span class="solve">Mitigation: The interactive lattice (Feature #1) + 2 notebooks is a complete, shippable product. Everything else is a bonus. Ship v0.1 by Week 5 no matter what. "Working and simple" beats "ambitious and unfinished" every time.</span>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="sig">Build it. Ship it. Share it.</div>
+  <p>The student who builds open-source infrastructure to democratize their research doesn't need a competition trophy. They have something better: a tool that other people actually use.</p>
+</div>
+
+</body>
+</html>

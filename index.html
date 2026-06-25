@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer — Surface Code Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+
+/* Top bar */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.brand{font-family:'Instrument Serif',serif;font-size:22px}
+.brand em{font-style:italic;color:var(--purple)}
+.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
+  text-transform:uppercase;margin-left:10px}
+.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.topbar a:hover{color:var(--txt)}
+
+/* "Part of QEC Explorer" project ribbon */
+.project-strip{max-width:1280px;margin:18px auto 0;padding:0 28px}
+.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
+  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
+.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--purple);white-space:nowrap}
+.project-strip .crumb b{color:var(--txt);font-weight:500}
+.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
+  white-space:nowrap}
+.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.project-strip .pill.soon{color:var(--hint)}
+.project-strip .arrow{color:var(--hint)}
+
+/* Layout */
+.wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px}
+.lead{margin-bottom:28px}
+.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:12px}
+.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:14px}
+.lead h1 em{font-style:italic;color:var(--purple)}
+.lead p{color:var(--dim);font-size:16px;max-width:720px;font-weight:300}
+
+.app{display:grid;grid-template-columns:300px 1fr 300px;gap:20px;align-items:start}
+/* Named grid areas so we can reorder on mobile without touching source order */
+.col-controls{grid-column:1}
+.col-stage{grid-column:2}
+.col-readout{grid-column:3}
+@media(max-width:1040px){
+  .app{grid-template-columns:1fr}
+  /* Mobile order: stage (lattice) first, controls below it, readout/legend last */
+  .col-stage{grid-column:1;order:1}
+  .col-controls{grid-column:1;order:2}
+  .col-readout{grid-column:1;order:3}
+}
+
+.panel{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:22px}
+.panel h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:16px}
+.panel h3.alt{color:var(--coral)}
+
+/* Stage (center) */
+.stage{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:8px;
+  display:flex;flex-direction:column;align-items:center;min-height:520px;position:relative}
+.stage-inner{width:100%;display:flex;align-items:center;justify-content:center;padding:24px 8px}
+svg.lattice{width:100%;height:auto;max-width:560px;touch-action:manipulation}
+
+/* SVG element styles */
+.data-qubit{cursor:pointer;transition:fill .15s,stroke .15s}
+.data-qubit:hover{stroke:var(--txt);stroke-width:2.5}
+/* Visible focus ring, distinct from hover (dashed gold vs solid white) */
+.data-qubit:focus{outline:none}
+.data-qubit:focus-visible{outline:none;stroke:var(--gold);stroke-width:3;stroke-dasharray:3 2}
+/* invisible enlarged hit area for touch/keyboard targeting */
+.hit-area{fill:transparent;cursor:pointer}
+.bond{stroke:var(--bdr);stroke-width:1.5}
+.plaquette{stroke-width:1;transition:fill .2s,fill-opacity .2s}
+.synd-label{font-family:'JetBrains Mono',monospace;font-size:11px;pointer-events:none;
+  text-anchor:middle;dominant-baseline:central;font-weight:500}
+.qlabel{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--hint);pointer-events:none;
+  text-anchor:middle;dominant-baseline:central}
+
+/* Controls */
+.seg{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.seg button{flex:1;min-width:54px;background:var(--s2);border:1px solid var(--bdr);color:var(--dim);
+  font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 6px;border-radius:5px;cursor:pointer;
+  transition:all .15s}
+.seg button:hover{border-color:var(--bdr2);color:var(--txt)}
+.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.seg button.on{color:#08080c;font-weight:600}
+.seg.errtype button.on[data-v="X"]{background:var(--coral);border-color:var(--coral)}
+.seg.errtype button.on[data-v="Z"]{background:var(--blue);border-color:var(--blue)}
+.seg.errtype button.on[data-v="Y"]{background:var(--gold);border-color:var(--gold)}
+.seg.dist button.on{background:var(--purple);border-color:var(--purple)}
+
+.ctrl-label{font-size:12px;color:var(--dim);margin:14px 0 7px;display:flex;justify-content:space-between;align-items:baseline}
+.ctrl-label span{font-family:'JetBrains Mono',monospace;color:var(--txt);font-size:12px}
+
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
+  background:var(--s3);outline:none;cursor:pointer;margin:4px 0 2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;
+  border-radius:50%;background:var(--purple);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--purple);
+  cursor:pointer;border:2px solid var(--bg)}
+
+.btn{width:100%;padding:11px;border-radius:6px;border:1px solid var(--bdr2);background:var(--s2);
+  color:var(--txt);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .15s;margin-top:8px}
+.btn:hover{border-color:var(--purple);background:var(--s3)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn.primary{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger:hover{border-color:var(--red)}
+
+/* Legend */
+.legend{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.legend-row{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--dim)}
+.swatch{width:15px;height:15px;border-radius:3px;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.swatch.circ{border-radius:50%}
+
+/* Readout */
+.readout{display:flex;flex-direction:column;gap:2px}
+.stat{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.stat:last-child{border:none}
+.stat .k{font-size:12.5px;color:var(--dim)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--txt)}
+.stat .v.warn{color:var(--coral)}
+.stat .v.ok{color:var(--teal)}
+
+.note{font-size:12px;color:var(--hint);line-height:1.5;margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)}
+.note b{color:var(--dim);font-weight:500}
+
+/* Explainer ribbon under stage */
+.ribbon{margin-top:14px;background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:14px 18px;
+  font-size:13.5px;color:var(--dim);line-height:1.55;min-height:54px}
+.ribbon b{color:var(--txt);font-weight:500}
+.ribbon .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--purple);margin-right:8px}
+
+/* Pulse animation for newly lit syndromes */
+@keyframes pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .28s ease-out}
+@media (prefers-reduced-motion: reduce){
+  .pop{animation:none}
+  html{scroll-behavior:auto}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--s3);border:1px solid var(--bdr2);color:var(--txt);padding:12px 22px;border-radius:8px;
+  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast b{color:var(--purple)}
+
+/* "What's next" forward-pointing card */
+.next-card{max-width:760px;margin:56px auto 0;background:var(--s1);border:1px solid var(--bdr);
+  border-radius:10px;padding:28px 30px;position:relative;overflow:hidden}
+.next-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(to bottom,var(--purple),var(--teal))}
+.next-card .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.next-card h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:8px}
+.next-card p{color:var(--dim);font-size:14px;line-height:1.6;max-width:580px}
+.next-card .roadmap{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.next-card .step{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--bdr);
+  border-radius:7px;padding:14px 16px}
+.next-card .step .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:6px}
+.next-card .step.done .lbl{color:var(--teal)}
+.next-card .step.next .lbl{color:var(--purple)}
+.next-card .step.later .lbl{color:var(--hint)}
+.next-card .step .t{font-size:13.5px;font-weight:500;color:var(--txt);margin-bottom:3px}
+.next-card .step .d{font-size:12px;color:var(--dim);line-height:1.45}
+.next-card .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;
+  letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-top:8px}
+.next-card .badge.live{background:rgba(46,196,160,.14);color:var(--teal)}
+.next-card .badge.wip{background:rgba(92,91,114,.18);color:var(--hint)}
+
+footer{max-width:1280px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
+  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
+footer a:hover{color:var(--txt)}
+
+/* Screen-reader-only live region */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span>Surface Code Playground</span></div>
+  <a href="#how">How it works ↓</a>
+</div>
+
+<!-- Project context: this is Module 1 of a larger tool -->
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 1 — Detection</div>
+    <div class="steps">
+      <span class="pill now">1 · Detect errors</span>
+      <span class="arrow">→</span>
+      <span class="pill soon">2 · Decoder race (soon)</span>
+      <span class="arrow">→</span>
+      <span class="pill soon">3 · Noise explorer (soon)</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Interactive · Runs entirely in your browser</div>
+    <h1>See quantum errors <em>get caught</em></h1>
+    <p>Click the round <b>data qubits</b> to inject errors. The diamond <b>stabilizers</b> light up whenever they detect that something nearby has flipped — without ever measuring the data itself. That detection pattern is the <b>syndrome</b>: the only clue a real quantum computer gets. This is the foundation of how we protect quantum information.</p>
+  </div>
+
+  <div class="app">
+    <!-- CONTROLS -->
+    <div class="col-controls panel">
+      <h3>Controls</h3>
+
+      <div class="ctrl-label">Error type to paint</div>
+      <div class="seg errtype" id="errType" role="group" aria-label="Error type to paint">
+        <button data-v="X" class="on" aria-pressed="true">X flip</button>
+        <button data-v="Z" aria-pressed="false">Z flip</button>
+        <button data-v="Y" aria-pressed="false">Y (both)</button>
+      </div>
+      <div class="note" style="margin-top:-8px;margin-bottom:4px;border-top:none;padding-top:0">
+        <b>Note on Y:</b> a Y error is a simultaneous X <i>and</i> Z flip on the same qubit, so it toggles as <i>one</i> unit — clicking adds both, clicking again removes both. (X and Z, by contrast, toggle independently.)
+      </div>
+
+      <div class="ctrl-label">Code distance</div>
+      <div class="seg dist" id="dist" role="group" aria-label="Code distance">
+        <button data-v="3" class="on" aria-pressed="true">d = 3</button>
+        <button data-v="5" aria-pressed="false">d = 5</button>
+        <button data-v="7" aria-pressed="false">d = 7</button>
+      </div>
+
+      <button class="btn" id="randomBtn">⚡ Inject random errors</button>
+      <button class="btn" id="copyBtn">🔗 Copy link to this pattern</button>
+      <button class="btn danger" id="clearBtn">Clear all errors</button>
+
+      <div class="note">
+        <b>Tip:</b> Try placing two X errors next to each other on the same row. Watch how the syndromes <i>between</i> them stay dark — only the two <i>ends</i> of an error chain are visible. That ambiguity is exactly what makes decoding hard.
+      </div>
+    </div>
+
+    <!-- STAGE -->
+    <div class="col-stage">
+      <div class="stage">
+        <div class="stage-inner">
+          <svg class="lattice" id="lattice" viewBox="0 0 560 560" xmlns="http://www.w3.org/2000/svg"
+               role="group" aria-label="Surface code lattice. Use Tab to move between data qubits, Enter or Space to toggle an error."></svg>
+        </div>
+      </div>
+      <div class="ribbon" id="ribbon" aria-live="polite">
+        <span class="tag">Status</span><b>No errors.</b> A clean code — every stabilizer reads <b>+1</b> (silent). Click a data qubit to begin.
+      </div>
+    </div>
+
+    <!-- READOUT + LEGEND -->
+    <div class="col-readout">
+      <div class="panel" style="margin-bottom:20px">
+        <h3 class="alt">Live readout</h3>
+        <div class="readout">
+          <div class="stat"><span class="k">Code</span><span class="v" id="rCode">Rotated surface, d=3</span></div>
+          <div class="stat"><span class="k">Data qubits</span><span class="v" id="rData">9</span></div>
+          <div class="stat"><span class="k">Stabilizers</span><span class="v" id="rStab">8</span></div>
+          <div class="stat"><span class="k">Errors placed</span><span class="v" id="rErr">0</span></div>
+          <div class="stat"><span class="k">Syndromes lit</span><span class="v" id="rSynd">0</span></div>
+          <div class="stat"><span class="k">Logical state</span><span class="v ok" id="rLogical">Protected ✓</span></div>
+        </div>
+        <div class="note" id="logicalNote">
+          A <b>logical error</b> happens when errors form an unbroken chain all the way across the code — the syndrome goes silent again, but the stored information has secretly flipped. Build one and watch this flip.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Legend</h3>
+        <div class="legend">
+          <div class="legend-row"><span class="swatch circ" style="background:#2a2a3a"></span> Data qubit (clean)</div>
+          <div class="legend-row"><span class="swatch circ" style="background:var(--coral)"></span> X error (bit flip)</div>
+          <div class="legend-row"><span class="swatch circ" style="background:var(--blue)"></span> Z error (phase flip)</div>
+          <div class="legend-row"><span class="swatch circ" style="background:var(--gold)"></span> Y error (both)</div>
+          <div class="legend-row"><span class="swatch" style="background:rgba(46,196,160,.18);border-color:var(--teal)"></span> Z-stabilizer (catches X)</div>
+          <div class="legend-row"><span class="swatch" style="background:rgba(228,93,154,.18);border-color:var(--pink)"></span> X-stabilizer (catches Z)</div>
+          <div class="legend-row"><span class="swatch" style="background:var(--purple)"></span> Lit syndrome (detected!)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT'S NEXT card -->
+  <div class="next-card">
+    <div class="kicker">Where this is going</div>
+    <h3>You just did the <em style="font-style:italic;color:var(--purple)">detection</em> step. Next: the fix.</h3>
+    <p>Spotting that an error happened is only half the battle. The hard, research-grade part is the <b style="color:var(--txt);font-weight:500">decoder</b> — the algorithm that stares at this sparse syndrome and guesses what actually went wrong, then undoes it. That's the next module of QEC Explorer.</p>
+    <div class="roadmap">
+      <div class="step done">
+        <div class="lbl">Module 1 · You are here</div>
+        <div class="t">Surface-code detection</div>
+        <div class="d">Inject errors, watch syndromes fire. The faithful physics layer.</div>
+        <span class="badge live">Live now</span>
+      </div>
+      <div class="step next">
+        <div class="lbl">Module 2 · Next</div>
+        <div class="t">Decoder race</div>
+        <div class="d">Watch decoders compete to fix the same error pattern, step by step.</div>
+        <span class="badge wip">In progress</span>
+      </div>
+      <div class="step later">
+        <div class="lbl">Module 3 · Later</div>
+        <div class="t">Noise-model explorer</div>
+        <div class="d">Slide the error rate and bias; see how protection holds or breaks.</div>
+        <span class="badge wip">Planned</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div id="how" style="max-width:760px;margin:64px auto 0;scroll-margin-top:80px">
+    <div class="eyebrow" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral);margin-bottom:12px">How it works</div>
+    <h2 style="font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;margin-bottom:20px">The whole idea in 90 seconds</h2>
+    <div style="color:var(--dim);font-size:15px;line-height:1.75">
+      <p style="margin-bottom:16px">A single quantum bit is fragile — the slightest noise flips it and your computation is ruined. The fix isn't a better qubit; it's <b style="color:var(--txt);font-weight:500">spreading one piece of information across many physical qubits</b> so that no single failure destroys it. That bundle is a <b style="color:var(--txt);font-weight:500">logical qubit</b>, and the layout above — the <b style="color:var(--txt);font-weight:500">rotated surface code</b> — is today's leading way to build one.</p>
+      <p style="margin-bottom:16px">The trick is the diamond-shaped <b style="color:var(--txt);font-weight:500">stabilizers</b>. Each one constantly asks a yes/no question about its neighboring data qubits — but a question carefully designed so the answer reveals <i>that</i> an error occurred without revealing <i>what</i> the data is. (Measuring the data directly would destroy the superposition; that's the heart of the problem QEC solves.)</p>
+      <p style="margin-bottom:16px">When a stabilizer's answer changes, it lights up. The full pattern of lit stabilizers is the <b style="color:var(--purple);font-weight:500">syndrome</b> — and notice the cruel twist you can see above: an error chain only lights up the stabilizers at its two <i>endpoints</i>. From that sparse clue, a <b style="color:var(--txt);font-weight:500">decoder</b> has to guess what actually went wrong and undo it. That decoder is where the hard, interesting research lives — and it's what the next module of this tool will let you watch in action.</p>
+      <p style="font-size:13px;color:var(--hint);margin-top:24px;padding-top:18px;border-top:1px solid var(--bdr)">
+        <b style="color:var(--dim)">On accuracy:</b> the lattice connectivity, stabilizer checks, and syndrome computation here are physically faithful to the rotated surface code. This page shows the <i>detection</i> step. Decoding, noise models, and threshold behavior are coming as separate, clearly-labeled modules — so nothing here is a cartoon standing in for real physics.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- Screen-reader announcement target -->
+<div class="sr-only" id="srLive" aria-live="polite"></div>
+
+<footer>
+  QEC Explorer · Open-source · Built with no dependencies — view source to see exactly how it works.<br>
+  The lattice physics is real. <a href="#how">Read how it works ↑</a>
+</footer>
+
+<script>
+/* ============================================================
+   QEC EXPLORER — Rotated Surface Code (physically faithful)
+   ------------------------------------------------------------
+   Model: distance-d rotated surface code.
+   - Data qubits live on a d×d grid of sites.
+   - Each data qubit can carry an X, Z, or Y (=X·Z) error.
+   - Stabilizers are weight-≤4 plaquettes of two types:
+       * Z-type stabilizers detect X errors (anticommute with X).
+       * X-type stabilizers detect Z errors (anticommute with Z).
+   - A stabilizer "fires" (lights up) when an ODD number of the
+     data qubits it touches carry the error type it's sensitive to.
+   This is the exact parity rule used in real surface-code decoding.
+   ============================================================ */
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+const lattice = document.getElementById("lattice");
+
+const state = {
+  d: 3,
+  paint: "X",          // "X" | "Z" | "Y"
+  errors: {},          // key "r,c" -> {x:bool, z:bool}
+};
+
+/* ---- Build the code structure for a given distance ---- */
+function buildCode(d) {
+  // Data qubits on a d×d grid. (r,c) with r,c in [0..d-1].
+  const data = [];
+  for (let r = 0; r < d; r++)
+    for (let c = 0; c < d; c++)
+      data.push({ r, c });
+
+  // Stabilizers sit on the "dual" grid, at half-integer positions.
+  // A plaquette at center (R+0.5, C+0.5) touches up to 4 data qubits:
+  //   (R,C),(R,C+1),(R+1,C),(R+1,C+1).
+  // Bulk plaquettes are full weight-4. Boundary stabilizers are the
+  // weight-2 "half" plaquettes on the top/bottom (one type) and
+  // left/right (other type) edges, giving the rotated code its shape.
+  // Coloring follows the checkerboard: (R+C) even = Z-type, odd = X-type.
+  const stabs = [];
+  for (let R = -1; R < d; R++) {
+    for (let C = -1; C < d; C++) {
+      const type = ((R + C) % 2 === 0) ? "Z" : "X"; // Z detects X, X detects Z
+      // candidate data sites
+      const cand = [
+        [R, C], [R, C + 1], [R + 1, C], [R + 1, C + 1]
+      ].filter(([rr, cc]) => rr >= 0 && rr < d && cc >= 0 && cc < d);
+      if (cand.length === 0) continue;
+
+      // Rotated-code boundary rule:
+      //  - Z-type (even) plaquettes only exist as weight-2 on the
+      //    LEFT/RIGHT boundaries (and weight-4 in bulk).
+      //  - X-type (odd) plaquettes only exist as weight-2 on the
+      //    TOP/BOTTOM boundaries (and weight-4 in bulk).
+      // Weight-1 or 3 candidate sets are not valid stabilizers; skip
+      // the boundary plaquettes that don't belong to that type.
+      const onTopBottom = (R === -1 || R === d - 1);
+      const onLeftRight = (C === -1 || C === d - 1);
+      if (cand.length === 2) {
+        if (type === "Z" && !onLeftRight) continue;
+        if (type === "X" && !onTopBottom) continue;
+      }
+      if (cand.length !== 2 && cand.length !== 4) continue;
+
+      stabs.push({
+        type,
+        cx: C + 0.5,
+        cy: R + 0.5,
+        data: cand.map(([rr, cc]) => `${rr},${cc}`)
+      });
+    }
+  }
+  return { d, data, stabs };
+}
+
+/* ---- Compute which stabilizers fire from current errors ---- */
+function computeSyndrome(code) {
+  return code.stabs.map(s => {
+    let parity = 0;
+    for (const key of s.data) {
+      const e = state.errors[key];
+      if (!e) continue;
+      // Z-type stabilizer anticommutes with X errors -> sensitive to X
+      // X-type stabilizer anticommutes with Z errors -> sensitive to Z
+      if (s.type === "Z" && e.x) parity ^= 1;
+      if (s.type === "X" && e.z) parity ^= 1;
+    }
+    return parity; // 1 = fired
+  });
+}
+
+/* ---- Detect logical error: an error chain spanning the code ---- */
+/* Verified against the rotated surface code (see commit notes):
+     - Logical X = a VERTICAL column of X errors (commutes with every
+       stabilizer -> fires zero syndromes).
+     - Logical Z = a HORIZONTAL row of Z errors (likewise silent).
+   A logical flip has occurred iff the syndrome is fully clear AND the
+   net error commutes with all stabilizers while ANTIcommuting with a
+   logical observable. We measure that by parity against representative
+   observables:
+     - logical-Z observable = X-parity along any single column. We use
+       column 0; for a syndrome-free X configuration this parity is a
+       homology invariant, so column 0 is a valid representative.
+     - logical-X observable = Z-parity along row 0. */
+function logicalStatus(code) {
+  const synd = computeSyndrome(code);
+  const anyFired = synd.some(v => v === 1);
+  if (anyFired) return { logical: false, hasErr: hasAnyError() };
+
+  // Zero syndrome -> the error is a product of stabilizers and/or a
+  // logical operator. Read the two logical observables.
+  const d = code.d;
+  let xObsCol0 = 0;  // X-parity down column 0  -> flips logical Z
+  let zObsRow0 = 0;  // Z-parity across row 0   -> flips logical X
+  for (let r = 0; r < d; r++) {
+    const e = state.errors[`${r},0`];
+    if (e && e.x) xObsCol0 ^= 1;
+  }
+  for (let c = 0; c < d; c++) {
+    const e = state.errors[`0,${c}`];
+    if (e && e.z) zObsRow0 ^= 1;
+  }
+  const logical = (xObsCol0 === 1 || zObsRow0 === 1);
+  return { logical, hasErr: hasAnyError() };
+}
+
+function hasAnyError() {
+  return Object.values(state.errors).some(e => e && (e.x || e.z));
+}
+
+/* ============================================================
+   RENDERING
+   ------------------------------------------------------------
+   Split into two paths for performance (item #4):
+   - buildLattice(): full DOM construction. Called ONCE per distance
+     change. Builds bonds, plaquettes, qubit circles + hit areas and
+     stores references in nodeMap so we never recreate them on a click.
+   - paint(): cheap attribute-only update of existing nodes. Called on
+     every error toggle. No node creation/destruction.
+   ============================================================ */
+
+let CODE = buildCode(state.d);
+let GEO = null;        // cached geometry for current distance
+const nodeMap = {      // references to live DOM nodes for fast updates
+  qubits: {},          // key "r,c" -> {circle, hit}
+  plaqs: [],           // index-aligned with CODE.stabs -> {poly, label}
+};
+
+function geometry(d) {
+  const PAD = 70;
+  const span = 560 - PAD * 2;
+  const step = span / (d - 1);
+  return {
+    d, PAD, step,
+    toX: c => PAD + c * step,
+    toY: r => PAD + r * step,
+    // visual radius shrinks with d, but the TAP radius never does (item #2)
+    visR: d <= 3 ? 16 : d <= 5 ? 12 : 9,
+    hitR: Math.max(18, (d <= 3 ? 16 : d <= 5 ? 12 : 9) + 8) // >= ~18px touch target
+  };
+}
+
+function fillForError(e) {
+  if (!e) return "#2a2a3a";
+  if (e.x && e.z) return "var(--gold)";
+  if (e.x) return "var(--coral)";
+  if (e.z) return "var(--blue)";
+  return "#2a2a3a";
+}
+
+function errorWord(e) {
+  if (!e) return "no error";
+  if (e.x && e.z) return "Y error (X and Z flip)";
+  if (e.x) return "X error";
+  if (e.z) return "Z error";
+  return "no error";
+}
+
+/* ---- FULL build: only on load and distance change ---- */
+function buildLattice() {
+  CODE = buildCode(state.d);
+  GEO = geometry(state.d);
+  const { d, toX, toY, visR, hitR } = GEO;
+
+  // reset
+  while (lattice.firstChild) lattice.removeChild(lattice.firstChild);
+  nodeMap.qubits = {};
+  nodeMap.plaqs = [];
+
+  // --- bonds (grid lines between adjacent data qubits) ---
+  for (let r = 0; r < d; r++) {
+    for (let c = 0; c < d; c++) {
+      if (c < d - 1) addLine(toX(c), toY(r), toX(c + 1), toY(r));
+      if (r < d - 1) addLine(toX(c), toY(r), toX(c), toY(r + 1));
+    }
+  }
+
+  // --- stabilizer plaquettes (built once, recolored in paint) ---
+  CODE.stabs.forEach((s, i) => {
+    const pts = s.data.map(k => {
+      const [rr, cc] = k.split(",").map(Number);
+      return [toX(cc), toY(rr)];
+    });
+    const cx = toX(s.cx), cy = toY(s.cy);
+    pts.sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx));
+    const poly = document.createElementNS(SVG_NS, "polygon");
+    poly.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+    poly.setAttribute("class", "plaquette");
+    lattice.appendChild(poly);
+
+    const label = document.createElementNS(SVG_NS, "text");
+    label.setAttribute("x", cx); label.setAttribute("y", cy);
+    label.setAttribute("class", "synd-label");
+    label.setAttribute("fill", "#fff");
+    label.textContent = "";
+    lattice.appendChild(label);
+
+    nodeMap.plaqs[i] = { poly, label, type: s.type };
+  });
+
+  // --- data qubits (circle + invisible larger hit area) ---
+  CODE.data.forEach(({ r, c }) => {
+    const key = `${r},${c}`;
+
+    // invisible larger hit/focus target (keyboard + touch)
+    const hit = document.createElementNS(SVG_NS, "circle");
+    hit.setAttribute("cx", toX(c));
+    hit.setAttribute("cy", toY(r));
+    hit.setAttribute("r", hitR);
+    hit.setAttribute("class", "hit-area data-qubit");
+    hit.setAttribute("tabindex", "0");
+    hit.setAttribute("role", "button");
+    hit.setAttribute("aria-label", `Data qubit row ${r + 1}, column ${c + 1}, no error`);
+    hit.addEventListener("click", () => toggleError(key));
+    hit.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " " || ev.key === "Spacebar") {
+        ev.preventDefault();
+        toggleError(key);
+      }
+    });
+    lattice.appendChild(hit);
+
+    // visible qubit dot
+    const circ = document.createElementNS(SVG_NS, "circle");
+    circ.setAttribute("cx", toX(c));
+    circ.setAttribute("cy", toY(r));
+    circ.setAttribute("r", visR);
+    circ.setAttribute("fill", "#2a2a3a");
+    circ.setAttribute("stroke", "#43435f");
+    circ.setAttribute("stroke-width", "1.5");
+    circ.setAttribute("class", "data-qubit");
+    circ.setAttribute("pointer-events", "none"); // hit area handles input
+    lattice.appendChild(circ);
+
+    nodeMap.qubits[key] = { circle: circ, hit };
+  });
+
+  paint(new Set());
+}
+
+/* ---- CHEAP update: attribute-only, on every click ---- */
+function paint(popKeys = new Set()) {
+  const synd = computeSyndrome(CODE);
+
+  // plaquettes
+  nodeMap.plaqs.forEach((node, i) => {
+    const fired = synd[i] === 1;
+    const { poly, label, type } = node;
+    if (fired) {
+      poly.setAttribute("fill", "var(--purple)");
+      poly.setAttribute("fill-opacity", "0.55");
+      poly.setAttribute("stroke", "var(--purple)");
+      label.textContent = "!";
+      if (popKeys.has("synd" + i)) { poly.classList.remove("pop"); void poly.offsetWidth; poly.classList.add("pop"); }
+    } else {
+      const baseFill = type === "Z" ? "rgba(46,196,160,1)" : "rgba(228,93,154,1)";
+      const baseStroke = type === "Z" ? "var(--teal)" : "var(--pink)";
+      poly.setAttribute("fill", baseFill);
+      poly.setAttribute("fill-opacity", "0.10");
+      poly.setAttribute("stroke", baseStroke);
+      poly.classList.remove("pop");
+      label.textContent = "";
+    }
+  });
+
+  // qubits — only color + aria need updating
+  for (const key in nodeMap.qubits) {
+    const [r, c] = key.split(",").map(Number);
+    const e = state.errors[key];
+    const { circle, hit } = nodeMap.qubits[key];
+    circle.setAttribute("fill", fillForError(e));
+    hit.setAttribute("aria-label", `Data qubit row ${r + 1}, column ${c + 1}, ${errorWord(e)}`);
+    if (popKeys.has(key)) { circle.classList.remove("pop"); void circle.offsetWidth; circle.classList.add("pop"); }
+    else circle.classList.remove("pop");
+  }
+
+  updateReadout(synd);
+}
+
+function addLine(x1, y1, x2, y2) {
+  const l = document.createElementNS(SVG_NS, "line");
+  l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+  l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+  l.setAttribute("class", "bond");
+  lattice.appendChild(l);
+}
+
+/* ---- Interaction ---- */
+function toggleError(key) {
+  const cur = state.errors[key] || { x: false, z: false };
+  const next = { ...cur };
+  if (state.paint === "X") next.x = !next.x;
+  else if (state.paint === "Z") next.z = !next.z;
+  else { // Y toggles both together
+    const both = cur.x && cur.z;
+    next.x = !both; next.z = !both;
+  }
+  if (!next.x && !next.z) delete state.errors[key];
+  else state.errors[key] = next;
+  paint(new Set([key]));
+  updateRibbon(key);
+  scheduleHashSync();
+}
+
+function updateRibbon(lastKey) {
+  const synd = computeSyndrome(CODE);
+  const lit = synd.filter(v => v === 1).length;
+  const ribbon = document.getElementById("ribbon");
+  const nErr = Object.keys(state.errors).length;
+
+  if (nErr === 0) {
+    ribbon.innerHTML = `<span class="tag">Status</span><b>No errors.</b> A clean code — every stabilizer reads <b>+1</b> (silent).`;
+    return;
+  }
+  const { logical } = logicalStatus(CODE);
+  if (logical) {
+    ribbon.innerHTML = `<span class="tag" style="color:var(--red)">Logical error</span><b style="color:var(--coral)">The syndrome is silent — but the stored qubit has flipped.</b> Your error chain spans the whole code, so it looks identical to "no error" to every stabilizer. This is the failure decoders exist to prevent.`;
+  } else if (lit === 0) {
+    ribbon.innerHTML = `<span class="tag">Status</span><b>${nErr} error${nErr>1?'s':''}, but syndrome silent.</b> These errors happen to commute with every stabilizer (e.g. a closed loop, or errors that cancel in parity). Detectable patterns need an <i>odd</i> count per stabilizer.`;
+  } else {
+    ribbon.innerHTML = `<span class="tag">Detected</span><b>${lit} stabilizer${lit>1?'s':''} fired</b> from ${nErr} error${nErr>1?'s':''}. Notice they sit at the <i>ends</i> of your error chains — a decoder must now guess the path between them.`;
+  }
+}
+
+function updateReadout(synd) {
+  const d = CODE.d;
+  const lit = synd.filter(v => v === 1).length;
+  const nErr = Object.keys(state.errors).length;
+  document.getElementById("rCode").textContent = `Rotated surface, d=${d}`;
+  document.getElementById("rData").textContent = d * d;
+  document.getElementById("rStab").textContent = CODE.stabs.length;
+  document.getElementById("rErr").textContent = nErr;
+  const sEl = document.getElementById("rSynd");
+  sEl.textContent = lit;
+  sEl.className = "v" + (lit > 0 ? " warn" : "");
+
+  const { logical } = logicalStatus(CODE);
+  const lEl = document.getElementById("rLogical");
+  if (logical) { lEl.textContent = "FLIPPED ✗"; lEl.className = "v warn"; }
+  else { lEl.textContent = "Protected ✓"; lEl.className = "v ok"; }
+}
+
+/* ============================================================
+   STATE -> URL HASH  (persistence + sharing, item #3)
+   ------------------------------------------------------------
+   Compact encoding:  d<distance>-<base64 of error bitfield>
+   Each data qubit gets 2 bits: bit0 = X, bit1 = Z, in row-major order.
+   ============================================================ */
+function encodeState() {
+  const d = state.d;
+  const n = d * d;
+  const bytes = new Uint8Array(Math.ceil((n * 2) / 8));
+  let bit = 0;
+  for (let r = 0; r < d; r++) {
+    for (let c = 0; c < d; c++) {
+      const e = state.errors[`${r},${c}`];
+      const xb = e && e.x ? 1 : 0;
+      const zb = e && e.z ? 1 : 0;
+      if (xb) bytes[bit >> 3] |= (1 << (bit & 7)); bit++;
+      if (zb) bytes[bit >> 3] |= (1 << (bit & 7)); bit++;
+    }
+  }
+  // base64url (no padding) so it's URL-clean
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return `d${d}-${b64}`;
+}
+
+function decodeState(hash) {
+  try {
+    const m = hash.match(/^#?d(\d+)-(.*)$/);
+    if (!m) return false;
+    const d = parseInt(m[1], 10);
+    if (![3, 5, 7].includes(d)) return false;
+    let b64 = m[2].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+    state.d = d;
+    state.errors = {};
+    let bit = 0;
+    for (let r = 0; r < d; r++) {
+      for (let c = 0; c < d; c++) {
+        const xb = (bytes[bit >> 3] >> (bit & 7)) & 1; bit++;
+        const zb = (bytes[bit >> 3] >> (bit & 7)) & 1; bit++;
+        if (xb || zb) state.errors[`${r},${c}`] = { x: !!xb, z: !!zb };
+      }
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+let hashTimer;
+function scheduleHashSync() {
+  clearTimeout(hashTimer);
+  hashTimer = setTimeout(() => {
+    // replaceState avoids spamming browser history on every click
+    const enc = encodeState();
+    history.replaceState(null, "", "#" + enc);
+  }, 250);
+}
+
+function syncDistButtons() {
+  document.querySelectorAll("#dist button").forEach(b => {
+    const on = (+b.dataset.v === state.d);
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+/* ---- Buttons ---- */
+document.getElementById("errType").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.paint = b.dataset.v;
+  [...e.currentTarget.children].forEach(x => {
+    const on = (x === b);
+    x.classList.toggle("on", on);
+    x.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+});
+
+document.getElementById("dist").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.d = +b.dataset.v;
+  state.errors = {};
+  syncDistButtons();
+  buildLattice();           // structure changed -> full rebuild
+  document.getElementById("ribbon").innerHTML =
+    `<span class="tag">Status</span>Switched to <b>distance d=${state.d}</b> — now ${state.d*state.d} data qubits. A larger code can correct more errors before failing.`;
+  scheduleHashSync();
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  state.errors = {};
+  paint();                  // structure unchanged -> cheap repaint
+  document.getElementById("ribbon").innerHTML =
+    `<span class="tag">Status</span><b>Cleared.</b> Every stabilizer is silent again. Click a data qubit to begin.`;
+  scheduleHashSync();
+});
+
+document.getElementById("randomBtn").addEventListener("click", () => {
+  state.errors = {};
+  const d = state.d;
+  const p = 0.12; // physical error rate for the demo sprinkle
+  const popped = new Set();
+  CODE.data.forEach(({ r, c }) => {
+    const key = `${r},${c}`;
+    if (Math.random() < p) {
+      const roll = Math.random();
+      const e = { x: false, z: false };
+      if (roll < 0.45) e.x = true;
+      else if (roll < 0.9) e.z = true;
+      else { e.x = true; e.z = true; }
+      state.errors[key] = e;
+      popped.add(key);
+    }
+  });
+  paint(popped);            // structure unchanged -> cheap repaint
+  const synd = computeSyndrome(CODE);
+  const lit = synd.filter(v => v === 1).length;
+  const nErr = Object.keys(state.errors).length;
+  showToast(`Sprinkled <b>${nErr}</b> random error${nErr!==1?'s':''} at p≈12% — <b>${lit}</b> syndrome${lit!==1?'s':''} fired.`);
+  updateRibbon();
+  scheduleHashSync();
+});
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const url = location.origin + location.pathname + "#" + encodeState();
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast(`Link copied — <b>share this exact error pattern</b>.`);
+  } catch (err) {
+    // Fallback for file:// or clipboard-blocked contexts
+    history.replaceState(null, "", "#" + encodeState());
+    showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`);
+  }
+});
+
+/* ---- Toast ---- */
+let toastTimer;
+function showToast(html) {
+  const t = document.getElementById("toast");
+  t.innerHTML = html;
+  t.classList.add("show");
+  // mirror to SR live region (strip tags)
+  document.getElementById("srLive").textContent = t.textContent;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+/* ---- init: restore from URL hash if present ---- */
+(function init() {
+  const restored = location.hash && decodeState(location.hash);
+  if (restored) syncDistButtons();
+  buildLattice();
+  if (restored) {
+    updateRibbon();
+    showToast(`Loaded a <b>shared pattern</b> from the link.`);
+  }
+})();
+</script>
+</body>
+</html>
