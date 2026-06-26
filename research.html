@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — Research Connection</title>
+<title>QEC Explorer · Research Connection</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-
 .topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
 .topbar a:hover{color:var(--txt)}
 
-/* Project strip — research marked active */
+/* Project strip, research marked active */
 .project-strip{max-width:1080px;margin:18px auto 0;padding:0 28px}
 .project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
   background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
@@ -132,13 +132,13 @@ footer a:hover{color:var(--txt)}
   <div class="lead">
     <div class="eyebrow">Where this project meets current research</div>
     <h1>From a clickable toy to the <em>real</em> frontier</h1>
-    <p>QEC Explorer isn't just a teaching demo — it's built around two questions that the quantum-computing field is actively working on right now: <b style="color:var(--txt);font-weight:500">how do we build codes that don't waste enormous numbers of qubits</b>, and <b style="color:var(--txt);font-weight:500">how do we decode them well enough to matter</b>. This page connects the interactive modules and notebooks to that research, in plain terms.</p>
+    <p>QEC Explorer isn't just a teaching demo. It's built around two questions the quantum-computing field is actively working on right now: <b style="color:var(--txt);font-weight:500">how do we build codes that don't waste enormous numbers of qubits</b>, and <b style="color:var(--txt);font-weight:500">how do we decode them well enough to matter</b>? This page connects the interactive modules and notebooks to that research, in plain terms.</p>
   </div>
 
   <!-- arXiv placeholder -->
   <div class="arxiv">
     <span class="tag">Manuscript</span>
-    <div class="txt"><b>A manuscript on this work is in preparation.</b> The arXiv preprint link will appear here once it's submitted. <span style="color:var(--hint)">[ arXiv link — placeholder, to be added on submission ]</span></div>
+    <div class="txt"><b>A manuscript on this work is in preparation.</b> The arXiv preprint link will appear here once it's submitted. <span style="color:var(--hint)">[ arXiv link, placeholder, to be added on submission ]</span></div>
   </div>
 
   <!-- THREAD 1: better codes (qLDPC) -->
@@ -147,11 +147,11 @@ footer a:hover{color:var(--txt)}
     <h2>The qubit-overhead problem, and qLDPC codes</h2>
     <div class="prose">
       <p>The surface code you play with in Module 1 is the field's current workhorse, and for good reason: every check it makes only involves neighboring qubits on a flat grid, which is exactly what today's hardware can build. But that convenience has a steep price. To protect a single piece of quantum information well enough to run a real algorithm, a surface code needs <b>hundreds to thousands of physical qubits per logical qubit</b>. Scale that to the millions of physical qubits a useful machine would need, and the overhead becomes the central engineering obstacle.</p>
-      <p>A newer family — <b>quantum low-density parity-check (qLDPC) codes</b> — keeps the good property that each check still only touches a few qubits, but relaxes the demand that those qubits be physical neighbors. By allowing a small number of longer-range connections, these codes pack <b>many</b> logical qubits into far fewer physical ones. IBM's <b>bivariate-bicycle codes</b> are the headline example: their "gross code" protects 12 logical qubits with 144 data qubits at the same distance where a surface code would protect just one — roughly a <b>tenfold cut in overhead</b>.</p>
-      <p>The trade-off is honest and real: those longer-range links are harder to wire in hardware, and they make decoding harder — which is exactly where the second research thread comes in.</p>
+      <p>A newer family, <b>quantum low-density parity-check (qLDPC) codes</b>, keeps the good property that each check still only touches a few qubits, but relaxes the demand that those qubits be physical neighbors. By allowing a small number of longer-range connections, these codes pack <b>many</b> logical qubits into far fewer physical ones. IBM's <b>bivariate-bicycle codes</b> are the headline example: their "gross code" protects 12 logical qubits with 144 data qubits at the same distance where a surface code would protect just one, roughly a <b>tenfold cut in overhead</b>.</p>
+      <p>The trade-off is real: those longer-range links are harder to wire in hardware, and they make decoding harder, which is exactly where the second research thread comes in.</p>
     </div>
     <div class="callout">
-      <b>Explore it yourself:</b> Notebook 4 works through the overhead math with real numbers, draws how a bivariate-bicycle code's connectivity graph differs from the surface code's, and is explicit about what it does and doesn't implement — no claim of a working qLDPC decoder it didn't build.
+      <b>Explore it yourself:</b> Notebook 4 works through the overhead math with real numbers, draws how a bivariate-bicycle code's connectivity graph differs from the surface code's, and is explicit about what it does and doesn't implement, no claim of a working qLDPC decoder it didn't build.
     </div>
   </div>
 
@@ -160,12 +160,12 @@ footer a:hover{color:var(--txt)}
     <div class="section-eyebrow b">Research thread 2 · Better decoders</div>
     <h2>Learned decoding with neural networks</h2>
     <div class="prose">
-      <p>A decoder is the algorithm that looks at the pattern of lit detectors and guesses what error occurred — the puzzle you watch three real decoders attempt in Module 2. The catch, which you can see for yourself, is that <b>the syndrome never uniquely determines the error</b>: many different errors light up the same detectors. Decoding is fundamentally a problem of <b>inference under ambiguity</b>, and the best general-purpose classical method (belief propagation) actually <b>fails</b> on the surface code, as Notebook 3 demonstrates honestly.</p>
-      <p>The frontier response is to <b>learn</b> a decoder from data instead of hand-designing it. Google's <b>AlphaQubit</b> (2024) is the landmark result: a neural network trained on enormous amounts of error data that decodes large surface codes better than the classical standards. Notebook 5 builds a small, real version of this idea — a <b>graph neural network</b> that passes messages over the same detector graph the other decoders use — trains it on synthetic noise, and benchmarks it against belief propagation.</p>
-      <p>And here's the honest part, which is the whole point: at the tiny scale a teaching notebook can train, <b>the neural decoder does not beat the classical baseline.</b> Notebook 5 reports that real result rather than rigging a win, and explains exactly why scale is what makes learned decoders succeed. That gap between a small honest demo and a state-of-the-art result <i>is</i> the research.</p>
+      <p>A decoder is the algorithm that looks at the pattern of lit detectors and guesses what error occurred. It's the puzzle you watch three decoders attempt in Module 2. The catch, which you can see for yourself, is that <b>the syndrome never uniquely determines the error</b>. Many different errors light up the same detectors. Decoding is really a problem of <b>inference under ambiguity</b>, and the best general-purpose classical method, belief propagation, actually <b>fails</b> on the surface code, as Notebook 3 shows.</p>
+      <p>The frontier response is to <b>learn</b> a decoder from data instead of hand-designing it. Google's <b>AlphaQubit</b> (2024) is the landmark result: a neural network trained on enormous amounts of error data that decodes large surface codes better than the classical standards. Notebook 5 builds a small, real version of this idea, a <b>graph neural network</b> that passes messages over the same detector graph the other decoders use, trains it on synthetic noise, and benchmarks it against belief propagation.</p>
+      <p>And here's the part worth being upfront about: at the tiny scale a teaching notebook can train, <b>the neural decoder does not beat the classical baseline.</b> Notebook 5 reports that result as it is, and explains why scale is what makes learned decoders win. The gap between a small demo and a state-of-the-art result <i>is</i> the research.</p>
     </div>
     <div class="callout">
-      <b>Connection to my own interests:</b> this graph-neural-network decoding direction — message passing on the code's structure, learned rather than fixed — is the thread that links QEC Explorer to current decoder research, including learned decoders for the high-rate qLDPC codes from thread 1, where good decoders matter most and are hardest to build.
+      <b>Connection to my own interests:</b> this graph-neural-network decoding direction, message passing on the code's structure, learned rather than fixed, is the thread that links QEC Explorer to current decoder research, including learned decoders for the high-rate qLDPC codes from thread 1, where good decoders matter most and are hardest to build.
     </div>
   </div>
 
@@ -174,13 +174,13 @@ footer a:hover{color:var(--txt)}
     <div class="section-eyebrow c">The throughline</div>
     <h2>Two threads, one goal: <em>practical</em> fault tolerance</h2>
     <div class="prose">
-      <p>Better codes (fewer qubits) and better decoders (smarter inference) are the two halves of making quantum error correction practical. QEC Explorer walks the full path to that frontier — every step backed by code you can read and run.</p>
+      <p>Better codes (fewer qubits) and better decoders (smarter inference) are the two halves of making quantum error correction practical. QEC Explorer walks the full path to that frontier, with code you can read and run behind every step.</p>
     </div>
     <div class="tie">
       <a href="index.html"><div class="k">Module 1 + Notebook 1</div><div class="t">Detection & the surface code</div><div class="d">The faithful physics everything else builds on.</div></a>
       <a href="decoder.html"><div class="k">Module 2 + Notebook 2</div><div class="t">Three real decoders</div><div class="d">Where the inference-under-ambiguity problem becomes visible.</div></a>
       <a href="noise.html"><div class="k">Module 3 + Notebook 3</div><div class="t">Noise & the threshold</div><div class="d">When protection holds, when it breaks, and BP's honest failure.</div></a>
-      <a href="https://github.com/kondshk/QEC-Explorer"><div class="k">Notebooks 4 & 5</div><div class="t">qLDPC codes & GNN decoding</div><div class="d">The two research threads, built and benchmarked honestly.</div></a>
+      <a href="https://github.com/kondshk/QEC-Explorer"><div class="k">Notebooks 4 & 5</div><div class="t">qLDPC codes & GNN decoding</div><div class="d">The two research threads, built and benchmarked.</div></a>
     </div>
   </div>
 
@@ -188,10 +188,10 @@ footer a:hover{color:var(--txt)}
   <div class="refs">
     <h3>Key references</h3>
     <ol>
-      <li>S. Bravyi, A. W. Cross, J. M. Gambetta, D. Maslov, P. Rall, T. J. Yoder, "High-threshold and low-overhead fault-tolerant quantum memory," <i>Nature</i> <b>627</b>, 778–782 (2024) — bivariate-bicycle codes and the [[144,12,12]] gross code.</li>
-      <li>J. Bausch et al. (Google DeepMind / Quantum AI), "Learning high-accuracy error decoding for quantum processors" (AlphaQubit), <i>Nature</i> (2024) — neural-network surface-code decoding.</li>
-      <li>The Error Correction Zoo, <a href="https://errorcorrectionzoo.org/c/qcga">"Bivariate bicycle code"</a> and <a href="https://errorcorrectionzoo.org/c/gross">"[[144,12,12]] gross code"</a> entries — code parameters and connectivity.</li>
-      <li>IBM Quantum, <a href="https://www.ibm.com/quantum/blog/nature-qldpc-error-correction">"Landmark IBM error correction paper on Nature cover"</a> and IBM's large-scale fault-tolerant quantum computing roadmap — the reported ~10× overhead reduction.</li>
+      <li>S. Bravyi, A. W. Cross, J. M. Gambetta, D. Maslov, P. Rall, T. J. Yoder, "High-threshold and low-overhead fault-tolerant quantum memory," <i>Nature</i> <b>627</b>, 778–782 (2024), bivariate-bicycle codes and the [[144,12,12]] gross code.</li>
+      <li>J. Bausch et al. (Google DeepMind / Quantum AI), "Learning high-accuracy error decoding for quantum processors" (AlphaQubit), <i>Nature</i> (2024), neural-network surface-code decoding.</li>
+      <li>The Error Correction Zoo, <a href="https://errorcorrectionzoo.org/c/qcga">"Bivariate bicycle code"</a> and <a href="https://errorcorrectionzoo.org/c/gross">"[[144,12,12]] gross code"</a> entries, code parameters and connectivity.</li>
+      <li>IBM Quantum, <a href="https://www.ibm.com/quantum/blog/nature-qldpc-error-correction">"Landmark IBM error correction paper on Nature cover"</a> and IBM's large-scale fault-tolerant quantum computing roadmap, the reported ~10× overhead reduction.</li>
     </ol>
     <p style="font-size:12px;color:var(--hint);margin-top:14px;line-height:1.6">Note: specific figures (e.g. surface-code overhead "per logical qubit," the ~10× improvement) are drawn from the sources above; where a notebook uses a round number for illustration rather than a single sourced constant, it says so explicitly. This summary is written in the author's own words.</p>
   </div>

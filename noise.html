@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — Noise Explorer</title>
+<title>QEC Explorer · Noise Explorer</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -161,7 +161,7 @@ footer a:hover{color:var(--txt)}
 
 <div class="project-strip">
   <div class="project-strip-inner">
-    <div class="crumb">Part of <b>QEC Explorer</b> · Module 3 — Noise &amp; Threshold</div>
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 3 · Noise &amp; Threshold</div>
     <div class="steps">
       <a class="pill" href="index.html">1 · Detect errors</a>
       <span class="arrow">→</span>
@@ -176,7 +176,7 @@ footer a:hover{color:var(--txt)}
   <div class="lead">
     <div class="eyebrow">Interactive · Monte Carlo · Runs in your browser</div>
     <h1>When does protection <em>break</em>?</h1>
-    <p>Every decoder works fine when errors are rare. Crank the physical error rate up and eventually even a perfect code drowns. This module runs a real <b>Monte Carlo</b> experiment — sample thousands of random errors, decode each one with a real decoder, and measure how often a <b>logical error</b> slips through. Then sweep the error rate across code distances to look for the <b>threshold</b>: the crossover where making the code bigger finally starts helping.</p>
+    <p>Every decoder works fine when errors are rare. Crank the physical error rate up and eventually even a perfect code drowns. This module runs a real <b>Monte Carlo</b> experiment, sample thousands of random errors, decode each one with a real decoder, and measure how often a <b>logical error</b> slips through. Then sweep the error rate across code distances to look for the <b>threshold</b>: the crossover where making the code bigger finally starts helping.</p>
   </div>
 
   <div class="app">
@@ -236,12 +236,12 @@ footer a:hover{color:var(--txt)}
       <!-- SINGLE-POINT MODE -->
       <div id="singleView">
         <div class="readout">
-          <div class="stat"><div class="k">Logical error rate</div><div class="v big" id="lerVal">—</div></div>
+          <div class="stat"><div class="k">Logical error rate</div><div class="v big" id="lerVal">, </div></div>
           <div class="stat"><div class="k">Trials run</div><div class="v" id="trialsRun">0</div></div>
           <div class="stat"><div class="k">Failures</div><div class="v" id="failVal">0</div></div>
         </div>
         <div class="plot-card">
-          <h4>Convergence — cumulative logical error rate</h4>
+          <h4>Convergence, cumulative logical error rate</h4>
           <svg class="plot" id="convPlot" viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cumulative logical error rate vs trial number"></svg>
           <div class="cap" id="convCap">Press <b>Run experiment</b>. The curve shows the running logical error rate; watch it settle as more trials accumulate (Monte Carlo noise shrinks like 1/√trials).</div>
         </div>
@@ -250,7 +250,7 @@ footer a:hover{color:var(--txt)}
       <!-- SWEEP MODE -->
       <div id="sweepView" class="hide">
         <div class="plot-card">
-          <h4>Threshold sweep — logical vs physical error rate</h4>
+          <h4>Threshold sweep, logical vs physical error rate</h4>
           <svg class="plot" id="threshPlot" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logical error rate vs physical error rate across code distances, log-log axes"></svg>
           <div class="legend">
             <div class="item"><span class="sw" style="background:var(--purple)"></span> d = 3</div>
@@ -266,8 +266,8 @@ footer a:hover{color:var(--txt)}
 
       <div class="insight">
         <div class="kicker">What you're looking for</div>
-        <h3>The threshold — and why d = 3..7 makes it muddy</h3>
-        <p><b>The ideal:</b> below a critical error rate, the curves should fan out so that <b>bigger distance = lower logical error rate</b> (d=7 under d=5 under d=3), and above it the order flips. That crossover is the <i>threshold</i>. <b>The honest reality at this scale:</b> distances 3–7 with a few hundred trials are small and noisy — real threshold plots use distances up to ~25 and millions of shots. So you'll often see the curves <i>cross in a band</i> rather than fan out cleanly, and at very low p the estimates are dominated by Monte Carlo noise. The high-p order-flip is the most reliable signal here. This module shows you the <b>real</b> numbers, muddiness and all — that honesty is the point.</p>
+        <h3>The threshold, and why d = 3..7 makes it muddy</h3>
+        <p><b>The ideal:</b> below a critical error rate, the curves should fan out so that <b>bigger distance = lower logical error rate</b> (d=7 under d=5 under d=3), and above it the order flips. That crossover is the <i>threshold</i>. <b>The reality at this scale:</b> distances 3 to 7 with a few hundred trials are small and noisy. Real threshold plots use distances up to about 25 and millions of shots. So you'll often see the curves <i>cross in a band</i> rather than fan out cleanly, and at very low p the estimates are mostly Monte Carlo noise. The high-p order-flip is the most reliable signal here. This module shows you the actual numbers, muddiness and all, rather than a cleaned-up cartoon.</p>
       </div>
     </div>
   </div>
@@ -276,7 +276,7 @@ footer a:hover{color:var(--txt)}
 <div class="sr-only" id="srLive" aria-live="polite"></div>
 
 <footer>
-  QEC Explorer · Module 3 · Open-source · Real Monte Carlo over the same decoders as Module 2 — view source.<br>
+  QEC Explorer · Module 3 · Open-source · Real Monte Carlo over the same decoders as Module 2, view source.<br>
   <a href="index.html">Module 1 · Detection</a> &nbsp;·&nbsp; <a href="decoder.html">Module 2 · Decoder race</a>
 </footer>
 
@@ -285,7 +285,7 @@ footer a:hover{color:var(--txt)}
 <script src="decoders.js"></script>
 <script>
 /* ============================================================
-   noise.html — Module 3 UI
+   noise.html, Module 3 UI
    Real Monte Carlo over the existing decoders (lookupDecode /
    mwpmDecode / bpDecode) + evaluateCorrection from decoders.js.
    No physics is reimplemented here.
@@ -417,7 +417,7 @@ async function runSweep(token) {
 }
 
 /* ============================================================
-   PLOTTING — plain SVG, log-scaled, dark palette
+   PLOTTING, plain SVG, log-scaled, dark palette
    ============================================================ */
 function el(name, attrs) {
   const e = document.createElementNS(SVG_NS, name);
@@ -432,7 +432,7 @@ function drawConvergence(cumul, trials, p) {
   clearSvg(svg);
   const W = 720, H = 340, L = 56, R = 16, T = 18, B = 40;
   const plotW = W - L - R, plotH = H - T - B;
-  const yMax = Math.max(0.05, ...cumul.map(d => d.ler)) * 1.15;
+  const yMax = Math.max(0.05...cumul.map(d => d.ler)) * 1.15;
   const x = t => L + plotW * (t / trials);
   const y = v => T + plotH * (1 - v / yMax);
 
@@ -535,9 +535,9 @@ function describeThreshold(curves, dists) {
     txt += `Low-p ordering (d7≤d5≤d3): <b>${lowOrdered ? "yes" : "no, noisy"}</b>. ` +
       `High-p order-flip (d7≥d3): <b>${highFlipped ? "yes" : "no"}</b>. ` +
       (crossP ? `A d3/d5 crossover appears near p≈${crossP}. ` : `No clean d3/d5 crossover in range. `) +
-      `At d=3–7 with ${trials} trials the curves typically cross in a band rather than fanning out — this is the real, expected muddiness, not a bug.`;
+      `At d=3–7 with ${trials} trials the curves typically cross in a band rather than fanning out, this is the real, expected muddiness, not a bug.`;
   } else {
-    txt += `Lookup runs at d=3 only, so there's a single curve — switch to MWPM to compare distances.`;
+    txt += `Lookup runs at d=3 only, so there's a single curve, switch to MWPM to compare distances.`;
   }
   document.getElementById("threshCap").innerHTML =
     `Three curves, one per distance, from the live Monte Carlo run above.`;
@@ -689,20 +689,20 @@ function decodeParams(hash) {
   } catch (err) { return false; }
 }
 
-/* Share button (appears after a sweep) — reuses describeThreshold's text. */
+/* Share button (appears after a sweep), reuses describeThreshold's text. */
 document.getElementById("shareSweepBtn").addEventListener("click", async () => {
   history.replaceState(null, "", "#" + encodeParams());
   const url = location.origin + location.pathname + "#" + encodeParams();
   const summary = lastSweepSummary || `${PARAMS.decoder.toUpperCase()} sweep, ${PARAMS.trials} trials/point.`;
-  const shareText = `I ran ${PARAMS.trials} trials at d=3,5,7 — ${summary}`;
+  const shareText = `I ran ${PARAMS.trials} trials at d=3,5,7, ${summary}`;
   if (navigator.share) {
-    try { await navigator.share({ title: "QEC Explorer — Threshold Sweep", text: shareText, url });
-      showToast(`Shared — <b>this exact sweep</b>.`); return;
+    try { await navigator.share({ title: "QEC Explorer, Threshold Sweep", text: shareText, url });
+      showToast(`Shared, <b>this exact sweep</b>.`); return;
     } catch (err) { if (err && err.name === "AbortError") return; }
   }
   try { await navigator.clipboard.writeText(`${shareText} ${url}`);
-    showToast(`Results + link copied — <b>paste it anywhere</b>.`);
-  } catch (err) { showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`); }
+    showToast(`Results + link copied, <b>paste it anywhere</b>.`);
+  } catch (err) { showToast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
 });
 
 /* ---------- init ---------- */
@@ -718,7 +718,7 @@ refreshDecoderAvailability();
 setMode(PARAMS.mode);
 drawConvergence([], PARAMS.trials, currentP());
 // If arriving via a shared link, auto-run so the result reproduces on load.
-if (fromLink) { showToast(`Loaded a <b>shared experiment</b> — re-running…`); setTimeout(run, 350); }
+if (fromLink) { showToast(`Loaded a <b>shared experiment</b>, re-running…`); setTimeout(run, 350); }
 // expose a headless hook for verification (returns final numbers without UI)
 window.__mcSinglePoint = async function (d, p, model, bias, decoder, trials) {
   const code = buildCode(d);

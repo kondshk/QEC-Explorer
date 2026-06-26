@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — Decoder Race</title>
+<title>QEC Explorer · Decoder Race</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -217,7 +217,7 @@ body.guiding .decoder{cursor:help}
 
 <div class="project-strip">
   <div class="project-strip-inner">
-    <div class="crumb">Part of <b>QEC Explorer</b> · Module 2 — Decoding</div>
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 2 · Decoding</div>
     <div class="steps">
       <a class="pill" href="index.html">1 · Detect errors</a>
       <span class="arrow">→</span>
@@ -232,7 +232,7 @@ body.guiding .decoder{cursor:help}
   <div class="lead">
     <div class="eyebrow">Interactive · Three real decoders · Runs in your browser</div>
     <h1>Watch three decoders <em>race</em> to fix it</h1>
-    <p>Inject an error, then hit <b>Run race</b>. The same syndrome is handed to three different decoding algorithms — a <b>lookup table</b>, <b>minimum-weight matching</b>, and <b>belief propagation</b> — and each guesses a correction independently. See where they agree, where they diverge, and which actually return the code to safety.</p>
+    <p>Inject an error, then hit <b>Run race</b>. The same syndrome goes to three different decoding algorithms (a <b>lookup table</b>, <b>minimum-weight matching</b>, and <b>belief propagation</b>), and each guesses a correction on its own. See where they agree, where they diverge, and which ones actually return the code to safety.</p>
   </div>
 
   <!-- Controls: same interaction model as module 1 -->
@@ -282,13 +282,13 @@ body.guiding .decoder{cursor:help}
   <!-- Famous patterns: pre-built hash links that load + auto-run the race -->
   <div class="famous" id="famous">
     <span class="famous-lbl">Famous patterns:</span>
-    <a class="famous-link" href="#d3-AAgA" data-tip="A single Z on qubit (1,2) — equidistant from two boundary routes, so MWPM may pick the one that completes a logical operator.">⚠️ The boundary trap (Z@1,2)</a>
-    <a class="famous-link" href="#d3-QRAA" data-tip="A full column of X errors — invisible to every stabilizer, yet flips the logical qubit.">👻 Full-column logical error</a>
-    <a class="famous-link" href="#d3-AAEA" data-tip="A single X error every decoder fixes cleanly — the easy case.">✅ A clean single-error fix (X@1,1)</a>
+    <a class="famous-link" href="#d3-AAgA" data-tip="A single Z on qubit (1,2), equidistant from two boundary routes, so MWPM may pick the one that completes a logical operator.">⚠️ The boundary trap (Z@1,2)</a>
+    <a class="famous-link" href="#d3-QRAA" data-tip="A full column of X errors, invisible to every stabilizer, yet flips the logical qubit.">👻 Full-column logical error</a>
+    <a class="famous-link" href="#d3-AAEA" data-tip="A single X error every decoder fixes cleanly, the easy case.">✅ A clean single-error fix (X@1,1)</a>
   </div>
 
   <div class="shared-note">
-    <b>Same error, same syndrome — three guesses.</b> Click qubits on any panel below to paint the error; all three panels share the identical injected error and resulting syndrome. The colored dashed rings each decoder adds are <i>its</i> proposed correction.
+    <b>Same error, same syndrome, three guesses.</b> Click qubits on any panel below to paint the error; all three panels share the identical injected error and resulting syndrome. The colored dashed rings each decoder adds are <i>its</i> proposed correction.
   </div>
 
   <div class="legend-bar">
@@ -343,7 +343,7 @@ body.guiding .decoder{cursor:help}
   <div class="insight">
     <div class="kicker">The point worth understanding</div>
     <h3>A decoder can never be sure it's right</h3>
-    <p>Every decoder sees <b>only the syndrome</b> — never the actual error. But many different errors produce the <i>same</i> syndrome. A decoder picks the <b>most likely</b> explanation (usually the lowest-weight one), and most of the time that's correct. But when the real error is large — for instance a chain spanning the whole code — its syndrome can look identical to "nothing happened," and <b>no decoder can tell the difference using syndrome information alone</b>. That irreducible ambiguity is exactly why a code has a finite <i>threshold</i>: push the error rate too high and even a perfect decoder starts guessing wrong. Try a full-column X error below and watch all three "succeed" on the syndrome while a logical error silently slips through.</p>
+    <p>Every decoder sees <b>only the syndrome</b>, never the actual error. But many different errors produce the <i>same</i> syndrome. A decoder picks the <b>most likely</b> explanation (usually the lowest-weight one), and most of the time that's correct. But when the real error is large, for instance a chain spanning the whole code, its syndrome can look identical to "nothing happened," and <b>no decoder can tell the difference using syndrome information alone</b>. That irreducible ambiguity is exactly why a code has a finite <i>threshold</i>: push the error rate too high and even a perfect decoder starts guessing wrong. Try a full-column X error below and watch all three "succeed" on the syndrome while a logical error silently slips through.</p>
   </div>
 
   <!-- What's next -->
@@ -379,7 +379,7 @@ body.guiding .decoder{cursor:help}
 <div class="guide-pop" id="guidePop" role="status"></div>
 
 <footer>
-  QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation) — view source.<br>
+  QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation), view source.<br>
   <a href="index.html">← Back to the detection module</a>
 </footer>
 
@@ -388,7 +388,7 @@ body.guiding .decoder{cursor:help}
 <script src="decoders.js"></script>
 <script>
 /* ============================================================
-   decoder.html UI — Module 2
+   decoder.html UI, Module 2
    Renders three mini-lattices sharing one injected error, runs the
    three real decoders from decoders.js, and animates the race.
    ============================================================ */
@@ -500,7 +500,7 @@ function fillForError(e) {
   return "#2a2a3a";
 }
 
-/* Same wording convention as index.html's errorWord() — keep in sync so
+/* Same wording convention as index.html's errorWord(), keep in sync so
    the shared-error aria-labels read identically across both modules. */
 function errorWord(e) {
   if (!e) return "no error";
@@ -588,7 +588,7 @@ function drawMwpmPath(path) {
   });
   // connect to the two defect centers as endpoints for a clean visual
   const a = `${g.toX(path.from.cx)},${g.toY(path.from.cy)}`;
-  const endPts = [a, ...pts];
+  const endPts = [a...pts];
   if (path.to) endPts.push(`${g.toX(path.to.cx)},${g.toY(path.to.cy)}`);
   const line = document.createElementNS(SVG_NS, "polyline");
   line.setAttribute("points", endPts.join(" "));
@@ -630,7 +630,7 @@ function applyBpMarginals(margX, margZ, varKeys) {
 }
 
 /* ============================================================
-   RUN RACE — animate all three concurrently
+   RUN RACE, animate all three concurrently
    ============================================================ */
 let raceToken = 0;
 const sleep = (ms) => new Promise(res => setTimeout(res, ms));
@@ -654,7 +654,7 @@ async function runLookup(token, errors) {
   const id = "lookup";
   if (CODE.d !== 3) {
     setBadge(id, "unavail", "Unavailable");
-    setMeta(id, "Lookup decoder is only practical at <b>d=3</b> — the table size grows exponentially with code distance.");
+    setMeta(id, "Lookup decoder is only practical at <b>d=3</b>, the table size grows exponentially with code distance.");
     return;
   }
   setBadge(id, "idle", "Looking up…");
@@ -727,7 +727,7 @@ function computeAgreement(errors) {
 
   // if no errors at all
   if (errorWeight(errors) === 0) {
-    body.innerHTML = `No error injected — all decoders correctly propose <b>no correction</b>.`;
+    body.innerHTML = `No error injected, all decoders correctly propose <b>no correction</b>.`;
     return;
   }
 
@@ -742,7 +742,7 @@ function computeAgreement(errors) {
 
   if (disagreements.length === 0) {
     const which = lookupAvail ? "All three decoders" : "Both available decoders (MWPM and BP)";
-    body.innerHTML = `<b>${which} agree</b> — identical corrections on every qubit.`;
+    body.innerHTML = `<b>${which} agree</b>, identical corrections on every qubit.`;
     return;
   }
 
@@ -754,7 +754,7 @@ function computeAgreement(errors) {
   let note = "";
   if (!lookupAvail) note = ` <span style="color:var(--hint)">(Lookup is unavailable at d=${CODE.d}.)</span>`;
   body.innerHTML = `Decoders <b>disagree</b>: ${parts.join("; ")}.${note} ` +
-    `<span style="color:var(--hint)">Disagreement is expected — multiple corrections can be equally valid for the same syndrome.</span>`;
+    `<span style="color:var(--hint)">Disagreement is expected, multiple corrections can be equally valid for the same syndrome.</span>`;
 }
 
 /* ============================================================
@@ -815,7 +815,7 @@ function rebuildAll() {
   if (CODE.d !== 3) {
     document.getElementById("panel-lookup").classList.add("disabled");
     setBadge("lookup", "unavail", "Unavailable");
-    setMeta("lookup", "Lookup decoder is only practical at <b>d=3</b> — the table size grows exponentially with code distance.");
+    setMeta("lookup", "Lookup decoder is only practical at <b>d=3</b>, the table size grows exponentially with code distance.");
   } else {
     document.getElementById("panel-lookup").classList.remove("disabled");
     setBadge("lookup", "idle", "Idle");
@@ -881,19 +881,19 @@ function scheduleHashSync() {
   hashTimer = setTimeout(() => history.replaceState(null, "", "#" + encodeState()), 250);
 }
 
-/* Share button — same UX as Module 1 (native share -> clipboard fallback). */
+/* Share button, same UX as Module 1 (native share -> clipboard fallback). */
 document.getElementById("shareBtn").addEventListener("click", async () => {
   history.replaceState(null, "", "#" + encodeState());
   const url = location.origin + location.pathname + "#" + encodeState();
   const shareText = "Watch three real decoders race on this exact error pattern:";
   if (navigator.share) {
-    try { await navigator.share({ title: "QEC Explorer — Decoder Race", text: shareText, url });
-      showToast(`Shared — <b>this exact race</b>.`); return;
+    try { await navigator.share({ title: "QEC Explorer, Decoder Race", text: shareText, url });
+      showToast(`Shared, <b>this exact race</b>.`); return;
     } catch (err) { if (err && err.name === "AbortError") return; }
   }
   try { await navigator.clipboard.writeText(`${shareText} ${url}`);
-    showToast(`Link + message copied — <b>paste it anywhere</b>.`);
-  } catch (err) { showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`); }
+    showToast(`Link + message copied, <b>paste it anywhere</b>.`);
+  } catch (err) { showToast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
 });
 
 /* Famous-pattern links + browser back/forward: load the hash, then auto-run. */
@@ -916,20 +916,20 @@ document.getElementById("famous").addEventListener("click", (e) => {
 window.addEventListener("hashchange", () => loadFromHash(true));
 
 /* ============================================================
-   GUIDE-ME MODE — tour guide for the decoder race.
+   GUIDE-ME MODE, tour guide for the decoder race.
    Keyed snippets + one reused popover; reuses existing nodes.
    ============================================================ */
 let guideMode = false;
 const guidePop = document.getElementById("guidePop");
 const GUIDE_DECODER = {
-  lookup: { k: "Lookup decoder", t: "The <b>lookup table</b> precomputes the best correction for <i>every</i> possible syndrome ahead of time. Exact, but only practical at d=3 — the table explodes with code size. It's the perfect baseline to judge the others against." },
-  mwpm: { k: "MWPM decoder", t: "<b>Minimum-weight matching</b> treats lit detectors as points to pair up, then connects each pair along the shortest path. It's the real workhorse of surface-code decoding — fast and usually optimal." },
-  bp: { k: "Belief-propagation decoder", t: "<b>Belief propagation</b> passes probability messages around the code's graph until beliefs settle. It scales to huge codes, but — honestly — it <i>struggles</i> on the surface code, which is exactly why this race is interesting to watch." },
+  lookup: { k: "Lookup decoder", t: "The <b>lookup table</b> precomputes the best correction for <i>every</i> possible syndrome ahead of time. Exact, but only practical at d=3, the table explodes with code size. It's the perfect baseline to judge the others against." },
+  mwpm: { k: "MWPM decoder", t: "<b>Minimum-weight matching</b> treats lit detectors as points to pair up, then connects each pair along the shortest path. It's the real workhorse of surface-code decoding, fast and usually optimal." },
+  bp: { k: "Belief-propagation decoder", t: "<b>Belief propagation</b> passes probability messages around the code's graph until beliefs settle. It scales to huge codes, but it <i>struggles</i> on the surface code, which is part of what makes this race interesting to watch." },
 };
 function guideQubit(err) {
-  if (!err) return { k: "Shared data qubit", t: "This qubit is shared across all three panels. With Guide off, clicking paints an error here — and the <i>same</i> error and syndrome go to every decoder." };
+  if (!err) return { k: "Shared data qubit", t: "This qubit is shared across all three panels. With Guide off, clicking paints an error here, and the <i>same</i> error and syndrome go to every decoder." };
   const w = err.x && err.z ? "a <b>Y error</b>" : err.x ? "an <b>X error</b>" : "a <b>Z error</b>";
-  return { k: "Errored qubit", t: `This qubit carries ${w}. Every decoder sees only the resulting <b>syndrome</b> — never the error itself — and has to guess a fix.` };
+  return { k: "Errored qubit", t: `This qubit carries ${w}. Every decoder sees only the resulting <b>syndrome</b>, never the error itself, and has to guess a fix.` };
 }
 function showGuidePop(el, sn) {
   guidePop.innerHTML = `<div class="gk">${sn.k}</div>${sn.t}`;
@@ -953,7 +953,7 @@ function setGuideMode(on) {
 document.getElementById("guideBtn").addEventListener("click", () => setGuideMode(!guideMode));
 document.addEventListener("click", (e) => {
   if (!guideMode) return;
-  if (e.target.closest(".data-qubit, .decoder, #guidePop, #guideBtn")) return;
+  if (e.target.closest(".data-qubit.decoder, #guidePop, #guideBtn")) return;
   hideGuidePop();
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGuidePop(); });

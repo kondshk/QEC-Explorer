@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — Surface Code Playground</title>
+<title>QEC Explorer · Surface Code Playground</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -247,7 +247,7 @@ body.guiding .guide-hint{display:block}
 <!-- Project context: this is Module 1 of a larger tool -->
 <div class="project-strip">
   <div class="project-strip-inner">
-    <div class="crumb">Part of <b>QEC Explorer</b> · Module 1 — Detection</div>
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 1 · Detection</div>
     <div class="steps">
       <span class="pill now">1 · Detect errors</span>
       <span class="arrow">→</span>
@@ -262,7 +262,7 @@ body.guiding .guide-hint{display:block}
   <div class="lead">
     <div class="eyebrow">Interactive · Runs entirely in your browser</div>
     <h1>See quantum errors <em>get caught</em></h1>
-    <p>Click the round <b>data qubits</b> to inject errors. The diamond <b>stabilizers</b> light up whenever they detect that something nearby has flipped — without ever measuring the data itself. That detection pattern is the <b>syndrome</b>: the only clue a real quantum computer gets. This is the foundation of how we protect quantum information.</p>
+    <p>Click the round <b>data qubits</b> to inject errors. The diamond <b>stabilizers</b> light up whenever they detect that something nearby has flipped, without ever measuring the data itself. That detection pattern is the <b>syndrome</b>, and it's the only clue a real quantum computer gets. This is the foundation of how we protect quantum information.</p>
   </div>
 
   <div class="app">
@@ -277,7 +277,7 @@ body.guiding .guide-hint{display:block}
         <button data-v="Y" aria-pressed="false">Y (both)</button>
       </div>
       <div class="note" style="margin-top:-8px;margin-bottom:4px;border-top:none;padding-top:0">
-        <b>Note on Y:</b> a Y error is a simultaneous X <i>and</i> Z flip on the same qubit, so it toggles as <i>one</i> unit — clicking adds both, clicking again removes both. (X and Z, by contrast, toggle independently.)
+        <b>Note on Y:</b> a Y error is a simultaneous X <i>and</i> Z flip on the same qubit, so it toggles as <i>one</i> unit, clicking adds both, clicking again removes both. (X and Z, by contrast, toggle independently.)
       </div>
 
       <div class="ctrl-label">Code distance</div>
@@ -293,7 +293,7 @@ body.guiding .guide-hint{display:block}
       <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
 
       <div class="note">
-        <b>Tip:</b> Try placing two X errors next to each other on the same row. Watch how the syndromes <i>between</i> them stay dark — only the two <i>ends</i> of an error chain are visible. That ambiguity is exactly what makes decoding hard.
+        <b>Tip:</b> Try placing two X errors next to each other on the same row. Watch how the syndromes <i>between</i> them stay dark, only the two <i>ends</i> of an error chain are visible. That ambiguity is exactly what makes decoding hard.
       </div>
     </div>
 
@@ -306,7 +306,7 @@ body.guiding .guide-hint{display:block}
         </div>
       </div>
       <div class="ribbon" id="ribbon" aria-live="polite">
-        <span class="tag">Status</span><b>No errors.</b> A clean code — every stabilizer reads <b>+1</b> (silent). Click a data qubit to begin.
+        <span class="tag">Status</span><b>No errors.</b> A clean code, every stabilizer reads <b>+1</b> (silent). Click a data qubit to begin.
       </div>
     </div>
 
@@ -323,7 +323,7 @@ body.guiding .guide-hint{display:block}
           <div class="stat"><span class="k">Logical state</span><span class="v ok" id="rLogical">Protected ✓</span></div>
         </div>
         <div class="note" id="logicalNote">
-          A <b>logical error</b> happens when errors form an unbroken chain all the way across the code — the syndrome goes silent again, but the stored information has secretly flipped. Build one and watch this flip.
+          A <b>logical error</b> happens when errors form an unbroken chain all the way across the code, the syndrome goes silent again, but the stored information has secretly flipped. Build one and watch this flip.
         </div>
       </div>
 
@@ -346,7 +346,7 @@ body.guiding .guide-hint{display:block}
   <div class="next-card">
     <div class="kicker">Where this is going</div>
     <h3>You just did the <em style="font-style:italic;color:var(--purple)">detection</em> step. Next: the fix.</h3>
-    <p>Spotting that an error happened is only half the battle. The hard, research-grade part is the <b style="color:var(--txt);font-weight:500">decoder</b> — the algorithm that stares at this sparse syndrome and guesses what actually went wrong, then undoes it. That's the next module of QEC Explorer.</p>
+    <p>Spotting that an error happened is only half the battle. The hard, research-grade part is the <b style="color:var(--txt);font-weight:500">decoder</b>, the algorithm that stares at this sparse syndrome and guesses what actually went wrong, then undoes it. That's the next module of QEC Explorer.</p>
     <div class="roadmap">
       <div class="step done">
         <div class="lbl">Module 1 · You are here</div>
@@ -373,7 +373,7 @@ body.guiding .guide-hint{display:block}
   <div class="embed-tools" style="max-width:760px;margin:48px auto 0;background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px 28px">
     <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Embed this</div>
     <h3 style="font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;margin-bottom:8px">Drop the live lattice into your own page</h3>
-    <p style="color:var(--dim);font-size:14px;line-height:1.6;margin-bottom:14px">Paste this snippet anywhere — it embeds just the interactive surface-code lattice (no nav, no prose), fully clickable.</p>
+    <p style="color:var(--dim);font-size:14px;line-height:1.6;margin-bottom:14px">Paste this snippet anywhere, it embeds just the interactive surface-code lattice (no nav, no prose), fully clickable.</p>
     <textarea id="embedCode" readonly rows="3" style="width:100%;background:var(--s2);border:1px solid var(--bdr2);color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 12px;border-radius:6px;resize:vertical;line-height:1.5"></textarea>
     <button class="btn" id="copyEmbedBtn" style="margin-top:10px;width:auto;padding:9px 16px">📋 Copy embed code</button>
   </div>
@@ -383,11 +383,11 @@ body.guiding .guide-hint{display:block}
     <div class="eyebrow" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral);margin-bottom:12px">How it works</div>
     <h2 style="font-family:'Instrument Serif',serif;font-size:32px;font-weight:400;margin-bottom:20px">The whole idea in 90 seconds</h2>
     <div style="color:var(--dim);font-size:15px;line-height:1.75">
-      <p style="margin-bottom:16px">A single quantum bit is fragile — the slightest noise flips it and your computation is ruined. The fix isn't a better qubit; it's <b style="color:var(--txt);font-weight:500">spreading one piece of information across many physical qubits</b> so that no single failure destroys it. That bundle is a <b style="color:var(--txt);font-weight:500">logical qubit</b>, and the layout above — the <b style="color:var(--txt);font-weight:500">rotated surface code</b> — is today's leading way to build one.</p>
-      <p style="margin-bottom:16px">The trick is the diamond-shaped <b style="color:var(--txt);font-weight:500">stabilizers</b>. Each one constantly asks a yes/no question about its neighboring data qubits — but a question carefully designed so the answer reveals <i>that</i> an error occurred without revealing <i>what</i> the data is. (Measuring the data directly would destroy the superposition; that's the heart of the problem QEC solves.)</p>
-      <p style="margin-bottom:16px">When a stabilizer's answer changes, it lights up. The full pattern of lit stabilizers is the <b style="color:var(--purple);font-weight:500">syndrome</b> — and notice the cruel twist you can see above: an error chain only lights up the stabilizers at its two <i>endpoints</i>. From that sparse clue, a <b style="color:var(--txt);font-weight:500">decoder</b> has to guess what actually went wrong and undo it. That decoder is where the hard, interesting research lives — and it's what the next module of this tool will let you watch in action.</p>
+      <p style="margin-bottom:16px">A single quantum bit is fragile, the slightest noise flips it and your computation is ruined. The fix isn't a better qubit; it's <b style="color:var(--txt);font-weight:500">spreading one piece of information across many physical qubits</b> so that no single failure destroys it. That bundle is a <b style="color:var(--txt);font-weight:500">logical qubit</b>, and the layout above, the <b style="color:var(--txt);font-weight:500">rotated surface code</b>, is today's leading way to build one.</p>
+      <p style="margin-bottom:16px">The trick is the diamond-shaped <b style="color:var(--txt);font-weight:500">stabilizers</b>. Each one constantly asks a yes/no question about its neighboring data qubits, but a question carefully designed so the answer reveals <i>that</i> an error occurred without revealing <i>what</i> the data is. (Measuring the data directly would destroy the superposition; that's the heart of the problem QEC solves.)</p>
+      <p style="margin-bottom:16px">When a stabilizer's answer changes, it lights up. The full pattern of lit stabilizers is the <b style="color:var(--purple);font-weight:500">syndrome</b>, and there's a catch you can see above: an error chain only lights up the stabilizers at its two <i>endpoints</i>. From that sparse clue, a <b style="color:var(--txt);font-weight:500">decoder</b> has to guess what actually went wrong and undo it. That guessing is where most of the hard research lives, and it's what the next module lets you watch in action.</p>
       <p style="font-size:13px;color:var(--hint);margin-top:24px;padding-top:18px;border-top:1px solid var(--bdr)">
-        <b style="color:var(--dim)">On accuracy:</b> the lattice connectivity, stabilizer checks, and syndrome computation here are physically faithful to the rotated surface code. This page shows the <i>detection</i> step. Decoding, noise models, and threshold behavior are coming as separate, clearly-labeled modules — so nothing here is a cartoon standing in for real physics.
+        <b style="color:var(--dim)">On accuracy:</b> the lattice connectivity, stabilizer checks, and syndrome computation here are physically faithful to the rotated surface code. This page shows the <i>detection</i> step. Decoding, noise models, and threshold behavior are coming as separate, clearly-labeled modules, so nothing here is a cartoon standing in for real physics.
       </p>
     </div>
   </div>
@@ -398,7 +398,7 @@ body.guiding .guide-hint{display:block}
 <div class="sr-only" id="srLive" aria-live="polite"></div>
 
 <footer>
-  QEC Explorer · Open-source · Built with no dependencies — view source to see exactly how it works.<br>
+  QEC Explorer · Open-source · Built with no dependencies, view source to see exactly how it works.<br>
   The lattice physics is real. <a href="#how">Read how it works ↑</a>
 </footer>
 
@@ -406,7 +406,7 @@ body.guiding .guide-hint{display:block}
 <script src="lattice-core.js"></script>
 <script>
 /* ============================================================
-   QEC EXPLORER — Rotated Surface Code (physically faithful)
+   QEC EXPLORER, Rotated Surface Code (physically faithful)
    ------------------------------------------------------------
    Model: distance-d rotated surface code.
    - Data qubits live on a d×d grid of sites.
@@ -432,7 +432,7 @@ state.errors = {};          // key "r,c" -> {x:bool, z:bool}
 /* ============================================================
    Physics functions (buildCode / computeSyndrome / logicalStatus /
    hasAnyError) now live in lattice-core.js, loaded before this
-   script. They are unchanged — only relocated — and continue to
+   script. They are unchanged, only relocated, and continue to
    read the shared global `state.errors` exactly as before.
    ============================================================ */
 
@@ -592,7 +592,7 @@ function paint(popKeys = new Set()) {
     }
   });
 
-  // qubits — only color + aria need updating
+  // qubits, only color + aria need updating
   for (const key in nodeMap.qubits) {
     const [r, c] = key.split(",").map(Number);
     const e = state.errors[key];
@@ -639,16 +639,16 @@ function updateRibbon(lastKey) {
   const nErr = Object.keys(state.errors).length;
 
   if (nErr === 0) {
-    ribbon.innerHTML = `<span class="tag">Status</span><b>No errors.</b> A clean code — every stabilizer reads <b>+1</b> (silent).`;
+    ribbon.innerHTML = `<span class="tag">Status</span><b>No errors.</b> A clean code, every stabilizer reads <b>+1</b> (silent).`;
     return;
   }
   const { logical } = logicalStatus(CODE);
   if (logical) {
-    ribbon.innerHTML = `<span class="tag" style="color:var(--red)">Logical error</span><b style="color:var(--coral)">The syndrome is silent — but the stored qubit has flipped.</b> Your error chain spans the whole code, so it looks identical to "no error" to every stabilizer. This is the failure decoders exist to prevent.`;
+    ribbon.innerHTML = `<span class="tag" style="color:var(--red)">Logical error</span><b style="color:var(--coral)">The syndrome is silent, but the stored qubit has flipped.</b> Your error chain spans the whole code, so it looks identical to "no error" to every stabilizer. This is the failure decoders exist to prevent.`;
   } else if (lit === 0) {
     ribbon.innerHTML = `<span class="tag">Status</span><b>${nErr} error${nErr>1?'s':''}, but syndrome silent.</b> These errors happen to commute with every stabilizer (e.g. a closed loop, or errors that cancel in parity). Detectable patterns need an <i>odd</i> count per stabilizer.`;
   } else {
-    ribbon.innerHTML = `<span class="tag">Detected</span><b>${lit} stabilizer${lit>1?'s':''} fired</b> from ${nErr} error${nErr>1?'s':''}. Notice they sit at the <i>ends</i> of your error chains — a decoder must now guess the path between them.`;
+    ribbon.innerHTML = `<span class="tag">Detected</span><b>${lit} stabilizer${lit>1?'s':''} fired</b> from ${nErr} error${nErr>1?'s':''}. Notice they sit at the <i>ends</i> of your error chains, a decoder must now guess the path between them.`;
   }
 }
 
@@ -761,7 +761,7 @@ document.getElementById("dist").addEventListener("click", e => {
   syncDistButtons();
   buildLattice();           // structure changed -> full rebuild
   document.getElementById("ribbon").innerHTML =
-    `<span class="tag">Status</span>Switched to <b>distance d=${state.d}</b> — now ${state.d*state.d} data qubits. A larger code can correct more errors before failing.`;
+    `<span class="tag">Status</span>Switched to <b>distance d=${state.d}</b>, now ${state.d*state.d} data qubits. A larger code can correct more errors before failing.`;
   scheduleHashSync();
 });
 
@@ -794,19 +794,19 @@ document.getElementById("randomBtn").addEventListener("click", () => {
   const synd = computeSyndrome(CODE);
   const lit = synd.filter(v => v === 1).length;
   const nErr = Object.keys(state.errors).length;
-  showToast(`Sprinkled <b>${nErr}</b> random error${nErr!==1?'s':''} at p≈12% — <b>${lit}</b> syndrome${lit!==1?'s':''} fired.`);
+  showToast(`Sprinkled <b>${nErr}</b> random error${nErr!==1?'s':''} at p≈12%, <b>${lit}</b> syndrome${lit!==1?'s':''} fired.`);
   updateRibbon();
   scheduleHashSync();
 });
 
 document.getElementById("copyBtn").addEventListener("click", async () => {
   const url = location.origin + location.pathname + "#" + encodeState();
-  const shareText = "I found a quantum error pattern — see what happens:";
+  const shareText = "I found a quantum error pattern, see what happens:";
   // Prefer the native share sheet on supported devices (mobile especially)
   if (navigator.share) {
     try {
       await navigator.share({ title: "QEC Explorer", text: shareText, url });
-      showToast(`Shared — <b>your exact error pattern</b>.`);
+      showToast(`Shared, <b>your exact error pattern</b>.`);
       return;
     } catch (err) {
       if (err && err.name === "AbortError") return;  // user dismissed the sheet
@@ -816,11 +816,11 @@ document.getElementById("copyBtn").addEventListener("click", async () => {
   // Clipboard fallback: copy the message + link together
   try {
     await navigator.clipboard.writeText(`${shareText} ${url}`);
-    showToast(`Link + message copied — <b>paste it anywhere to share</b>.`);
+    showToast(`Link + message copied, <b>paste it anywhere to share</b>.`);
   } catch (err) {
     // Last resort (file:// or clipboard-blocked): put the link in the URL bar
     history.replaceState(null, "", "#" + encodeState());
-    showToast(`Couldn't auto-copy — the URL bar now holds your shareable link.`);
+    showToast(`Couldn't auto-copy, the URL bar now holds your shareable link.`);
   }
 });
 
@@ -852,12 +852,12 @@ function showToast(html) {
   const ta = document.getElementById("embedCode");
   if (ta) {
     const src = fullUrl + "?embed=1";
-    ta.value = `<iframe src="${src}" width="520" height="640" style="border:1px solid #2a2a42;border-radius:10px" title="QEC Explorer — interactive surface code" loading="lazy"></iframe>`;
+    ta.value = `<iframe src="${src}" width="520" height="640" style="border:1px solid #2a2a42;border-radius:10px" title="QEC Explorer, interactive surface code" loading="lazy"></iframe>`;
   }
   const copyEmbed = document.getElementById("copyEmbedBtn");
   if (copyEmbed) copyEmbed.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(ta.value); showToast(`Embed code copied — <b>paste it into any page</b>.`); }
-    catch (err) { ta.select(); showToast(`Select-all done — press Ctrl/Cmd+C to copy.`); }
+    try { await navigator.clipboard.writeText(ta.value); showToast(`Embed code copied, <b>paste it into any page</b>.`); }
+    catch (err) { ta.select(); showToast(`Select-all done, press Ctrl/Cmd+C to copy.`); }
   });
 })();
 
@@ -872,14 +872,14 @@ const guidePop = document.getElementById("guidePop");
 function guideText(kind, ctx) {
   // short (10-15s read) contextual snippets, distinct from the prose block
   if (kind === "qubit") {
-    if (!ctx.err) return { k: "Data qubit", t: "This is a <b>data qubit</b> — it holds a sliver of the protected information. Right now it's error-free. With Guide off, clicking it injects an error of the type you've selected." };
+    if (!ctx.err) return { k: "Data qubit", t: "This is a <b>data qubit</b>, it holds a sliver of the protected information. Right now it's error-free. With Guide off, clicking it injects an error of the type you've selected." };
     const w = ctx.err.x && ctx.err.z ? "a <b>Y error</b> (both an X and a Z flip)" : ctx.err.x ? "an <b>X error</b> (a bit-flip)" : "a <b>Z error</b> (a phase-flip)";
-    return { k: "Errored qubit", t: `This qubit currently carries ${w}. Notice which nearby stabilizers lit up in response — that's how the code <i>detects</i> it without ever reading the qubit directly.` };
+    return { k: "Errored qubit", t: `This qubit currently carries ${w}. Notice which nearby stabilizers lit up in response, that's how the code <i>detects</i> it without ever reading the qubit directly.` };
   }
   if (kind === "stab") {
     const detects = ctx.type === "Z" ? "X (bit-flip)" : "Z (phase-flip)";
-    if (ctx.fired) return { k: "Lit stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> just <b>fired</b>. It detects ${detects} errors on its neighbors, and an <i>odd</i> number of them flipped — so it flags a problem. The set of all lit stabilizers is the <b>syndrome</b>.` };
-    return { k: "Quiet stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> checks its neighbors for ${detects} errors. It's currently <b>silent</b> (+1) — either no such error nearby, or an even number that cancel out in its parity check.` };
+    if (ctx.fired) return { k: "Lit stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> just <b>fired</b>. It detects ${detects} errors on its neighbors, and an <i>odd</i> number of them flipped, so it flags a problem. The set of all lit stabilizers is the <b>syndrome</b>.` };
+    return { k: "Quiet stabilizer", t: `This <b>${ctx.type}-type stabilizer</b> checks its neighbors for ${detects} errors. It's currently <b>silent</b> (+1), either no such error nearby, or an even number that cancel out in its parity check.` };
   }
   return { k: "", t: "" };
 }
@@ -913,7 +913,7 @@ document.getElementById("guideBtn").addEventListener("click", () => setGuideMode
 // dismiss popover when clicking elsewhere / pressing Escape
 document.addEventListener("click", (e) => {
   if (!guideMode) return;
-  if (e.target.closest(".data-qubit, .plaquette, #guidePop, #guideBtn")) return;
+  if (e.target.closest(".data-qubit.plaquette, #guidePop, #guideBtn")) return;
   hideGuidePop();
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGuidePop(); });

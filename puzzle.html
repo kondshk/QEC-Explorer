@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — Today's Puzzle</title>
+<title>QEC Explorer · Today's Puzzle</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -147,7 +147,7 @@ footer a:hover{color:var(--txt)}
     <div class="flame">🔥</div>
     <div class="eyebrow">A new challenge every day · resets at UTC midnight</div>
     <h1>Today's <em>QEC</em> Puzzle</h1>
-    <div class="date" id="puzzleDate">—</div>
+    <div class="date" id="puzzleDate">, </div>
     <div class="streak" id="streak" style="display:none"></div>
   </div>
 
@@ -157,7 +157,7 @@ footer a:hover{color:var(--txt)}
 
     <div class="mini-wrap"><svg class="mini" id="puzzleSvg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The error pattern for today's puzzle"></svg></div>
 
-    <div class="question" id="question">Will the decoder fix it — or will an error slip through?</div>
+    <div class="question" id="question">Will the decoder fix it, or will an error slip through?</div>
 
     <div class="choices" id="choices">
       <button class="choice fixed" id="choiceFixed" data-v="fixed">
@@ -198,7 +198,7 @@ footer a:hover{color:var(--txt)}
 <script src="counter.js"></script>
 <script>
 /* ============================================================
-   puzzle.html — deterministic daily puzzle
+   puzzle.html, deterministic daily puzzle
    The day's puzzle is derived ENTIRELY from the current UTC date,
    so everyone worldwide gets the same puzzle and it resets at UTC
    midnight with no server. The outcome is computed by the real
@@ -312,8 +312,8 @@ function describeErrors(errors) {
 function initPuzzle() {
   document.getElementById("puzzleDate").textContent = TODAY + " (UTC)";
   document.getElementById("scenario").innerHTML =
-    `A distance-<b>${PUZZLE.d}</b> surface code is hit with <b>${Object.keys(PUZZLE.errors).length} error${Object.keys(PUZZLE.errors).length > 1 ? "s" : ""}</b> — ` +
-    `<span class="chip">${describeErrors(PUZZLE.errors)}</span> — then decoded by <b>${DECODER_NAME[PUZZLE.decoder]}</b>. ` +
+    `A distance-<b>${PUZZLE.d}</b> surface code is hit with <b>${Object.keys(PUZZLE.errors).length} error${Object.keys(PUZZLE.errors).length > 1 ? "s" : ""}</b>, ` +
+    `<span class="chip">${describeErrors(PUZZLE.errors)}</span>, then decoded by <b>${DECODER_NAME[PUZZLE.decoder]}</b>. ` +
     `The lit purple plaquettes below are the syndrome the decoder sees.`;
   renderPuzzle(PUZZLE);
   // If already solved today, restore the solved state
@@ -357,11 +357,11 @@ function lockAndReveal(fromStorage) {
   document.getElementById("explain").innerHTML =
     `The real outcome: <b>${statusWord}</b> <span class="outcome-tag ${tagClass}">${SOLUTION.bucket === "fixed" ? "FIXED" : "ERROR THROUGH"}</span><br>` +
     (SOLUTION.bucket === "fixed"
-      ? `${DECODER_NAME[PUZZLE.decoder]} found a correction whose residual is a product of stabilizers — the logical qubit is safe.`
+      ? `${DECODER_NAME[PUZZLE.decoder]} found a correction whose residual is a product of stabilizers, the logical qubit is safe.`
       : SOLUTION.status === "logical-introduced"
-        ? `The decoder cleared the syndrome, but its correction combined with the error to form a <b>logical operator</b> — the stored qubit silently flipped. This is the failure decoders exist to prevent.`
-        : `The decoder couldn't even return the code to a valid state — the residual still triggers a syndrome.`);
-  // persist solved state (binary "have I solved today's" — legitimate localStorage use)
+        ? `The decoder cleared the syndrome, but its correction combined with the error to form a <b>logical operator</b>, the stored qubit silently flipped. This is the failure decoders exist to prevent.`
+        : `The decoder couldn't even return the code to a valid state, the residual still triggers a syndrome.`);
+  // persist solved state (binary "have I solved today's", legitimate localStorage use)
   if (!fromStorage) {
     localStorage.setItem(STORE_KEY, JSON.stringify({ picked, correct, status: SOLUTION.status, ts: Date.now() }));
     bumpSolveCount(correct);
@@ -395,13 +395,13 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
   const outcomeWord = SOLUTION.bucket === "fixed" ? "Fixed ✓" : "Error gets through ✗";
   const correctWord = solved.correct ? "correctly predicted" : "guessed";
   const url = location.origin + location.pathname; // date-derived, no params needed
-  const text = `Today's QEC puzzle: I ${correctWord} "${outcomeWord}" — can you? ${url}`;
+  const text = `Today's QEC puzzle: I ${correctWord} "${outcomeWord}", can you? ${url}`;
   if (navigator.share) {
-    try { await navigator.share({ title: "QEC Explorer — Daily Puzzle", text, url }); showToast(`Shared!`); return; }
+    try { await navigator.share({ title: "QEC Explorer, Daily Puzzle", text, url }); showToast(`Shared!`); return; }
     catch (err) { if (err && err.name === "AbortError") return; }
   }
-  try { await navigator.clipboard.writeText(text); showToast(`Result + link copied — <b>challenge a friend</b>.`); }
-  catch (err) { showToast(`Couldn't auto-copy — copy the URL from your address bar to share.`); }
+  try { await navigator.clipboard.writeText(text); showToast(`Result + link copied, <b>challenge a friend</b>.`); }
+  catch (err) { showToast(`Couldn't auto-copy, copy the URL from your address bar to share.`); }
 });
 
 /* ---- toast ---- */

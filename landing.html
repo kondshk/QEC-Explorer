@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QEC Explorer — See how quantum computers protect themselves</title>
+<title>QEC Explorer · See how quantum computers protect themselves</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -131,13 +131,13 @@ footer a:hover{color:var(--txt)}
 
 <div class="wrap">
 
-  <!-- HERO — plain English, no jargon in the first two paragraphs -->
+  <!-- HERO, plain English, no jargon in the first two paragraphs -->
   <div class="hero">
     <div class="hero-text">
       <div class="eyebrow">An interactive, open-source tour of quantum error correction</div>
       <h1>Quantum computers make mistakes <em>constantly</em>. Here's how we catch them.</h1>
       <p>A quantum computer's building blocks are so delicate that a stray vibration or a flicker of heat can scramble an answer mid-calculation. Left unchecked, the errors pile up faster than any useful work gets done.</p>
-      <p class="sub">The fix is one of the most beautiful ideas in computing — and you can <b style="color:var(--txt);font-weight:500">click through every piece of it here</b>, from a single error to the algorithms that undo it, with the real math running live in your browser.</p>
+      <p class="sub">The fix is one of the most beautiful ideas in computing, and you can <b style="color:var(--txt);font-weight:500">click through every piece of it here</b>, from a single error to the algorithms that undo it, with the real math running live in your browser.</p>
       <div class="cta-row">
         <a class="cta primary" href="index.html">Start exploring →</a>
         <a class="cta ghost" href="#why">Why does this matter?</a>
@@ -146,21 +146,21 @@ footer a:hover{color:var(--txt)}
     <!-- Autoplaying live-physics loop (real buildCode/computeSyndrome, not a recording) -->
     <div class="hero-anim">
       <svg id="heroLoop" viewBox="0 0 280 280" width="280" height="280" role="img"
-           aria-label="Animation: a quantum error appears, is detected by stabilizers, and is corrected — looping.">
+           aria-label="Animation: a quantum error appears, is detected by stabilizers, and is corrected, looping.">
       </svg>
       <div class="hero-anim-cap">
-        <span id="heroPhase">Live physics, not a recording</span> —
+        <span id="heroPhase">Live physics, not a recording</span>, 
         <a href="index.html">try it yourself ↓</a>
       </div>
     </div>
   </div>
 
-  <!-- WHY IT MATTERS — for a non-physicist -->
+  <!-- WHY IT MATTERS, for a non-physicist -->
   <div class="section" id="why">
     <div class="section-eyebrow">Why anyone should care</div>
     <h2>If we get this right, the payoff is <em>enormous</em></h2>
     <div class="prose">
-      <p>A working large-scale quantum computer wouldn't just be a faster laptop — it would do things no ordinary computer ever can, because it computes with the strange rules of quantum physics instead of plain ones. A handful of problems that are effectively impossible today would suddenly be in reach.</p>
+      <p>A working large-scale quantum computer wouldn't just be a faster laptop, it would do things no ordinary computer ever can, because it computes with the strange rules of quantum physics instead of plain ones. A handful of problems that are effectively impossible today would suddenly be in reach.</p>
       <p>But none of it works unless we can stop the machine from drowning in its own errors. <b>Error correction is the bridge</b> between today's fragile, experimental devices and the world-changing applications below.</p>
     </div>
 
@@ -168,49 +168,49 @@ footer a:hover{color:var(--txt)}
       <div class="why-card drug">
         <div class="ic">🧬</div>
         <h3>New medicines</h3>
-        <p>Simulating how molecules really behave — the key to designing drugs and materials — is brutally hard for normal computers. Quantum machines are naturally suited to it, which could speed up discovering new treatments and clean-energy materials.</p>
+        <p>Simulating how molecules really behave is the key to designing drugs and materials, and it's painfully hard for normal computers. Quantum machines are naturally suited to it, which could speed up the discovery of new treatments and clean-energy materials.</p>
       </div>
       <div class="why-card crypto">
         <div class="ic">🔐</div>
         <h3>Breaking (and rebuilding) encryption</h3>
-        <p>Much of today's online security relies on math that's hard for normal computers but easy for a big enough quantum one. That's a threat — and the reason the world is already racing to build quantum-proof encryption.</p>
+        <p>Much of today's online security relies on math that's hard for normal computers but easy for a big enough quantum one. That's a threat, and the reason the world is already racing to build quantum-proof encryption.</p>
       </div>
       <div class="why-card optim">
         <div class="ic">📦</div>
         <h3>Impossible logistics</h3>
-        <p>Routing deliveries, scheduling power grids, optimizing supply chains — problems with astronomically many possibilities. Quantum computers offer new ways to search those possibilities far more efficiently.</p>
+        <p>Routing deliveries, scheduling power grids, optimizing supply chains, problems with astronomically many possibilities. Quantum computers offer new ways to search those possibilities far more efficiently.</p>
       </div>
     </div>
   </div>
 
   <!-- THE CATCH -->
   <div class="catch">
-    <h2>The catch — and the whole point of this project</h2>
-    <p>Every one of those applications needs a quantum computer that runs <b>long, accurate calculations</b>. Real qubits can't do that on their own — they're far too noisy. The answer isn't a perfect qubit (physics forbids it); it's bundling many imperfect qubits together so that errors can be <b>spotted and reversed</b> before they ruin the answer. That technique is <b>quantum error correction</b>, and it's exactly what QEC Explorer lets you see, step by step, with real working code instead of hand-waving.</p>
+    <h2>The catch this project is about</h2>
+    <p>Every one of those applications needs a quantum computer that runs <b>long, accurate calculations</b>, and real qubits can't do that on their own. They're far too noisy. The answer isn't a perfect qubit (physics forbids that). Instead, you bundle many imperfect qubits together so that errors can be <b>spotted and reversed</b> before they ruin the answer. That's <b>quantum error correction</b>, and QEC Explorer lets you watch it happen step by step, with working code behind every screen.</p>
   </div>
 
   <!-- EXPLORE THE MODULES -->
   <div class="section">
     <div class="section-eyebrow">Three interactive tools</div>
     <h2>Click your way through the whole idea</h2>
-    <div class="prose"><p>Each module runs the genuine physics and algorithms — no cartoons. Start at detection and work toward the research frontier.</p></div>
+    <div class="prose"><p>Each module runs the actual physics and algorithms, not stand-ins. Start at detection and work your way toward the research frontier.</p></div>
     <div class="modules">
       <a class="mod" href="index.html">
         <div class="num">Module 1 · Detection</div>
         <h3>Catch an error</h3>
-        <p>Click qubits to inject errors and watch the detectors light up — the only clue a real quantum computer ever gets.</p>
+        <p>Click qubits to inject errors and watch the detectors light up. That pattern is the only clue a real quantum computer ever gets.</p>
         <div class="go">Open the playground →</div>
       </a>
       <a class="mod" href="decoder.html">
         <div class="num">Module 2 · Decoding</div>
         <h3>Race three decoders</h3>
-        <p>Hand the same error to three real algorithms and watch them compete — and sometimes fail — to undo it.</p>
+        <p>Hand the same error to three real algorithms and watch them compete, and sometimes fail, to undo it.</p>
         <div class="go">Watch the race →</div>
       </a>
       <a class="mod" href="noise.html">
         <div class="num">Module 3 · Threshold</div>
         <h3>Find the breaking point</h3>
-        <p>Crank up the noise and run a real Monte Carlo to see when bigger codes start helping — or stop helping.</p>
+        <p>Crank up the noise and run a Monte Carlo to see when bigger codes start helping, and when they stop.</p>
         <div class="go">Run the experiment →</div>
       </a>
     </div>
@@ -218,15 +218,15 @@ footer a:hover{color:var(--txt)}
 
   <!-- NOTEBOOKS -->
   <div class="section">
-    <div class="section-eyebrow">Go deeper — the math, built by hand</div>
+    <div class="section-eyebrow">Go deeper: the math, built by hand</div>
     <h2>Five Colab notebooks, from first principles to the <em>research frontier</em></h2>
-    <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python — and proves it matches the interactive tools above.</p></div>
+    <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python, and proves it matches the interactive tools above.</p></div>
     <div class="nb-list">
-      <div class="nb"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, syndromes — from zero</small></span></div>
+      <div class="nb"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, and syndromes, from zero</small></span></div>
       <div class="nb"><span class="n">NB 2</span><span class="t">Decoding by hand<small>Three real decoders, built and tested</small></span></div>
       <div class="nb"><span class="n">NB 3</span><span class="t">Noise, Monte Carlo & the threshold<small>The experiment behind Module 3</small></span></div>
       <div class="nb"><span class="n">NB 4</span><span class="t">Beyond the surface code: qLDPC<small>Bivariate-bicycle codes &amp; the overhead problem</small></span></div>
-      <div class="nb"><span class="n">NB 5</span><span class="t">Learned decoding with a GNN<small>A real neural decoder, trained &amp; benchmarked honestly</small></span></div>
+      <div class="nb"><span class="n">NB 5</span><span class="t">Learned decoding with a GNN<small>A neural decoder, trained and measured against the baseline</small></span></div>
     </div>
     <div class="prose" style="margin-top:18px">
       <p style="font-size:14px;color:var(--hint)">The notebooks live in the <a href="https://github.com/kondshk/QEC-Explorer" style="color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none">GitHub repository</a> and run in Google Colab. See the <a href="research.html" style="color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none">research connection</a> for how they tie into current work.</p>
@@ -241,11 +241,11 @@ footer a:hover{color:var(--txt)}
   <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="puzzle.html">Today's puzzle</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
 
-<!-- Real physics for the hero loop (reuses buildCode/computeSyndrome — no reimplementation) -->
+<!-- Real physics for the hero loop (reuses buildCode/computeSyndrome, no reimplementation) -->
 <script src="lattice-core.js"></script>
 <script>
 /* ============================================================
-   landing.html — hero loop
+   landing.html, hero loop
    A small d=3 lattice that autoplays: idle -> X error -> syndrome
    fires -> correction ring -> clear, rotating through a few patterns.
    Real physics: buildCode + computeSyndrome from lattice-core.js.
@@ -338,7 +338,7 @@ footer a:hover{color:var(--txt)}
     if (phaseLabel) phaseLabel.textContent = "Live physics, not a recording";
     timer = setTimeout(() => {
       paint(err);                               // 2+3. error in -> syndrome fires (CSS transitions glow)
-      if (phaseLabel) phaseLabel.textContent = "error detected — syndrome fires";
+      if (phaseLabel) phaseLabel.textContent = "error detected, syndrome fires";
       timer = setTimeout(() => {
         showRing(key, true);                    // 4. correction ring appears
         if (phaseLabel) phaseLabel.textContent = label;
