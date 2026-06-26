@@ -139,8 +139,8 @@ footer a:hover{color:var(--txt)}
       <p>A quantum computer's building blocks are so delicate that a stray vibration or a flicker of heat can scramble an answer mid-calculation. Left unchecked, the errors pile up faster than any useful work gets done.</p>
       <p class="sub">The fix is one of the most beautiful ideas in computing, and you can <b style="color:var(--txt);font-weight:500">click through every piece of it here</b>, from a single error to the algorithms that undo it, with the real math running live in your browser.</p>
       <div class="cta-row">
-        <a class="cta primary" href="index.html">Start exploring →</a>
-        <a class="cta ghost" href="#why">Why does this matter?</a>
+        <a class="cta primary" href="basics.html">New here? Start with the basics →</a>
+        <a class="cta ghost" href="index.html">Skip to the playground</a>
       </div>
     </div>
     <!-- Autoplaying live-physics loop (real buildCode/computeSyndrome, not a recording) -->
@@ -193,8 +193,14 @@ footer a:hover{color:var(--txt)}
   <div class="section">
     <div class="section-eyebrow">Three interactive tools</div>
     <h2>Click your way through the whole idea</h2>
-    <div class="prose"><p>Each module runs the actual physics and algorithms, not stand-ins. Start at detection and work your way toward the research frontier.</p></div>
+    <div class="prose"><p>Each module runs the actual physics and algorithms, not stand-ins. New to all this? Begin with the basics, then work your way toward the research frontier.</p></div>
     <div class="modules">
+      <a class="mod" href="basics.html">
+        <div class="num">Step 0 · Basics</div>
+        <h3>Meet the qubit</h3>
+        <p>Never seen this before? Five quick clicks: what a qubit is, why you can't just read or copy it, and the two kinds of error.</p>
+        <div class="go">Start here →</div>
+      </a>
       <a class="mod" href="index.html">
         <div class="num">Module 1 · Detection</div>
         <h3>Catch an error</h3>
@@ -219,9 +225,10 @@ footer a:hover{color:var(--txt)}
   <!-- NOTEBOOKS -->
   <div class="section">
     <div class="section-eyebrow">Go deeper: the math, built by hand</div>
-    <h2>Five Colab notebooks, from first principles to the <em>research frontier</em></h2>
-    <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python, and proves it matches the interactive tools above.</p></div>
+    <h2>Six Colab notebooks, from first principles to the <em>research frontier</em></h2>
+    <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python, and checks its output against the interactive tools above.</p></div>
     <div class="nb-list">
+      <div class="nb"><span class="n">NB 0</span><span class="t">Quantum bits from scratch<small>A qubit, its two errors, measurement, and no-cloning in NumPy</small></span></div>
       <div class="nb"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, and syndromes, from zero</small></span></div>
       <div class="nb"><span class="n">NB 2</span><span class="t">Decoding by hand<small>Three real decoders, built and tested</small></span></div>
       <div class="nb"><span class="n">NB 3</span><span class="t">Noise, Monte Carlo & the threshold<small>The experiment behind Module 3</small></span></div>
@@ -238,7 +245,7 @@ footer a:hover{color:var(--txt)}
 <footer>
   <div id="qecCounter" class="qec-counter" style="display:none"></div>
   QEC Explorer · An open-source educational project on quantum error correction · MIT licensed<br>
-  <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="puzzle.html">Today's puzzle</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+  <a href="basics.html">Basics</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="puzzle.html">Today's puzzle</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
 
 <!-- Real physics for the hero loop (reuses buildCode/computeSyndrome, no reimplementation) -->

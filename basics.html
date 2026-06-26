@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer · Quantum Basics</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* --- Design tokens copied verbatim from index.html --- */
+:root{
+  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
+  --bdr:#2a2a42;--bdr2:#3a3a56;
+  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
+  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
+  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
+  --purple:#9b6dff;--pink:#e45d9a;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.brand{font-family:'Instrument Serif',serif;font-size:22px}
+.brand em{font-style:italic;color:var(--purple)}
+.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
+  text-transform:uppercase;margin-left:10px}
+.topbar .links{display:flex;gap:20px}
+.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
+.topbar a:hover{color:var(--txt)}
+
+/* Project strip */
+.project-strip{max-width:880px;margin:18px auto 0;padding:0 28px}
+.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
+  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
+.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--purple);white-space:nowrap}
+.project-strip .crumb b{color:var(--txt);font-weight:500}
+.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
+  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
+.project-strip a.pill:hover{border-color:var(--purple);color:var(--txt)}
+.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+.project-strip .arrow{color:var(--hint)}
+
+.wrap{max-width:880px;margin:0 auto;padding:32px 28px 80px}
+
+.lead{margin-bottom:30px;max-width:720px}
+.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:12px}
+.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(32px,5vw,50px);line-height:1.05;font-weight:400;margin-bottom:14px}
+.lead h1 em{font-style:italic;color:var(--purple)}
+.lead p{color:var(--dim);font-size:16.5px;font-weight:300;line-height:1.7}
+
+/* Step cards */
+.step-card{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:28px 30px;margin-bottom:22px;
+  position:relative;overflow:hidden}
+.step-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--purple)}
+.step-card.c2::before{background:var(--teal)}
+.step-card.c3::before{background:var(--coral)}
+.step-card.c4::before{background:var(--gold)}
+.step-num{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--purple);margin-bottom:8px}
+.c2 .step-num{color:var(--teal)} .c3 .step-num{color:var(--coral)} .c4 .step-num{color:var(--gold)}
+.step-card h2{font-family:'Instrument Serif',serif;font-size:26px;font-weight:400;margin-bottom:12px}
+.step-card p{color:var(--dim);font-size:15px;line-height:1.7;margin-bottom:14px}
+.step-card p b{color:var(--txt);font-weight:500}
+.step-card .takeaway{font-size:14px;color:var(--txt);background:var(--s3);border-radius:8px;padding:12px 16px;margin-top:16px;
+  border-left:2px solid var(--gold)}
+.step-card .takeaway b{color:var(--gold)}
+
+/* shared interactive area */
+.demo{display:flex;gap:24px;flex-wrap:wrap;align-items:center;justify-content:center;
+  background:var(--s2);border:1px solid var(--bdr);border-radius:10px;padding:22px;margin:6px 0 4px}
+.demo-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+svg.viz{display:block}
+
+/* buttons */
+.b-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.bx{padding:9px 16px;border-radius:6px;border:1px solid var(--bdr2);background:var(--s2);color:var(--txt);
+  font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.bx:hover{border-color:var(--purple);background:var(--s3)}
+.bx:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.bx.on{color:#08080c;font-weight:600}
+.bx.zero.on{background:var(--blue);border-color:var(--blue)}
+.bx.one.on{background:var(--coral);border-color:var(--coral)}
+.bx.mix.on{background:var(--purple);border-color:var(--purple)}
+.bx.xflip{border-color:var(--coral)} .bx.xflip:hover{background:rgba(239,110,78,.14)}
+.bx.zflip{border-color:var(--blue)} .bx.zflip:hover{background:rgba(74,143,231,.14)}
+.bx.measure{border-color:var(--gold)} .bx.measure:hover{background:rgba(212,168,85,.14)}
+.bx.primary{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
+
+.readout{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--dim);text-align:center;min-height:18px}
+.readout b{color:var(--txt)}
+.state-label{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold);text-align:center}
+
+/* measurement tally */
+.tally{width:200px}
+.tally-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-family:'JetBrains Mono',monospace;font-size:12px}
+.tally-row .lbl{width:18px;color:var(--dim)}
+.tally-bar{height:14px;border-radius:3px;background:var(--s3);flex:1;overflow:hidden}
+.tally-bar span{display:block;height:100%;width:0;transition:width .2s}
+.tally-bar.zero span{background:var(--blue)}
+.tally-bar.one span{background:var(--coral)}
+.tally-row .ct{width:42px;text-align:right;color:var(--txt)}
+
+/* hand-off */
+.handoff{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:30px;text-align:center;margin-top:8px;
+  position:relative;overflow:hidden}
+.handoff::before{content:'';position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--teal))}
+.handoff h2{font-family:'Instrument Serif',serif;font-size:28px;font-weight:400;margin-bottom:10px}
+.handoff p{color:var(--dim);font-size:15px;max-width:560px;margin:0 auto 20px}
+.cta{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:8px;font-size:14px;font-weight:600;
+  text-decoration:none;background:var(--purple);color:#08080c;border:1px solid var(--purple);transition:all .15s}
+.cta:hover{filter:brightness(1.1)}
+
+footer{max-width:880px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
+  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
+footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
+footer a:hover{color:var(--txt)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.viz *{transition:none !important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span>Quantum Basics</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">Playground</a>
+    <a href="research.html">Research</a>
+  </div>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Start here</div>
+    <div class="steps">
+      <span class="pill now">0 · Basics</span>
+      <span class="arrow">→</span>
+      <a class="pill" href="index.html">1 · Detect</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="decoder.html">2 · Decode</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="noise.html">3 · Noise</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">No physics background needed · Five quick steps</div>
+    <h1>Quantum computing, in <em>five clicks</em></h1>
+    <p>Before you watch a quantum code catch errors, it helps to know what a qubit actually is and why protecting one is so hard. No equations here, just buttons to press. Each step takes about a minute.</p>
+  </div>
+
+  <!-- STEP 1, what's a qubit -->
+  <div class="step-card c1">
+    <div class="step-num">Step 1 of 5</div>
+    <h2>What's a qubit?</h2>
+    <p>An ordinary bit is either <b>0</b> or <b>1</b>. A <b>qubit</b> can be 0, or 1, or a <i>blend</i> of both at once. Click the three states below and watch the arrow swing. The arrow pointing up means "definitely 0," down means "definitely 1," and sideways means "an even blend."</p>
+    <div class="demo">
+      <div class="demo-col">
+        <svg class="viz" id="q1svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="A dial showing the qubit's state"></svg>
+        <div class="state-label" id="q1label">|0⟩, definitely 0</div>
+      </div>
+      <div class="demo-col">
+        <div class="b-row">
+          <button class="bx zero on" id="q1zero" data-s="0">Set to 0</button>
+          <button class="bx one" id="q1one" data-s="1">Set to 1</button>
+          <button class="bx mix" id="q1mix" data-s="mix">Even blend</button>
+        </div>
+        <div class="readout" id="q1read">A qubit at |0⟩: if you measured it now, you'd get 0 every time.</div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Takeaway:</b> a qubit isn't limited to 0 or 1. It can hold a blend of both, and that's where all of quantum computing's extra power comes from.</div>
+  </div>
+
+  <!-- STEP 2, superposition & measurement -->
+  <div class="step-card c2">
+    <div class="step-num">Step 2 of 5</div>
+    <h2>The catch: measuring forces a choice</h2>
+    <p>Here's the strange part. While a qubit is in a blend, it really is "both." But the instant you <b>measure</b> it, it snaps to a single answer, 0 or 1, chosen at random, weighted by the blend. You can't peek without disturbing it. Put this qubit in an even blend, then hit <b>Measure</b> over and over and watch the tally.</p>
+    <div class="demo">
+      <div class="demo-col">
+        <svg class="viz" id="q2svg" width="130" height="130" viewBox="0 0 150 150" role="img" aria-label="The qubit being measured"></svg>
+        <div class="state-label" id="q2label">Even blend</div>
+      </div>
+      <div class="demo-col">
+        <div class="tally">
+          <div class="tally-row"><span class="lbl">0</span><span class="tally-bar zero"><span id="q2bar0"></span></span><span class="ct" id="q2ct0">0</span></div>
+          <div class="tally-row"><span class="lbl">1</span><span class="tally-bar one"><span id="q2bar1"></span></span><span class="ct" id="q2ct1">0</span></div>
+        </div>
+        <div class="b-row">
+          <button class="bx measure" id="q2measure">Measure once</button>
+          <button class="bx" id="q2measure100">Measure ×100</button>
+          <button class="bx" id="q2reset">Reset</button>
+        </div>
+        <div class="readout" id="q2read">An even blend should land on 0 and 1 about half the time each.</div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Takeaway:</b> you can't just read a qubit to check it. Measuring collapses the blend and destroys the information. <b>This is the whole reason error correction is hard,</b> and the clever trick of the surface code is checking for errors <i>without</i> measuring the data.</div>
+  </div>
+
+  <!-- STEP 3, what's an error -->
+  <div class="step-card c3">
+    <div class="step-num">Step 3 of 5</div>
+    <h2>What's an "error," then?</h2>
+    <p>Noise nudges a qubit in one of two basic ways. An <b style="color:var(--coral)">X flip</b> swaps 0 and 1 (a "bit-flip"). A <b style="color:var(--blue)">Z flip</b> leaves 0 and 1 alone but flips the <i>sign</i> of the blend (a "phase-flip"), which is invisible to a simple 0/1 reading but very real. Click each flip and watch what changes.</p>
+    <div class="demo">
+      <div class="demo-col">
+        <svg class="viz" id="q3svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="The qubit with errors applied"></svg>
+        <div class="state-label" id="q3label">|0⟩</div>
+      </div>
+      <div class="demo-col">
+        <div class="b-row">
+          <button class="bx xflip" id="q3x">Apply X flip</button>
+          <button class="bx zflip" id="q3z">Apply Z flip</button>
+          <button class="bx" id="q3reset">Reset to |0⟩</button>
+        </div>
+        <div class="readout" id="q3read">Start at |0⟩. Try an X flip, then a Z flip.</div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Takeaway:</b> these two flips, <b>X</b> and <b>Z</b>, are the exact errors you'll inject in the playground. Every error a real qubit suffers is some combination of them.</div>
+  </div>
+
+  <!-- STEP 4, no cloning -->
+  <div class="step-card c4">
+    <div class="step-num">Step 4 of 5</div>
+    <h2>Why not just keep a backup copy?</h2>
+    <p>With ordinary bits, you'd guard against errors by copying: store three copies, and if one flips, the other two outvote it. The obvious fix. But quantum physics flatly forbids it: there is <b>no operation that copies an unknown qubit</b>. It's called the <b>no-cloning theorem</b>. Try it.</p>
+    <div class="demo">
+      <div class="demo-col">
+        <div class="b-row">
+          <button class="bx primary" id="q4try">Try to copy this qubit →</button>
+        </div>
+        <div class="readout" id="q4read" style="max-width:380px">Press the button to attempt a copy.</div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Takeaway:</b> no backups allowed. So instead of copying one qubit, error correction <b>spreads a single piece of information across many qubits</b> in a pattern, so a few failures can be detected and undone. That pattern is exactly what the surface code is.</div>
+  </div>
+
+  <!-- HAND-OFF -->
+  <div class="handoff">
+    <h2>Now you know what an error <em style="font-style:italic;color:var(--purple)">is</em>.</h2>
+    <p>You've met the qubit, seen why you can't just read or copy it, and learned the two kinds of error: X and Z. That's everything you need to watch a real quantum code <b style="color:var(--txt);font-weight:500">catch one in the act</b>.</p>
+    <a class="cta" href="index.html">Go to the playground →</a>
+  </div>
+</div>
+
+<div class="sr-only" id="srLive" aria-live="polite"></div>
+
+<footer>
+  QEC Explorer · A gentle on-ramp to quantum error correction · Open-source<br>
+  <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+</footer>
+
+<script>
+/* ============================================================
+   basics.html, five tiny single-qubit demos.
+   Honest single-qubit model: state is amplitudes (a0, a1) with
+   |a0|^2 + |a1|^2 = 1. We only need 0, 1, and even-blend states,
+   plus sign for the phase (Z) demo. No external dependencies.
+   ============================================================ */
+const SVG = "http://www.w3.org/2000/svg";
+const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function say(t){ const s=document.getElementById("srLive"); if(s) s.textContent=t; }
+
+/* ---------- shared: draw a qubit "dial" (an arrow on a circle) ----------
+   angle: 0 = up (|0⟩), 180 = down (|1⟩), 90 = right (even blend).
+   sign:  +1 or -1, drawn as the arrow color (phase) for the Z demo.   */
+function drawDial(svg, angleDeg, opts={}) {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const cx=75, cy=75, R=52;
+  const ring = document.createElementNS(SVG,"circle");
+  ring.setAttribute("cx",cx); ring.setAttribute("cy",cy); ring.setAttribute("r",R);
+  ring.setAttribute("fill","none"); ring.setAttribute("stroke","#2a2a42"); ring.setAttribute("stroke-width","2");
+  svg.appendChild(ring);
+  // 0 and 1 poles
+  const mk=(x,y,txt,col)=>{const t=document.createElementNS(SVG,"text");t.setAttribute("x",x);t.setAttribute("y",y);
+    t.setAttribute("fill",col);t.setAttribute("font-family","JetBrains Mono, monospace");t.setAttribute("font-size","11");
+    t.setAttribute("text-anchor","middle");t.textContent=txt;svg.appendChild(t);};
+  mk(cx, cy-R-6, "|0⟩", "#4a8fe7");
+  mk(cx, cy+R+14, "|1⟩", "#ef6e4e");
+  // arrow
+  const a = (angleDeg-90) * Math.PI/180; // 0deg -> up
+  const ex = cx + (R-8)*Math.cos(a), ey = cy + (R-8)*Math.sin(a);
+  const color = opts.sign === -1 ? "#9b6dff" : (opts.color || "#d4a855");
+  const line = document.createElementNS(SVG,"line");
+  line.setAttribute("x1",cx); line.setAttribute("y1",cy); line.setAttribute("x2",ex); line.setAttribute("y2",ey);
+  line.setAttribute("stroke",color); line.setAttribute("stroke-width","3.5"); line.setAttribute("stroke-linecap","round");
+  if(!reduce) line.style.transition="all .35s ease";
+  svg.appendChild(line);
+  const dot = document.createElementNS(SVG,"circle");
+  dot.setAttribute("cx",cx); dot.setAttribute("cy",cy); dot.setAttribute("r","4"); dot.setAttribute("fill",color);
+  svg.appendChild(dot);
+  const tip = document.createElementNS(SVG,"circle");
+  tip.setAttribute("cx",ex); tip.setAttribute("cy",ey); tip.setAttribute("r","5"); tip.setAttribute("fill",color);
+  if(!reduce) tip.style.transition="all .35s ease";
+  svg.appendChild(tip);
+}
+
+/* ============================================================
+   STEP 1, qubit states
+   ============================================================ */
+const q1svg = document.getElementById("q1svg");
+function q1set(s){
+  ["q1zero","q1one","q1mix"].forEach(id=>document.getElementById(id).classList.remove("on"));
+  let ang, label, read;
+  if(s==="0"){ document.getElementById("q1zero").classList.add("on"); ang=0;
+    label="|0⟩, definitely 0"; read="A qubit at |0⟩: if you measured it now, you'd get 0 every time."; }
+  else if(s==="1"){ document.getElementById("q1one").classList.add("on"); ang=180;
+    label="|1⟩, definitely 1"; read="A qubit at |1⟩: measuring gives 1 every time."; }
+  else { document.getElementById("q1mix").classList.add("on"); ang=90;
+    label="an even blend of |0⟩ and |1⟩"; read="A 50/50 blend: measuring gives 0 or 1, each about half the time. Step 2 shows this for real."; }
+  drawDial(q1svg, ang);
+  document.getElementById("q1label").textContent = label;
+  document.getElementById("q1read").textContent = read;
+  say(label);
+}
+document.getElementById("q1zero").addEventListener("click",()=>q1set("0"));
+document.getElementById("q1one").addEventListener("click",()=>q1set("1"));
+document.getElementById("q1mix").addEventListener("click",()=>q1set("mix"));
+
+/* ============================================================
+   STEP 2, measurement of an even blend (live tally)
+   ============================================================ */
+let q2c0=0, q2c1=0;
+const q2svg=document.getElementById("q2svg");
+drawDial(q2svg, 90);
+// simple deterministic-ish PRNG seeded per page load so it's lively but not Math.random-forbidden? Math.random is fine in a browser.
+function q2measureOnce(){
+  // even blend => P(0)=P(1)=0.5
+  const r = Math.random() < 0.5 ? 0 : 1;
+  if(r===0) q2c0++; else q2c1++;
+  // snap the dial to the measured pole briefly
+  drawDial(q2svg, r===0?0:180, {color: r===0?"#4a8fe7":"#ef6e4e"});
+  document.getElementById("q2label").textContent = "measured "+r;
+  q2render();
+  if(!reduce) setTimeout(()=>{ if(q2c0+q2c1>0) drawDial(q2svg,90); document.getElementById("q2label").textContent="Even blend"; }, 350);
+  return r;
+}
+function q2render(){
+  const tot=q2c0+q2c1||1;
+  document.getElementById("q2bar0").style.width=(100*q2c0/tot)+"%";
+  document.getElementById("q2bar1").style.width=(100*q2c1/tot)+"%";
+  document.getElementById("q2ct0").textContent=q2c0;
+  document.getElementById("q2ct1").textContent=q2c1;
+  const n=q2c0+q2c1;
+  if(n>0){
+    const p0=(100*q2c0/n).toFixed(0);
+    document.getElementById("q2read").textContent=`${n} measurement${n>1?"s":""}: ${q2c0} zeros, ${q2c1} ones (${p0}% / ${100-p0}%). The more you measure, the closer to 50/50.`;
+  }
+}
+document.getElementById("q2measure").addEventListener("click",()=>{ q2measureOnce(); say("Measured."); });
+document.getElementById("q2measure100").addEventListener("click",()=>{
+  for(let i=0;i<100;i++){ const r=Math.random()<0.5?0:1; if(r===0)q2c0++; else q2c1++; }
+  q2render(); say("Measured 100 times.");
+});
+document.getElementById("q2reset").addEventListener("click",()=>{ q2c0=0;q2c1=0; q2render(); drawDial(q2svg,90); document.getElementById("q2label").textContent="Even blend"; document.getElementById("q2read").textContent="An even blend should land on 0 and 1 about half the time each."; });
+
+/* ============================================================
+   STEP 3, X and Z flips on |0⟩
+   We track which pole (0 or 1) and the phase sign.
+   X swaps 0<->1; Z flips the sign (visible as the arrow color).
+   ============================================================ */
+let q3bit=0, q3sign=1;
+const q3svg=document.getElementById("q3svg");
+function q3render(read){
+  const ang = q3bit===0?0:180;
+  drawDial(q3svg, ang, {sign:q3sign});
+  const ket = q3bit===0?"|0⟩":"|1⟩";
+  const signTxt = q3sign===-1?" (phase flipped)":"";
+  document.getElementById("q3label").textContent = (q3sign===-1?"−":"")+ket+signTxt;
+  if(read) document.getElementById("q3read").textContent=read;
+  say(ket+signTxt);
+}
+q3render("Start at |0⟩. Try an X flip, then a Z flip.");
+document.getElementById("q3x").addEventListener("click",()=>{ q3bit=q3bit?0:1;
+  q3render(`X flip: the bit swapped, now ${q3bit===0?"|0⟩":"|1⟩"}. A measurement would read the opposite of before.`); });
+document.getElementById("q3z").addEventListener("click",()=>{ q3sign*=-1;
+  q3render(`Z flip: the bit value is unchanged, but its phase sign flipped (the arrow turned purple). A plain 0/1 reading can't see this, yet it matters when qubits combine.`); });
+document.getElementById("q3reset").addEventListener("click",()=>{ q3bit=0;q3sign=1; q3render("Back to |0⟩."); });
+
+/* ============================================================
+   STEP 4, no-cloning (an honest little argument, not a fake)
+   ============================================================ */
+let q4stage=0;
+document.getElementById("q4try").addEventListener("click",()=>{
+  const read=document.getElementById("q4read");
+  q4stage++;
+  if(q4stage===1){
+    read.innerHTML = `You hand the copier a qubit in some <b>unknown</b> blend. To copy it, the machine would have to read it first… but you just saw in Step 2 that reading <b>collapses</b> the blend. The original is destroyed before it can be duplicated.`;
+  } else if(q4stage===2){
+    read.innerHTML = `"Fine," you say, "copy it <i>without</i> reading it." But the only operations physics allows can't turn one unknown qubit into two identical ones. This is a theorem, not an engineering limit. <b>It simply can't be done.</b>`;
+  } else {
+    read.innerHTML = `So there is no quantum backup. <b>Copying is off the table.</b> That's why the next step, spreading information across many qubits, is the only way out.`;
+    document.getElementById("q4try").textContent = "✗ Copying is impossible";
+    document.getElementById("q4try").disabled = true;
+    document.getElementById("q4try").style.opacity = ".7";
+  }
+  say(read.textContent);
+});
+
+/* init step 1 dial */
+q1set("0");
+</script>
+</body>
+</html>
