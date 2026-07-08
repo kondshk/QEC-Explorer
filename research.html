@@ -4,108 +4,138 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QEC Explorer · Research Connection</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
+
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-/* --- Design tokens copied verbatim from index.html --- */
-:root{
-  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
-  --bdr:#2a2a42;--bdr2:#3a3a56;
-  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
-  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
-  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
-  --purple:#9b6dff;--pink:#e45d9a;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+  /* Page-specific */
+  .wrap { max-width: 1080px; }
+  .lead { margin-bottom: var(--space-7); max-width: 780px; }
 
-.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
-.brand{font-family:'Instrument Serif',serif;font-size:22px}
-.brand em{font-style:italic;color:var(--purple)}
-.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
-  text-transform:uppercase;margin-left:10px}
-.topbar .links{display:flex;gap:20px}
-.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
-.topbar a:hover{color:var(--txt)}
+  /* arXiv placeholder banner */
+  .arxiv {
+    background: var(--surface-1);
+    border: 1px dashed var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+    margin-bottom: var(--space-7);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    flex-wrap: wrap;
+  }
+  .arxiv .tag {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-on-color);
+    background: var(--warning);
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: 600;
+  }
+  .arxiv .txt { flex: 1; min-width: 240px; font-size: 14.5px; color: var(--text-secondary); }
+  .arxiv .txt b { color: var(--text-primary); font-weight: 500; }
 
-/* Project strip, research marked active */
-.project-strip{max-width:1080px;margin:18px auto 0;padding:0 28px}
-.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
-  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
-.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
-  text-transform:uppercase;color:var(--purple);white-space:nowrap}
-.project-strip .crumb b{color:var(--txt);font-weight:500}
-.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
-.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
-  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
-.project-strip a.pill:hover{border-color:var(--purple);color:var(--txt)}
-.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
-.project-strip .arrow{color:var(--hint)}
+  .section { margin-top: var(--space-7); max-width: 820px; }
+  .section-eyebrow {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+  .section-eyebrow.a { color: var(--stab-z); }
+  .section-eyebrow.b { color: var(--pauli-x); }
+  .section-eyebrow.c { color: var(--pauli-z); }
 
-.wrap{max-width:1080px;margin:0 auto;padding:32px 28px 80px}
+  .section h2 {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 3.6vw, 36px);
+    font-weight: 400;
+    margin-bottom: var(--space-4);
+  }
+  .section h2 em { font-style: italic; color: var(--syndrome); }
+  .prose { color: var(--text-secondary); font-size: 16px; line-height: 1.78; }
+  .prose p { margin-bottom: 16px; }
+  .prose b { color: var(--text-primary); font-weight: 500; }
+  .prose a {
+    color: var(--stab-z);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(8, 189, 186, 0.3);
+  }
+  .prose a:hover { border-color: var(--stab-z); }
 
-.lead{margin-bottom:36px;max-width:780px}
-.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--purple);margin-bottom:12px}
-.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:16px}
-.lead h1 em{font-style:italic;color:var(--purple)}
-.lead p{color:var(--dim);font-size:17px;font-weight:300;line-height:1.7}
+  .callout {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--syndrome);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: var(--space-4) var(--space-5);
+    margin: var(--space-5) 0;
+    font-size: 14.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .callout b { color: var(--text-primary); font-weight: 500; }
 
-/* arXiv placeholder banner */
-.arxiv{background:var(--s1);border:1px dashed var(--bdr2);border-radius:10px;padding:22px 26px;margin-bottom:40px;
-  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.arxiv .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  color:#08080c;background:var(--gold);padding:4px 10px;border-radius:5px;font-weight:600}
-.arxiv .txt{flex:1;min-width:240px;font-size:14.5px;color:var(--dim)}
-.arxiv .txt b{color:var(--txt);font-weight:500}
+  .tie {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+  }
+  @media (max-width: 720px) { .tie { grid-template-columns: 1fr; } }
+  .tie a {
+    background: var(--surface-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: all 150ms ease;
+  }
+  .tie a:hover { border-color: var(--syndrome); }
+  .tie .k {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--syndrome);
+    margin-bottom: var(--space-2);
+  }
+  .tie .t { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+  .tie .d { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
 
-.section{margin-top:48px;max-width:820px}
-.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;
-  margin-bottom:12px}
-.section-eyebrow.a{color:var(--teal)}
-.section-eyebrow.b{color:var(--coral)}
-.section-eyebrow.c{color:var(--blue)}
-.section h2{font-family:'Instrument Serif',serif;font-size:clamp(26px,3.6vw,36px);font-weight:400;margin-bottom:18px}
-.section h2 em{font-style:italic;color:var(--purple)}
-.prose{color:var(--dim);font-size:16px;line-height:1.78}
-.prose p{margin-bottom:16px}
-.prose b{color:var(--txt);font-weight:500}
-.prose a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(46,196,160,.3)}
-.prose a:hover{border-color:var(--teal)}
-
-.callout{background:var(--s1);border:1px solid var(--bdr);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;
-  padding:16px 20px;margin:20px 0;font-size:14.5px;color:var(--dim);line-height:1.6}
-.callout b{color:var(--txt);font-weight:500}
-
-.tie{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:24px}
-@media(max-width:720px){.tie{grid-template-columns:1fr}}
-.tie a{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:16px 18px;text-decoration:none;
-  color:inherit;display:block;transition:all .15s}
-.tie a:hover{border-color:var(--purple)}
-.tie .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple);margin-bottom:6px}
-.tie .t{font-size:14px;color:var(--txt);font-weight:500}
-.tie .d{font-size:12.5px;color:var(--dim);margin-top:3px;line-height:1.5}
-
-.refs{margin-top:48px;max-width:820px;background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px 28px}
-.refs h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--hint);margin-bottom:14px}
-.refs ol{margin-left:18px;color:var(--dim);font-size:13.5px;line-height:1.7}
-.refs li{margin-bottom:9px}
-.refs a{color:var(--dim);border-bottom:1px solid var(--bdr);text-decoration:none}
-.refs a:hover{color:var(--txt)}
-
-footer{max-width:1080px;margin:0 auto;padding:40px 28px;border-top:1px solid var(--bdr);
-  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.8}
-footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
-footer a:hover{color:var(--txt)}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  .refs {
+    margin-top: var(--space-7);
+    max-width: 820px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+  }
+  .refs h3 {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-hint);
+    margin-bottom: var(--space-4);
+  }
+  .refs ol { margin-left: 18px; color: var(--text-secondary); font-size: 13.5px; line-height: 1.7; }
+  .refs li { margin-bottom: var(--space-2); }
+  .refs a {
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    text-decoration: none;
+  }
+  .refs a:hover { color: var(--text-primary); }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">QEC <em>Explorer</em><span>Research</span></div>
+  <div class="brand">QEC <em>Explorer</em><span class="module">Research</span></div>
   <div class="links">
     <a href="landing.html">Home</a>
     <a href="index.html">Playground</a>
@@ -134,16 +164,14 @@ footer a:hover{color:var(--txt)}
   <div class="lead">
     <div class="eyebrow">Where this project meets current research</div>
     <h1>From a clickable toy to the <em>real</em> frontier</h1>
-    <p>QEC Explorer isn't just a teaching demo. It's built around two questions the quantum-computing field is actively working on right now: <b style="color:var(--txt);font-weight:500">how do we build codes that don't waste enormous numbers of qubits</b>, and <b style="color:var(--txt);font-weight:500">how do we decode them well enough to matter</b>? This page connects the interactive modules and notebooks to that research, in plain terms.</p>
+    <p>QEC Explorer isn't just a teaching demo. It's built around two questions the quantum-computing field is actively working on right now: <b style="color:var(--text-primary);font-weight:500">how do we build codes that don't waste enormous numbers of qubits</b>, and <b style="color:var(--text-primary);font-weight:500">how do we decode them well enough to matter</b>? This page connects the interactive modules and notebooks to that research, in plain terms.</p>
   </div>
 
-  <!-- arXiv placeholder -->
   <div class="arxiv">
     <span class="tag">Manuscript</span>
-    <div class="txt"><b>A manuscript on this work is in preparation.</b> The arXiv preprint link will appear here once it's submitted. <span style="color:var(--hint)">[ arXiv link, placeholder, to be added on submission ]</span></div>
+    <div class="txt"><b>A manuscript on this work is in preparation.</b> The arXiv preprint link will appear here once it's submitted. <span style="color:var(--text-hint)">[ arXiv link, placeholder, to be added on submission ]</span></div>
   </div>
 
-  <!-- THREAD 1: better codes (qLDPC) -->
   <div class="section">
     <div class="section-eyebrow a">Research thread 1 · Better codes</div>
     <h2>The qubit-overhead problem, and qLDPC codes</h2>
@@ -157,7 +185,6 @@ footer a:hover{color:var(--txt)}
     </div>
   </div>
 
-  <!-- THREAD 2: better decoders (GNN) -->
   <div class="section">
     <div class="section-eyebrow b">Research thread 2 · Better decoders</div>
     <h2>Learned decoding with neural networks</h2>
@@ -171,7 +198,6 @@ footer a:hover{color:var(--txt)}
     </div>
   </div>
 
-  <!-- How the pieces tie together -->
   <div class="section">
     <div class="section-eyebrow c">The throughline</div>
     <h2>Two threads, one goal: <em>practical</em> fault tolerance</h2>
@@ -186,7 +212,6 @@ footer a:hover{color:var(--txt)}
     </div>
   </div>
 
-  <!-- References -->
   <div class="refs">
     <h3>Key references</h3>
     <ol>
@@ -195,7 +220,7 @@ footer a:hover{color:var(--txt)}
       <li>The Error Correction Zoo, <a href="https://errorcorrectionzoo.org/c/qcga">"Bivariate bicycle code"</a> and <a href="https://errorcorrectionzoo.org/c/gross">"[[144,12,12]] gross code"</a> entries, code parameters and connectivity.</li>
       <li>IBM Quantum, <a href="https://www.ibm.com/quantum/blog/nature-qldpc-error-correction">"Landmark IBM error correction paper on Nature cover"</a> and IBM's large-scale fault-tolerant quantum computing roadmap, the reported ~10× overhead reduction.</li>
     </ol>
-    <p style="font-size:12px;color:var(--hint);margin-top:14px;line-height:1.6">Note: specific figures (e.g. surface-code overhead "per logical qubit," the ~10× improvement) are drawn from the sources above; where a notebook uses a round number for illustration rather than a single sourced constant, it says so explicitly. This summary is written in the author's own words.</p>
+    <p style="font-size:12px;color:var(--text-hint);margin-top:14px;line-height:1.6">Note: specific figures (e.g. surface-code overhead "per logical qubit," the ~10× improvement) are drawn from the sources above; where a notebook uses a round number for illustration rather than a single sourced constant, it says so explicitly. This summary is written in the author's own words.</p>
   </div>
 
 </div>
@@ -205,5 +230,11 @@ footer a:hover{color:var(--txt)}
   <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
 
+<script src="assets/qec-shared.js"></script>
+<script>
+QEC.shortcuts([
+  { combo: "?", label: "Open the keyboard cheat sheet" },
+]);
+</script>
 </body>
 </html>

@@ -4,159 +4,109 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QEC Explorer · Noise Explorer</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-/* --- Design tokens copied verbatim from index.html (do not redefine colors) --- */
-:root{
-  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
-  --bdr:#2a2a42;--bdr2:#3a3a56;
-  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
-  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
-  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
-  --purple:#9b6dff;--pink:#e45d9a;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
-
-/* Top bar (same pattern as the other modules) */
-.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
-.brand{font-family:'Instrument Serif',serif;font-size:22px}
-.brand em{font-style:italic;color:var(--purple)}
-.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
-  text-transform:uppercase;margin-left:10px}
-.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
-.topbar a:hover{color:var(--txt)}
-
-/* Project strip (current module marked active, others linked) */
-.project-strip{max-width:1280px;margin:18px auto 0;padding:0 28px}
-.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
-  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
-.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
-  text-transform:uppercase;color:var(--purple);white-space:nowrap}
-.project-strip .crumb b{color:var(--txt);font-weight:500}
-.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
-.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
-  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
-a.pill:hover{border-color:var(--purple);color:var(--txt)}
-.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
-.project-strip .pill.soon{color:var(--hint)}
-.project-strip .arrow{color:var(--hint)}
-
-.wrap{max-width:1280px;margin:0 auto;padding:32px 28px 80px}
-.lead{margin-bottom:24px}
-.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--purple);margin-bottom:12px}
-.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:14px}
-.lead h1 em{font-style:italic;color:var(--purple)}
-.lead p{color:var(--dim);font-size:16px;max-width:760px;font-weight:300}
-
-/* Two-column app: controls left, results right */
+/* Page-specific styles. Tokens/consumed from shared theme.css. */
 .app{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
 @media(max-width:980px){.app{grid-template-columns:1fr}}
 
-.panel{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:22px}
-.panel h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--purple);margin-bottom:16px}
+/* Mode tabs (single-point / sweep) */
+.tabs{display:flex;gap:6px;margin-bottom:18px}
+.tabs button{flex:1;background:var(--surface-2);border:1px solid var(--border-subtle);
+  color:var(--text-secondary);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;
+  text-transform:uppercase;padding:10px 8px;border-radius:6px;cursor:pointer;transition:all 150ms ease}
+.tabs button:hover{border-color:var(--border-default);color:var(--text-primary)}
+.tabs button.on{background:var(--surface-3);border-color:var(--syndrome);color:var(--text-primary)}
+.tabs button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
-/* Segmented controls (verbatim conventions from index.html) */
-.seg{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
-.seg button{flex:1;min-width:54px;background:var(--s2);border:1px solid var(--bdr);color:var(--dim);
-  font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 6px;border-radius:5px;cursor:pointer;transition:all .15s}
-.seg button:hover{border-color:var(--bdr2);color:var(--txt)}
-.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.seg button.on{color:#08080c;font-weight:600}
-.seg.dist button.on{background:var(--purple);border-color:var(--purple)}
-.seg.model button.on{background:var(--teal);border-color:var(--teal)}
-.seg.decoder button.on{background:var(--blue);border-color:var(--blue)}
+/* Per-value segmented button variants (shared `.seg` is in theme.css) */
+.seg.dist button.on{background:var(--syndrome);border-color:var(--syndrome)}
+.seg.model button.on{background:var(--stab-z);border-color:var(--stab-z)}
+.seg.decoder button.on{background:var(--pauli-z);border-color:var(--pauli-z)}
 
-.ctrl-label{font-size:12px;color:var(--dim);margin:16px 0 7px;display:flex;justify-content:space-between;align-items:baseline}
-.ctrl-label span{font-family:'JetBrains Mono',monospace;color:var(--txt);font-size:12px}
-.ctrl-label .muted{color:var(--hint)}
+/* Control labels — slightly different layout from theme's default */
+.ctrl-label{font-size:12px;color:var(--text-secondary);margin:16px 0 7px;
+  display:flex;justify-content:space-between;align-items:baseline}
+.ctrl-label span{font-family:var(--font-mono);color:var(--text-primary);font-size:12px}
+.ctrl-label .muted{color:var(--text-hint)}
 
-input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;
-  background:var(--s3);outline:none;cursor:pointer;margin:4px 0 2px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;
-  border-radius:50%;background:var(--purple);cursor:pointer;border:2px solid var(--bg)}
-input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--purple);cursor:pointer;border:2px solid var(--bg)}
-input[type=number]{width:100%;background:var(--s2);border:1px solid var(--bdr);color:var(--txt);
-  font-family:'JetBrains Mono',monospace;font-size:13px;padding:8px 10px;border-radius:5px;margin-top:2px}
-input[type=number]:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--bdr2)}
-
-.btn{width:100%;padding:11px;border-radius:6px;border:1px solid var(--bdr2);background:var(--s2);
-  color:var(--txt);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;margin-top:8px}
-.btn:hover{border-color:var(--purple);background:var(--s3)}
-.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.btn.primary{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.ghost{background:transparent}
-
-.warn{font-size:11.5px;color:var(--gold);margin-top:8px;line-height:1.45;display:none}
+.warn{font-size:11.5px;color:var(--warning);margin-top:8px;line-height:1.45;display:none}
 .warn.show{display:block}
-.note-unavail{font-size:11.5px;color:var(--hint);margin-top:6px;line-height:1.45;display:none}
+.note-unavail{font-size:11.5px;color:var(--text-hint);margin-top:6px;line-height:1.45;display:none}
 .note-unavail.show{display:block}
 
-/* Mode tabs */
-.tabs{display:flex;gap:6px;margin-bottom:18px}
-.tabs button{flex:1;background:var(--s2);border:1px solid var(--bdr);color:var(--dim);
-  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;
-  padding:10px 8px;border-radius:6px;cursor:pointer;transition:all .15s}
-.tabs button:hover{border-color:var(--bdr2);color:var(--txt)}
-.tabs button.on{background:var(--s3);border-color:var(--purple);color:var(--txt)}
-.tabs button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* Range thumb already styled in theme.css; keep page-specific purple thumb override
+   so the slider feels tied to the module's accent. */
+input[type=range]::-webkit-slider-thumb{background:var(--syndrome);border:2px solid var(--surface-bg)}
+input[type=range]::-moz-range-thumb{background:var(--syndrome);border:2px solid var(--surface-bg)}
+input[type=number]{width:100%;background:var(--surface-2);border:1px solid var(--border-default);
+  color:var(--text-primary);font-family:var(--font-mono);font-size:13px;padding:8px 10px;border-radius:5px;margin-top:2px}
+input[type=number]:focus{outline:2px solid var(--focus);outline-offset:1px}
+
+.btn.ghost{background:transparent}
 
 /* Big live readout */
 .readout{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:18px}
-.stat{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:14px 18px;min-width:130px;flex:1}
-.stat .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--hint);margin-bottom:6px}
-.stat .v{font-family:'Instrument Serif',serif;font-size:30px;line-height:1}
-.stat .v.big{color:var(--coral)}
-.stat .v small{font-size:14px;color:var(--dim)}
+.stat{background:var(--surface-2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:14px 18px;min-width:130px;flex:1}
+.stat .k{font-family:var(--font-mono);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-hint);margin-bottom:6px}
+.stat .v{font-family:var(--font-display);font-size:30px;line-height:1}
+.stat .v.big{color:var(--pauli-x)}
+.stat .v small{font-size:14px;color:var(--text-secondary)}
 
-.plot-card{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:18px 20px 14px;margin-bottom:18px}
-.plot-card h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--teal);margin-bottom:4px}
-.plot-card .cap{font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:10px}
-.plot-card .cap b{color:var(--txt);font-weight:500}
-.plot-card .cap.honest{color:var(--gold);border-left:2px solid var(--gold);padding-left:10px;margin-top:12px}
-svg.plot{width:100%;height:auto;display:block;background:var(--s1);border-radius:6px}
-.plot .axis{stroke:var(--bdr2);stroke-width:1}
-.plot .grid{stroke:var(--bdr);stroke-width:.6;stroke-dasharray:2 3}
-.plot .tick{font-family:'JetBrains Mono',monospace;font-size:9px;fill:var(--hint)}
-.plot .axlabel{font-family:'JetBrains Mono',monospace;font-size:10px;fill:var(--dim)}
+/* Plots */
+.plot-card{background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:18px 20px 14px;margin-bottom:18px}
+.plot-card h4{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--stab-z);margin-bottom:4px}
+.plot-card .cap{font-size:12.5px;color:var(--text-secondary);line-height:1.5;margin-top:10px}
+.plot-card .cap b{color:var(--text-primary);font-weight:500}
+.plot-card .cap.honest{color:var(--warning);border-left:2px solid var(--warning);padding-left:10px;margin-top:12px}
+svg.plot{width:100%;height:auto;display:block;background:var(--surface-1);border-radius:6px}
+.plot .axis{stroke:var(--border-default);stroke-width:1}
+.plot .grid{stroke:var(--border-subtle);stroke-width:.6;stroke-dasharray:2 3}
+.plot .tick{font-family:var(--font-mono);font-size:9px;fill:var(--text-hint)}
+.plot .axlabel{font-family:var(--font-mono);font-size:10px;fill:var(--text-secondary)}
 .plot .curve{fill:none;stroke-width:2}
-.plot .pt{stroke:var(--bg);stroke-width:1}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--dim)}
+.plot .pt{stroke:var(--surface-bg);stroke-width:1}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--text-secondary)}
 .legend .item{display:flex;align-items:center;gap:7px}
 .legend .sw{width:16px;height:3px;border-radius:2px}
 
-.progress{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin-bottom:16px}
-.progress .bar{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--teal));transition:width .12s}
+/* Progress bar */
+.progress{height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin-bottom:16px}
+.progress .bar{height:100%;width:0;
+  background:linear-gradient(90deg,var(--syndrome),var(--stab-z));
+  transition:width 120ms ease}
 
-.insight{background:var(--s1);border:1px solid var(--bdr);border-radius:10px;padding:24px 28px;position:relative;overflow:hidden;margin-top:8px}
-.insight::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--coral),var(--gold))}
-.insight .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--coral);margin-bottom:10px}
-.insight h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:10px}
-.insight p{color:var(--dim);font-size:14.5px;line-height:1.7}
-.insight p b{color:var(--txt);font-weight:500}
+/* Threshold-relevant insight card */
+.insight{background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:10px;
+  padding:24px 28px;position:relative;overflow:hidden;margin-top:8px}
+.insight::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(to bottom,var(--pauli-x),var(--warning))}
+.insight .kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--pauli-x);margin-bottom:10px}
+.insight h3{font-family:var(--font-display);font-size:24px;font-weight:400;margin-bottom:10px}
+.insight p{color:var(--text-secondary);font-size:14.5px;line-height:1.7}
+.insight p b{color:var(--text-primary);font-weight:500}
 
-footer{max-width:1280px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
-  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
-footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
-footer a:hover{color:var(--txt)}
-.hide{display:none}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">QEC <em>Explorer</em><span>Noise Explorer</span></div>
-  <a href="index.html">← Back to detection</a>
+  <div class="brand">QEC <em>Explorer</em><span class="module">Noise Explorer</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">← Back to detection</a>
+    <a href="research.html">Research</a>
+  </div>
 </div>
 
 <div class="project-strip">
@@ -255,10 +205,10 @@ footer a:hover{color:var(--txt)}
           <h4>Threshold sweep, logical vs physical error rate</h4>
           <svg class="plot" id="threshPlot" viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logical error rate vs physical error rate across code distances, log-log axes"></svg>
           <div class="legend">
-            <div class="item"><span class="sw" style="background:var(--purple)"></span> d = 3</div>
-            <div class="item"><span class="sw" style="background:var(--teal)"></span> d = 5</div>
-            <div class="item"><span class="sw" style="background:var(--coral)"></span> d = 7</div>
-            <div class="item"><span class="sw" style="background:var(--hint)"></span> break-even (y = x)</div>
+            <div class="item"><span class="sw" style="background:var(--syndrome)"></span> d = 3</div>
+            <div class="item"><span class="sw" style="background:var(--stab-z)"></span> d = 5</div>
+            <div class="item"><span class="sw" style="background:var(--pauli-x)"></span> d = 7</div>
+            <div class="item"><span class="sw" style="background:var(--text-hint)"></span> break-even (y = x)</div>
           </div>
           <div class="cap" id="threshCap">Press <b>Run experiment</b> in sweep mode. This runs the Monte Carlo loop at ~9 error rates for each of d = 3, 5, 7 and plots three curves on log-log axes.</div>
           <div class="cap honest" id="threshHonest"></div>
@@ -275,8 +225,6 @@ footer a:hover{color:var(--txt)}
   </div>
 </div>
 
-<div class="sr-only" id="srLive" aria-live="polite"></div>
-
 <footer>
   QEC Explorer · Module 3 · Open-source · Real Monte Carlo over the same decoders as Module 2, view source.<br>
   <a href="index.html">Module 1 · Detection</a> &nbsp;·&nbsp; <a href="decoder.html">Module 2 · Decoder race</a>
@@ -285,6 +233,7 @@ footer a:hover{color:var(--txt)}
 <!-- Shared physics + decoder algorithms (local scripts, no CDN) -->
 <script src="lattice-core.js"></script>
 <script src="decoders.js"></script>
+<script src="assets/qec-shared.js"></script>
 <script>
 /* ============================================================
    noise.html, Module 3 UI
@@ -379,8 +328,7 @@ async function runSinglePoint(token) {
     `<b>${decoder.toUpperCase()}</b>, d=${d}, p=${p.toFixed(4)}, ${model}${model==="biased"?` (bias ×${bias})`:""}: ` +
     `final logical error rate <b>${finalLer.toFixed(4)}</b> over ${trials} trials ` +
     `(±${(Math.sqrt(finalLer*(1-finalLer)/trials)).toFixed(4)} standard error).`;
-  document.getElementById("srLive").textContent =
-    `Done. Logical error rate ${finalLer.toFixed(3)} over ${trials} trials.`;
+  QEC.announce(`Done. Logical error rate ${finalLer.toFixed(3)} over ${trials} trials.`);
   return finalLer;
 }
 
@@ -434,7 +382,7 @@ function drawConvergence(cumul, trials, p) {
   clearSvg(svg);
   const W = 720, H = 340, L = 56, R = 16, T = 18, B = 40;
   const plotW = W - L - R, plotH = H - T - B;
-  const yMax = Math.max(0.05...cumul.map(d => d.ler)) * 1.15;
+  const yMax = Math.max(0.05, ...cumul.map(d => d.ler)) * 1.15;
   const x = t => L + plotW * (t / trials);
   const y = v => T + plotH * (1 - v / yMax);
 
@@ -461,9 +409,9 @@ function drawConvergence(cumul, trials, p) {
 
   if (cumul.length) {
     const pts = cumul.map(d => `${x(d.t)},${y(d.ler)}`).join(" ");
-    svg.appendChild(el("polyline", { class: "curve", points: pts, stroke: "var(--coral)" }));
+    svg.appendChild(el("polyline", { class: "curve", points: pts, stroke: "var(--pauli-x)" }));
     const last = cumul[cumul.length - 1];
-    svg.appendChild(el("circle", { class: "pt", cx: x(last.t), cy: y(last.ler), r: 4, fill: "var(--coral)" }));
+    svg.appendChild(el("circle", { class: "pt", cx: x(last.t), cy: y(last.ler), r: 4, fill: "var(--pauli-x)" }));
   }
 }
 
@@ -505,9 +453,9 @@ function drawThreshold(curves, dists) {
   const be = [];
   for (let p = pLo; p <= pHi; p *= 1.3) be.push(`${lx(p)},${ly(p)}`);
   svg.appendChild(el("polyline", { class: "curve", points: be.join(" "),
-    stroke: "var(--hint)", "stroke-dasharray": "3 4", "stroke-width": 1.3 }));
+    stroke: "var(--text-hint)", "stroke-dasharray": "3 4", "stroke-width": 1.3 }));
 
-  const COLOR = { 3: "var(--purple)", 5: "var(--teal)", 7: "var(--coral)" };
+  const COLOR = { 3: "var(--syndrome)", 5: "var(--stab-z)", 7: "var(--pauli-x)" };
   for (const d of dists) {
     const data = curves[d];
     if (!data || !data.length) continue;
@@ -652,7 +600,7 @@ function stop() {
   runToken++; // invalidate any in-flight run
   document.getElementById("runBtn").disabled = false;
   document.getElementById("stopBtn").disabled = true;
-  document.getElementById("srLive").textContent = "Run stopped.";
+  QEC.announce("Run stopped.");
 }
 document.getElementById("runBtn").addEventListener("click", run);
 document.getElementById("stopBtn").addEventListener("click", stop);
@@ -699,12 +647,12 @@ document.getElementById("shareSweepBtn").addEventListener("click", async () => {
   const shareText = `I ran ${PARAMS.trials} trials at d=3,5,7, ${summary}`;
   if (navigator.share) {
     try { await navigator.share({ title: "QEC Explorer, Threshold Sweep", text: shareText, url });
-      showToast(`Shared, <b>this exact sweep</b>.`); return;
+      QEC.toast(`Shared, <b>this exact sweep</b>.`); return;
     } catch (err) { if (err && err.name === "AbortError") return; }
   }
   try { await navigator.clipboard.writeText(`${shareText} ${url}`);
-    showToast(`Results + link copied, <b>paste it anywhere</b>.`);
-  } catch (err) { showToast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
+    QEC.toast(`Results + link copied, <b>paste it anywhere</b>.`);
+  } catch (err) { QEC.toast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
 });
 
 /* ---------- init ---------- */
@@ -719,8 +667,37 @@ syncSegments();
 refreshDecoderAvailability();
 setMode(PARAMS.mode);
 drawConvergence([], PARAMS.trials, currentP());
+
+/* ---------- register shortcuts (cheat sheet on "?") ---------- */
+QEC.shortcuts([
+  { combo: "S", label: "Switch mode: Single-point ↔ Sweep" },
+  { combo: "Enter", label: "Run the experiment" },
+  { combo: "Esc", label: "Stop a running experiment" },
+  { combo: "↑ / ↓", label: "Raise / lower physical error rate p" },
+  { combo: "3 / 5 / 7", label: "Switch code distance" },
+  { combo: "?", label: "Show this cheat sheet" },
+]);
+
+document.addEventListener("keydown", (e) => {
+  // Don't trigger when typing in inputs
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "s") { e.preventDefault(); setMode(PARAMS.mode === "single" ? "sweep" : "single"); }
+  else if (k === "enter") { e.preventDefault(); document.getElementById("runBtn").click(); }
+  else if (k === "escape") { e.preventDefault(); document.getElementById("stopBtn").click(); }
+  else if (k === "arrowup" || k === "arrowdown") {
+    const slider = document.getElementById("pSlider");
+    const delta = (k === "arrowup" ? 25 : -25);
+    slider.value = Math.max(0, Math.min(1000, +slider.value + delta));
+    slider.dispatchEvent(new Event("input"));
+    e.preventDefault();
+  }
+});
+
 // If arriving via a shared link, auto-run so the result reproduces on load.
-if (fromLink) { showToast(`Loaded a <b>shared experiment</b>, re-running…`); setTimeout(run, 350); }
+if (fromLink) { QEC.toast(`Loaded a <b>shared experiment</b>, re-running…`); setTimeout(run, 350); }
+
 // expose a headless hook for verification (returns final numbers without UI)
 window.__mcSinglePoint = async function (d, p, model, bias, decoder, trials) {
   const code = buildCode(d);
@@ -734,5 +711,9 @@ window.__mcSinglePoint = async function (d, p, model, bias, decoder, trials) {
   return failures / trials;
 };
 </script>
+
+<!-- Community counter (graceful-degrades if unreachable) -->
+<script src="counter.js"></script>
+<script>if (window.QECCounter) QECCounter.init();</script>
 </body>
 </html>

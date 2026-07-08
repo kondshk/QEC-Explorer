@@ -4,210 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QEC Explorer · Decoder Race</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-/* --- Design tokens copied verbatim from index.html (do not redefine colors) --- */
-:root{
-  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
-  --bdr:#2a2a42;--bdr2:#3a3a56;
-  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
-  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
-  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
-  --purple:#9b6dff;--pink:#e45d9a;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
-
-/* Top bar (same pattern as module 1) */
-.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
-.brand{font-family:'Instrument Serif',serif;font-size:22px}
-.brand em{font-style:italic;color:var(--purple)}
-.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
-  text-transform:uppercase;margin-left:10px}
-.topbar .links{display:flex;gap:20px}
-.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
-.topbar a:hover{color:var(--txt)}
-
-/* Project strip (same as module 1, Module 2 marked current) */
-.project-strip{max-width:1320px;margin:18px auto 0;padding:0 28px}
-.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
-  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
-.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
-  text-transform:uppercase;color:var(--purple);white-space:nowrap}
-.project-strip .crumb b{color:var(--txt);font-weight:500}
-.project-strip .steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
-.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
-  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
-a.pill:hover{border-color:var(--purple);color:var(--txt)}
-.project-strip .pill.now{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
-.project-strip .pill.soon{color:var(--hint)}
-.project-strip .arrow{color:var(--hint)}
-
-.wrap{max-width:1320px;margin:0 auto;padding:32px 28px 80px}
-.lead{margin-bottom:24px}
-.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--purple);margin-bottom:12px}
-.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:400;margin-bottom:14px}
-.lead h1 em{font-style:italic;color:var(--purple)}
-.lead p{color:var(--dim);font-size:16px;max-width:760px;font-weight:300}
-
-/* Control bar */
-.controls{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;
-  background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:20px 22px;margin-bottom:14px}
+/* Page-specific styles. Tokens/consumed from shared theme.css. */
+.controls{display:flex;gap:var(--space-5);flex-wrap:wrap;align-items:flex-end;
+  background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:var(--space-5) var(--space-5);margin-bottom:14px}
 .ctrl-group{display:flex;flex-direction:column;gap:7px}
-.ctrl-group .lbl{font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;
+.ctrl-group .lbl{font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);
   letter-spacing:1px;text-transform:uppercase}
-.seg{display:flex;gap:6px}
-.seg button{background:var(--s2);border:1px solid var(--bdr);color:var(--dim);
-  font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 14px;border-radius:5px;cursor:pointer;transition:all .15s}
-.seg button:hover{border-color:var(--bdr2);color:var(--txt)}
-.seg button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.seg button.on{color:#08080c;font-weight:600}
-.seg.errtype button.on[data-v="X"]{background:var(--coral);border-color:var(--coral)}
-.seg.errtype button.on[data-v="Z"]{background:var(--blue);border-color:var(--blue)}
-.seg.errtype button.on[data-v="Y"]{background:var(--gold);border-color:var(--gold)}
-.seg.dist button.on{background:var(--purple);border-color:var(--purple)}
-.btn{padding:10px 16px;border-radius:6px;border:1px solid var(--bdr2);background:var(--s2);
-  color:var(--txt);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
-.btn:hover{border-color:var(--purple);background:var(--s3)}
-.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.btn.primary{background:var(--purple);border-color:var(--purple);color:#08080c;font-weight:600}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.danger:hover{border-color:var(--red)}
 .spacer{flex:1}
+/* Per-value segmented button colors (theme provides the base .seg button styles) */
+.seg.errtype button.on[data-v="X"]{background:var(--pauli-x);border-color:var(--pauli-x)}
+.seg.errtype button.on[data-v="Z"]{background:var(--pauli-z);border-color:var(--pauli-z)}
+.seg.errtype button.on[data-v="Y"]{background:var(--pauli-y);border-color:var(--pauli-y)}
+.seg.dist button.on{background:var(--syndrome);border-color:var(--syndrome)}
 
-/* Famous-pattern quick-links (pre-built hash links) */
 .famous{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.famous-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--hint)}
-.famous-link{font-size:12.5px;padding:6px 12px;border-radius:20px;border:1px solid var(--bdr2);background:var(--s2);
-  color:var(--dim);text-decoration:none;transition:all .15s}
-.famous-link:hover{border-color:var(--purple);color:var(--txt)}
+.famous-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-hint)}
+.famous-link{font-size:12.5px;padding:6px 12px;border-radius:var(--radius-pill);border:1px solid var(--border-default);
+  background:var(--surface-2);color:var(--text-secondary);text-decoration:none;transition:all 150ms ease}
+.famous-link:hover{border-color:var(--syndrome);color:var(--text-primary)}
 
-/* Shared-error mini panel + note */
-.shared-note{background:var(--s2);border:1px solid var(--bdr);border-left:3px solid var(--gold);
-  border-radius:0 7px 7px 0;padding:12px 16px;font-size:13px;color:var(--dim);line-height:1.55;margin-bottom:22px}
-.shared-note b{color:var(--txt);font-weight:500}
+.shared-note{background:var(--surface-2);border:1px solid var(--border-subtle);
+  border-left:3px solid var(--warning);border-radius:0 7px 7px 0;
+  padding:12px 16px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:22px}
+.shared-note b{color:var(--text-primary);font-weight:500}
 
-/* Three decoder panels */
 .race{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
 @media(max-width:1040px){.race{grid-template-columns:1fr}}
-.decoder{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:18px;display:flex;flex-direction:column}
-.decoder h3{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;margin-bottom:2px}
-.decoder .sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
-  text-transform:uppercase;color:var(--dim);margin-bottom:12px}
-.decoder .sub.x{color:var(--purple)}
-.decoder .sub.m{color:var(--teal)}
-.decoder .sub.b{color:var(--blue)}
+.decoder{background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:18px;display:flex;flex-direction:column}
+.decoder h3{font-family:var(--font-display);font-size:22px;font-weight:400;margin-bottom:2px}
+.decoder .sub{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-secondary);margin-bottom:12px}
+.decoder .sub.x{color:var(--syndrome)}
+.decoder .sub.m{color:var(--stab-z)}
+.decoder .sub.b{color:var(--pauli-z)}
 .mini-wrap{display:flex;align-items:center;justify-content:center;padding:6px 0 12px}
 svg.mini{width:100%;height:auto;max-width:300px}
-.mini .bond{stroke:var(--bdr);stroke-width:1.3}
+.mini .bond{stroke:var(--border-default);stroke-width:1.3}
 .mini .plaquette{stroke-width:1}
-.mini .data-qubit{transition:fill .2s}
-.mini .corr-ring{fill:none;stroke-dasharray:4 3;stroke-width:2.5;transition:opacity .3s}
-.mini .path-line{stroke-width:3;stroke-linecap:round;opacity:0;transition:opacity .3s}
-.mini .synd-dot{transition:opacity .25s}
-.synd-label{font-family:'JetBrains Mono',monospace;font-size:10px;pointer-events:none;
-  text-anchor:middle;dominant-baseline:central;font-weight:500;fill:#fff}
-
-.decoder .status{margin-top:auto;padding-top:12px;border-top:1px solid var(--bdr)}
-.badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;
-  padding:5px 11px;border-radius:5px;font-weight:600;margin-bottom:8px}
-.badge.fixed{background:rgba(46,196,160,.16);color:var(--teal);border:1px solid rgba(46,196,160,.4)}
-.badge.failed{background:rgba(224,64,64,.14);color:var(--red);border:1px solid rgba(224,64,64,.4)}
-.badge.idle{background:var(--s3);color:var(--hint);border:1px solid var(--bdr)}
-.badge.unavail{background:var(--s3);color:var(--hint);border:1px solid var(--bdr)}
-.decoder .meta{font-size:12px;color:var(--dim);line-height:1.5}
-.decoder .meta .it{font-family:'JetBrains Mono',monospace;color:var(--txt)}
+.mini .data-qubit{transition:fill 200ms ease}
+.mini .corr-ring{fill:none;stroke-dasharray:4 3;stroke-width:2.5;transition:opacity 300ms ease}
+.mini .path-line{stroke-width:3;stroke-linecap:round;opacity:0;transition:opacity 300ms ease}
+.mini .synd-dot{transition:opacity 250ms ease}
+.synd-label{font-family:var(--font-mono);font-size:10px;pointer-events:none;text-anchor:middle;
+  dominant-baseline:central;font-weight:500;fill:#fff}
+.decoder .status{margin-top:auto;padding-top:12px;border-top:1px solid var(--border-subtle)}
+.badge.unavail{background:var(--surface-3);color:var(--text-hint);border:1px solid var(--border-default)}
+.decoder .meta{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.decoder .meta .it{font-family:var(--font-mono);color:var(--text-primary)}
 .decoder.disabled{opacity:.65}
-.decoder .unavail-msg{font-size:12.5px;color:var(--hint);line-height:1.55;padding:20px 4px;text-align:center}
+.decoder .unavail-msg{font-size:12.5px;color:var(--text-hint);line-height:1.55;padding:20px 4px;text-align:center}
+.itchip{display:inline-block;font-family:var(--font-mono);font-size:11px;
+  background:var(--surface-3);border:1px solid var(--border-subtle);border-radius:4px;
+  padding:2px 8px;color:var(--pauli-z);margin-left:6px}
 
-/* per-iteration BP counter chip */
-.itchip{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
-  background:var(--s3);border:1px solid var(--bdr);border-radius:4px;padding:2px 8px;color:var(--blue);margin-left:6px}
+.agreement{background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:18px 22px;margin-bottom:22px}
+.agreement h4{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--pauli-x);margin-bottom:10px}
+.agreement .body{font-size:14px;color:var(--text-secondary);line-height:1.6}
+.agreement .body b{color:var(--text-primary);font-weight:500}
+.agreement code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-3);
+  padding:1px 6px;border-radius:3px;color:var(--warning)}
 
-/* Agreement strip */
-.agreement{background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:18px 22px;margin-bottom:22px}
-.agreement h4{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--coral);margin-bottom:10px}
-.agreement .body{font-size:14px;color:var(--dim);line-height:1.6}
-.agreement .body b{color:var(--txt);font-weight:500}
-.agreement code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--s3);
-  padding:1px 6px;border-radius:3px;color:var(--gold)}
-
-/* Legend row */
-.legend-bar{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim);
-  background:var(--s1);border:1px solid var(--bdr);border-radius:8px;padding:14px 20px;margin-bottom:26px}
+.legend-bar{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);
+  background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+  padding:14px 20px;margin-bottom:26px}
 .legend-bar .item{display:flex;align-items:center;gap:7px}
 .legend-bar .sw{width:14px;height:14px;border-radius:50%;flex-shrink:0}
-.legend-bar .sw.ring{background:transparent;border:2px dashed var(--teal);border-radius:50%}
+.legend-bar .sw.ring{background:transparent;border:2px dashed var(--stab-z);border-radius:50%}
 
-/* Insight card */
-.insight{max-width:840px;margin:8px auto 0;background:var(--s1);border:1px solid var(--bdr);
+.insight{max-width:840px;margin:8px auto 0;background:var(--surface-1);border:1px solid var(--border-subtle);
   border-radius:10px;padding:26px 30px;position:relative;overflow:hidden}
 .insight::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(to bottom,var(--coral),var(--gold))}
-.insight .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--coral);margin-bottom:10px}
-.insight h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:10px}
-.insight p{color:var(--dim);font-size:14.5px;line-height:1.7}
-.insight p b{color:var(--txt);font-weight:500}
+  background:linear-gradient(to bottom,var(--pauli-x),var(--warning))}
+.insight .kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--pauli-x);margin-bottom:10px}
+.insight h3{font-family:var(--font-display);font-size:24px;font-weight:400;margin-bottom:10px}
+.insight p{color:var(--text-secondary);font-size:14.5px;line-height:1.7}
+.insight p b{color:var(--text-primary);font-weight:500}
 
-/* What's next roadmap card (copied pattern from module 1) */
-.next-card{max-width:840px;margin:40px auto 0;background:var(--s1);border:1px solid var(--bdr);
+.next-card{max-width:840px;margin:40px auto 0;background:var(--surface-1);border:1px solid var(--border-subtle);
   border-radius:10px;padding:28px 30px;position:relative;overflow:hidden}
 .next-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(to bottom,var(--purple),var(--teal))}
-.next-card .kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--teal);margin-bottom:10px}
-.next-card h3{font-family:'Instrument Serif',serif;font-size:24px;font-weight:400;margin-bottom:8px}
+  background:linear-gradient(to bottom,var(--syndrome),var(--stab-z))}
+.next-card .kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--stab-z);margin-bottom:10px}
+.next-card h3{font-family:var(--font-display);font-size:24px;font-weight:400;margin-bottom:8px}
 .next-card .roadmap{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.next-card .step{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--bdr);border-radius:7px;padding:14px 16px;
-  text-decoration:none;display:block}
-a.step:hover{border-color:var(--purple)}
-.next-card .step .lbl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;
-  text-transform:uppercase;margin-bottom:6px}
-.next-card .step.done .lbl{color:var(--teal)}
-.next-card .step.now .lbl{color:var(--purple)}
-.next-card .step.later .lbl{color:var(--hint)}
-.next-card .step .t{font-size:13.5px;font-weight:500;color:var(--txt);margin-bottom:3px}
-.next-card .step .d{font-size:12px;color:var(--dim);line-height:1.45}
-.next-card .badge2{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;
-  letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;margin-top:8px}
-.next-card .badge2.live{background:rgba(46,196,160,.14);color:var(--teal)}
-.next-card .badge2.wip{background:rgba(92,91,114,.18);color:var(--hint)}
+.next-card .step{flex:1;min-width:180px;background:var(--surface-2);border:1px solid var(--border-subtle);border-radius:7px;
+  padding:14px 16px;text-decoration:none;display:block}
+a.step:hover{border-color:var(--syndrome)}
+.next-card .step .lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.next-card .step.done .lbl{color:var(--stab-z)}
+.next-card .step.now .lbl{color:var(--syndrome)}
+.next-card .step.later .lbl{color:var(--text-hint)}
+.next-card .step .t{font-size:13.5px;font-weight:500;color:var(--text-primary);margin-bottom:3px}
+.next-card .step .d{font-size:12px;color:var(--text-secondary);line-height:1.45}
+.next-card .badge2{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 7px;border-radius:3px;margin-top:8px}
+.next-card .badge2.live{background:rgba(8,189,186,.14);color:var(--stab-z)}
+.next-card .badge2.wip{background:rgba(141,141,141,.18);color:var(--text-hint)}
 
-footer{max-width:1320px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
-  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
-footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
-footer a:hover{color:var(--txt)}
-
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--s3);border:1px solid var(--bdr2);color:var(--txt);padding:12px 22px;border-radius:8px;
-  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast b{color:var(--purple)}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 /* Guide-me mode */
-#guideBtn.on{background:var(--teal);border-color:var(--teal);color:#08080c;font-weight:600}
+#guideBtn.on{background:var(--stab-z);border-color:var(--stab-z);color:var(--text-on-color);font-weight:600}
 body.guiding .data-qubit{cursor:help}
 body.guiding .decoder{cursor:help}
-.guide-pop{position:fixed;z-index:90;max-width:260px;background:var(--s3);border:1px solid var(--teal);
-  border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.5;color:var(--txt);
+.guide-pop{position:fixed;z-index:90;max-width:260px;background:var(--surface-3);border:1px solid var(--stab-z);
+  border-radius:var(--radius-md);padding:12px 14px;font-size:13px;line-height:1.5;color:var(--text-primary);
   box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;transform:translateY(4px);pointer-events:none;
-  transition:opacity .15s,transform .15s}
+  transition:opacity 150ms ease,transform 150ms ease}
 .guide-pop.show{opacity:1;transform:translateY(0)}
-.guide-pop .gk{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:5px}
-.guide-pop b{color:var(--gold);font-weight:500}
+.guide-pop .gk{font-family:var(--font-mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--stab-z);margin-bottom:5px}
+.guide-pop b{color:var(--warning);font-weight:500}
+
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">QEC <em>Explorer</em><span>Decoder Race</span></div>
+  <div class="brand">QEC <em>Explorer</em><span class="module">Decoder Race</span></div>
   <div class="links">
     <a href="landing.html">Home</a>
     <a href="index.html">← Back to detection</a>
@@ -294,10 +218,10 @@ body.guiding .decoder{cursor:help}
   </div>
 
   <div class="legend-bar">
-    <div class="item"><span class="sw" style="background:var(--coral)"></span> X error</div>
-    <div class="item"><span class="sw" style="background:var(--blue)"></span> Z error</div>
-    <div class="item"><span class="sw" style="background:var(--gold)"></span> Y error</div>
-    <div class="item"><span class="sw" style="background:var(--purple)"></span> Lit syndrome</div>
+    <div class="item"><span class="sw" style="background:var(--pauli-x)"></span> X error</div>
+    <div class="item"><span class="sw" style="background:var(--pauli-z)"></span> Z error</div>
+    <div class="item"><span class="sw" style="background:var(--pauli-y)"></span> Y error</div>
+    <div class="item"><span class="sw" style="background:var(--syndrome)"></span> Lit syndrome</div>
     <div class="item"><span class="sw ring"></span> Proposed correction (dashed ring)</div>
   </div>
 
@@ -351,7 +275,7 @@ body.guiding .decoder{cursor:help}
   <!-- What's next -->
   <div class="next-card">
     <div class="kicker">Where this is going</div>
-    <h3>Next: when does protection actually <em style="font-style:italic;color:var(--purple)">break</em>?</h3>
+    <h3>Next: when does protection actually <em style="font-style:italic;color:var(--syndrome)">break</em>?</h3>
     <div class="roadmap">
       <a class="step done" href="index.html">
         <div class="lbl">Module 1 · Done</div>
@@ -375,8 +299,6 @@ body.guiding .decoder{cursor:help}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-<div class="sr-only" id="srLive" aria-live="polite"></div>
 <!-- Guide-me popover: ONE reused element -->
 <div class="guide-pop" id="guidePop" role="status"></div>
 
@@ -388,6 +310,7 @@ body.guiding .decoder{cursor:help}
 <!-- Shared physics + decoder algorithms (local scripts, no CDN) -->
 <script src="lattice-core.js"></script>
 <script src="decoders.js"></script>
+<script src="assets/qec-shared.js"></script>
 <script>
 /* ============================================================
    decoder.html UI, Module 2
@@ -496,9 +419,9 @@ function miniLine(svg, x1, y1, x2, y2) {
 /* ---------- paint shared error + syndrome on all three panels ---------- */
 function fillForError(e) {
   if (!e) return "#2a2a3a";
-  if (e.x && e.z) return "var(--gold)";
-  if (e.x) return "var(--coral)";
-  if (e.z) return "var(--blue)";
+  if (e.x && e.z) return "var(--warning)";
+  if (e.x) return "var(--pauli-x)";
+  if (e.z) return "var(--pauli-z)";
   return "#2a2a3a";
 }
 
@@ -532,13 +455,13 @@ function paintShared() {
     nm.plaqs.forEach((p, i) => {
       const fired = synd[i] === 1;
       if (fired) {
-        p.poly.setAttribute("fill", "var(--purple)");
+        p.poly.setAttribute("fill", "var(--syndrome)");
         p.poly.setAttribute("fill-opacity", "0.55");
-        p.poly.setAttribute("stroke", "var(--purple)");
+        p.poly.setAttribute("stroke", "var(--syndrome)");
         p.label.textContent = "!";
       } else {
-        const bf = p.type === "Z" ? "rgba(46,196,160,1)" : "rgba(228,93,154,1)";
-        const bs = p.type === "Z" ? "var(--teal)" : "var(--pink)";
+        const bf = p.type === "Z" ? "var(--stab-z)" : "var(--stab-x)";
+        const bs = bf;
         p.poly.setAttribute("fill", bf);
         p.poly.setAttribute("fill-opacity", "0.10");
         p.poly.setAttribute("stroke", bs);
@@ -566,7 +489,7 @@ function toggleSharedError(key) {
 }
 
 /* ---------- correction ring colors per decoder ---------- */
-const RING_COLOR = { lookup: "var(--purple)", mwpm: "var(--teal)", bp: "var(--blue)" };
+const RING_COLOR = { lookup: "var(--syndrome)", mwpm: "var(--stab-z)", bp: "var(--pauli-z)" };
 
 /* show a decoder's correction as dashed rings on its panel */
 function showCorrection(id, correction) {
@@ -589,14 +512,15 @@ function drawMwpmPath(path) {
     return `${g.toX(c)},${g.toY(r)}`;
   });
   // connect to the two defect centers as endpoints for a clean visual
-  const a = `${g.toX(path.from.cx)},${g.toY(path.from.cy)}`;
-  const endPts = [a...pts];
+  // path.from/path.to are stabilizers at half-integer (cx, cy), so use toX/toY
+  const startPt = `${g.toX(path.from.cx)},${g.toY(path.from.cy)}`;
+  const endPts = [startPt, ...pts];
   if (path.to) endPts.push(`${g.toX(path.to.cx)},${g.toY(path.to.cy)}`);
   const line = document.createElementNS(SVG_NS, "polyline");
   line.setAttribute("points", endPts.join(" "));
   line.setAttribute("class", "path-line");
   line.setAttribute("fill", "none");
-  line.setAttribute("stroke", "var(--teal)");
+  line.setAttribute("stroke", "var(--stab-z)");
   nm.pathLayer.appendChild(line);
   requestAnimationFrame(() => { line.style.opacity = "0.8"; });
 }
@@ -623,7 +547,7 @@ function applyBpMarginals(margX, margZ, varKeys) {
     // intensity 0..1 -> blue glow on the ring
     const ring = nm.qubits[k].ring;
     if (pErr > 0.5) {
-      ring.setAttribute("stroke", "var(--blue)");
+      ring.setAttribute("stroke", "var(--pauli-z)");
       ring.style.opacity = String(0.3 + 0.7 * Math.min(1, (pErr - 0.5) * 2));
     } else {
       ring.setAttribute("stroke", "transparent");
@@ -754,9 +678,9 @@ function computeAgreement(errors) {
     return `${label[dd.a]} and ${label[dd.b]} differ at ${qubits}`;
   });
   let note = "";
-  if (!lookupAvail) note = ` <span style="color:var(--hint)">(Lookup is unavailable at d=${CODE.d}.)</span>`;
+  if (!lookupAvail) note = ` <span style="color:var(--text-hint)">(Lookup is unavailable at d=${CODE.d}.)</span>`;
   body.innerHTML = `Decoders <b>disagree</b>: ${parts.join("; ")}.${note} ` +
-    `<span style="color:var(--hint)">Disagreement is expected, multiple corrections can be equally valid for the same syndrome.</span>`;
+    `<span style="color:var(--text-hint)">Disagreement is expected, multiple corrections can be equally valid for the same syndrome.</span>`;
 }
 
 /* ============================================================
@@ -829,15 +753,6 @@ function rebuildAll() {
   document.getElementById("agreement-body").innerHTML = "Run the race to compare the three corrections.";
 }
 
-/* ---------- toast ---------- */
-let toastTimer;
-function showToast(html) {
-  const t = document.getElementById("toast");
-  t.innerHTML = html; t.classList.add("show");
-  document.getElementById("srLive").textContent = t.textContent;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
-}
-
 /* ============================================================
    SHARE: reuse index.html's EXACT hash scheme  d<distance>-<base64url>
    (2 bits/qubit, X then Z, row-major). Same encoding so links are
@@ -890,12 +805,12 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
   const shareText = "Watch three real decoders race on this exact error pattern:";
   if (navigator.share) {
     try { await navigator.share({ title: "QEC Explorer, Decoder Race", text: shareText, url });
-      showToast(`Shared, <b>this exact race</b>.`); return;
+      QEC.toast(`Shared, <b>this exact race</b>.`); return;
     } catch (err) { if (err && err.name === "AbortError") return; }
   }
   try { await navigator.clipboard.writeText(`${shareText} ${url}`);
-    showToast(`Link + message copied, <b>paste it anywhere</b>.`);
-  } catch (err) { showToast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
+    QEC.toast(`Link + message copied, <b>paste it anywhere</b>.`);
+  } catch (err) { QEC.toast(`Couldn't auto-copy, the URL bar now holds your shareable link.`); }
 });
 
 /* Famous-pattern links + browser back/forward: load the hash, then auto-run. */
@@ -942,7 +857,7 @@ function showGuidePop(el, sn) {
   x = Math.max(8, Math.min(x, window.innerWidth - pw - 8));
   if (y < 8) y = r.bottom + 10;
   guidePop.style.left = x + "px"; guidePop.style.top = y + "px"; guidePop.style.width = pw + "px";
-  document.getElementById("srLive").textContent = sn.k + ": " + sn.t.replace(/<[^>]+>/g, "");
+  QEC.announce(sn.k + ": " + sn.t.replace(/<[^>]+>/g, ""));
 }
 function hideGuidePop() { guidePop.classList.remove("show"); }
 function setGuideMode(on) {
@@ -1000,6 +915,30 @@ wireQubitGuide();
 // re-wire qubit guide handlers whenever the lattices rebuild (distance change)
 const _origRebuildAll = rebuildAll;
 rebuildAll = function () { _origRebuildAll(); wireQubitGuide(); };
+
+/* ---------- register shortcuts (cheat sheet on "?") ---------- */
+QEC.shortcuts([
+  { combo: "R", label: "Run a decoder race" },
+  { combo: "C", label: "Clear all injected errors" },
+  { combo: "X / Z / Y", label: "Switch the paint tool" },
+  { combo: "3 / 5 / 7", label: "Switch code distance" },
+  { combo: "G", label: "Toggle Guide-me mode" },
+  { combo: "?", label: "Show this cheat sheet" },
+]);
+
+// wire additional Ctrl/Cmd-key shortcuts without conflicting with text inputs
+document.addEventListener("keydown", (e) => {
+  // Don't trigger when typing or via modifier combo
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === "r") { e.preventDefault(); document.getElementById("raceBtn").click(); }
+  else if (k === "c") { e.preventDefault(); document.getElementById("clearBtn").click(); }
+  else if (k === "x" || k === "z" || k === "y") {
+    const btn = document.querySelector(`#errType button[data-v="${k.toUpperCase()}"]`);
+    if (btn) { e.preventDefault(); btn.click(); }
+  } else if (k === "g") { e.preventDefault(); document.getElementById("guideBtn").click(); }
+});
 // If arriving via a shared link, load that pattern and auto-run the race.
 if (location.hash) loadFromHash(true);
 </script>

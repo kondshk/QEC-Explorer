@@ -1,0 +1,575 @@
+/* ============================================================
+   QEC EXPLORER — assets/theme.css
+   ------------------------------------------------------------
+   Shared design system. Loaded by every page in place of the
+   inline per-page CSS so colors, typography, and components stay
+   consistent as the project grows.
+
+   Design lineage
+   ----------------
+   Token names and color scale inspired by IBM's Carbon Design
+   System (Apache-2.0 / MIT-licensed Token API). All colors are
+   tuned for a dark, scientific instrument feel — cool grays,
+   a vivid interactive blue, plus domain-specific semantic colors
+   for X / Z / Y Pauli errors and syndrome detection.
+
+   Typography: IBM Plex Sans + IBM Plex Mono, served by Google
+   Fonts under the SIL Open Font License.
+
+   No external assets, no JS dependency.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1 · Reset + base typography
+   ------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  /* Honor user motion preference globally */
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  font-feature-settings: "kern" 1, "liga" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------
+   2 · Design tokens (single source of truth)
+   ------------------------------------------------------------ */
+:root {
+  /* Type ---------------------------------------------------- */
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+
+  /* Surfaces ------------------------------------------------ */
+  --surface-bg: #0b0b12;          /* page background */
+  --surface-1: #14141f;           /* cards */
+  --surface-2: #1c1c2a;           /* nested surfaces */
+  --surface-3: #252533;           /* hover, wells */
+  --surface-raised: #181823;      /* raised cards */
+  --surface-overlay: rgba(11, 11, 18, 0.82); /* sticky bar */
+
+  /* Borders ------------------------------------------------- */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+
+  /* Text ---------------------------------------------------- */
+  --text-primary: #f4f4f4;
+  --text-secondary: #c6c6c6;
+  --text-tertiary: #8d8d8d;
+  --text-hint: #6f6f7f;
+  --text-disabled: #525252;
+  --text-on-color: #0b0b12;
+
+  /* Brand / interactive ------------------------------------- */
+  --interactive: #6daaff;
+  --interactive-hover: #97c1ff;
+  --interactive-active: #4589ff;
+  --focus: #6daaff;
+
+  /* Semantic status ---------------------------------------- */
+  --success: #42be65;
+  --success-bg: rgba(66, 190, 101, 0.12);
+  --warning: #f1c21b;
+  --warning-bg: rgba(241, 194, 27, 0.12);
+  --danger:  #ff8389;
+  --danger-bg: rgba(255, 131, 137, 0.12);
+  --info:    #4589ff;
+  --info-bg: rgba(69, 137, 255, 0.10);
+
+  /* Quantum-domain colors (preserved semantics) ------------ */
+  --pauli-x:    #ff8389;   /* bit-flip */
+  --pauli-z:    #4589ff;   /* phase-flip */
+  --pauli-y:    #f1c21b;   /* both */
+  --stab-z:     #08bdba;   /* Z-detector, catches X */
+  --stab-x:     #d12771;   /* X-detector, catches Z */
+  --syndrome:   #a56eff;   /* lit detector */
+  --qubit-rest: #39394a;
+  --qubit-stroke: #62628a;
+
+  /* Legacy aliases (existing pages may use --purple etc.) -- */
+  --purple: var(--syndrome);
+  --coral:  var(--pauli-x);
+  --blue:   var(--pauli-z);
+  --gold:   var(--warning);
+  --teal:   var(--stab-z);
+  --pink:   var(--stab-x);
+  --green:  var(--success);
+  --red:    var(--danger);
+  --bg:     var(--surface-bg);
+  --s1:     var(--surface-1);
+  --s2:     var(--surface-2);
+  --s3:     var(--surface-3);
+  --bdr:    var(--border-subtle);
+  --bdr2:   var(--border-default);
+  --txt:    var(--text-primary);
+  --dim:    var(--text-secondary);
+  --hint:   var(--text-hint);
+
+  /* Geometry ------------------------------------------------ */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* 8px spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Layout -------------------------------------------------- */
+  --max-w: 1280px;
+  --max-w-prose: 760px;
+
+  /* Z-index scale */
+  --z-sticky: 50;
+  --z-overlay: 80;
+  --z-popover: 90;
+  --z-toast: 100;
+}
+
+/* ------------------------------------------------------------
+   3 · Global element defaults
+   ------------------------------------------------------------ */
+a {
+  color: var(--interactive);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+a:hover { color: var(--interactive-hover); }
+a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection { background: rgba(109, 170, 255, 0.30); color: var(--text-primary); }
+
+/* ------------------------------------------------------------
+   4 · Reusable components
+   ------------------------------------------------------------ */
+
+/* --- Top bar --- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.brand {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+}
+.brand em {
+  font-style: italic;
+  color: var(--syndrome);
+}
+.brand .module {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  margin-left: var(--space-3);
+}
+.topbar a, .topbar .link {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.topbar a:hover, .topbar .link:hover { color: var(--text-primary); }
+.topbar .links { display: flex; gap: var(--space-5); }
+
+/* --- Project ribbon --- */
+.project-strip {
+  max-width: var(--max-w);
+  margin: var(--space-5) auto 0;
+  padding: 0 var(--space-6);
+}
+.project-strip-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background:
+    linear-gradient(90deg, rgba(165, 110, 255, 0.10), rgba(8, 189, 186, 0.06)),
+    var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.project-strip .crumb {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--syndrome);
+  white-space: nowrap;
+}
+.project-strip .crumb b {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.project-strip .steps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.project-strip .pill {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+}
+.project-strip .pill:hover {
+  border-color: var(--interactive);
+  color: var(--text-primary);
+}
+.project-strip .pill.now {
+  background: var(--syndrome);
+  border-color: var(--syndrome);
+  color: var(--text-on-color);
+  font-weight: 600;
+}
+.project-strip .pill.soon { color: var(--text-hint); }
+.project-strip .arrow { color: var(--text-hint); }
+
+/* --- Page wrap --- */
+.wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-8);
+}
+
+/* --- Lead / hero text block --- */
+.lead { margin-bottom: var(--space-6); max-width: 760px; }
+.lead .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--syndrome);
+  margin-bottom: 12px;
+}
+.lead h1, .hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  margin-bottom: 14px;
+}
+.lead h1 em, .hero h1 em {
+  font-style: italic;
+  color: var(--syndrome);
+}
+.lead p {
+  color: var(--text-secondary);
+  font-size: 16.5px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+/* --- Panels / cards --- */
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+.panel h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--syndrome);
+  margin-bottom: var(--space-4);
+}
+.panel h3.alt { color: var(--pauli-x); }
+
+/* --- Segmented / tab buttons --- */
+.seg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+.seg button {
+  flex: 1;
+  min-width: 60px;
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.seg button:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+.seg button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.seg button.on { color: var(--text-on-color); font-weight: 600; }
+.seg button.on[data-v="X"]   { background: var(--pauli-x); border-color: var(--pauli-x); }
+.seg button.on[data-v="Z"]   { background: var(--pauli-z); border-color: var(--pauli-z); }
+.seg button.on[data-v="Y"]   { background: var(--pauli-y); border-color: var(--pauli-y); }
+
+/* --- Primary / secondary buttons --- */
+.btn, button.btn {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 150ms ease;
+  margin-top: 6px;
+}
+.btn:hover {
+  border-color: var(--interactive);
+  background: var(--surface-3);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.primary {
+  background: var(--interactive);
+  border-color: var(--interactive);
+  color: var(--text-on-color);
+  font-weight: 600;
+}
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger:hover { border-color: var(--danger); }
+
+/* --- Form controls --- */
+input[type=range] {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  outline: none;
+  cursor: pointer;
+  margin: var(--space-1) 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--interactive);
+  border: 2px solid var(--surface-bg);
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--interactive);
+  border: 2px solid var(--surface-bg);
+  cursor: pointer;
+}
+input[type=range]:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+input[type=number], input[type=text], select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+input[type=number]:focus, input[type=text]:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  border-color: var(--border-default);
+}
+
+/* --- Inline labels for controls --- */
+.ctrl-label, .lbl {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: var(--space-4) 0 var(--space-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.ctrl-label span, .lbl span {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.muted { color: var(--text-hint); }
+
+/* --- Status badges --- */
+.badge {
+  display: inline-block;
+  padding: 5px 11px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+.badge.fixed   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.badge.failed  { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger); }
+.badge.idle    { background: var(--surface-3);  color: var(--text-tertiary); border: 1px solid var(--border-default); }
+
+/* --- Lattice (SVG) elements --- */
+.lattice-qubit-clean  { fill: var(--qubit-rest);   stroke: var(--qubit-stroke); stroke-width: 1.5; }
+.lattice-qubit-x      { fill: var(--pauli-x);      stroke: var(--pauli-x); }
+.lattice-qubit-z      { fill: var(--pauli-z);      stroke: var(--pauli-z); }
+.lattice-qubit-y      { fill: var(--pauli-y);      stroke: var(--pauli-y); }
+.lattice-bond         { stroke: var(--border-default); stroke-width: 1.5; fill: none; }
+.lattice-stab-quiet   { fill-opacity: 0.10; stroke-width: 1; }
+.lattice-stab-z       { stroke: var(--stab-z); }
+.lattice-stab-x       { stroke: var(--stab-x); }
+.lattice-stab-fired   { fill: var(--syndrome); fill-opacity: 0.55; stroke: var(--syndrome); }
+.lattice-text         { font-family: var(--font-mono); fill: var(--text-primary); }
+
+/* --- Footer --- */
+footer {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-hint);
+  font-size: 12.5px;
+  line-height: 1.7;
+  text-align: center;
+}
+footer a { color: var(--text-tertiary); border-bottom: 1px solid var(--border-subtle); }
+footer a:hover { color: var(--text-primary); }
+
+/* ------------------------------------------------------------
+   5 · Utility classes
+   ------------------------------------------------------------ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.hide { display: none !important; }
+
+/* --- Toast (used by most pages) --- */
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface-3);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 12px 22px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 240ms ease;
+  z-index: var(--z-toast);
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast b { color: var(--syndrome); }
+
+/* --- Note paragraphs --- */
+.note {
+  font-size: 12px;
+  color: var(--text-hint);
+  line-height: 1.5;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+.note b { color: var(--text-secondary); font-weight: 500; }
+
+/* --- Status ribbon directly below interactive widgets --- */
+.ribbon {
+  margin-top: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  min-height: 54px;
+}
+.ribbon b { color: var(--text-primary); font-weight: 500; }
+.ribbon .tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--syndrome);
+  margin-right: 8px;
+}
+
+/* ------------------------------------------------------------
+   6 · Print styles
+   ------------------------------------------------------------ */
+@media print {
+  body { background: #fff; color: #000; }
+  .topbar, .topbar a, .embed-tools, .project-strip, .next-card, .embed-credit, footer { display: none !important; }
+  .panel { break-inside: avoid; border-color: #999; }
+}

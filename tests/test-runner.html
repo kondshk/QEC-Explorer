@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>QEC Explorer · Test Runner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/qec-modal.css">
+<style>
+  body { padding: var(--space-6); max-width: 920px; margin: 0 auto; }
+  h1 { font-family: var(--font-display); font-weight: 400; font-size: 28px; margin-bottom: var(--space-4); }
+  .meta { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 13px; margin-bottom: var(--space-5); }
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-5); }
+  .summary .stat { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4); text-align: center; }
+  .summary .v { font-family: var(--font-display); font-size: 32px; color: var(--text-primary); line-height: 1; }
+  .summary .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-hint); margin-top: 6px; }
+  #results { font-family: var(--font-mono); font-size: 13px; }
+  #results .group { margin: var(--space-4) 0; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-1); }
+  #results .group-head { padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--border-subtle); font-family: var(--font-sans); font-weight: 500; display: flex; justify-content: space-between; }
+  #results .group-body { padding: var(--space-3) var(--space-5); }
+  #results .test { padding: 6px 0; display: grid; grid-template-columns: 20px 1fr; gap: 8px; }
+  #results .test.pass .mark { color: var(--success); }
+  #results .test.fail .mark { color: var(--danger); font-weight: 700; }
+  #results .test.skip .mark { color: var(--text-hint); }
+  #results .test .name b { color: var(--text-primary); }
+  #results .test .name small { color: var(--text-hint); }
+  #results .failure-detail { background: var(--danger-bg); color: var(--danger); padding: 8px 12px; border-radius: 4px; margin-top: 4px; font-size: 12px; white-space: pre-wrap; }
+  .run-btn { display: inline-block; padding: 10px 18px; background: var(--interactive); color: var(--text-on-color); border: 0; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; }
+  .run-btn:hover { filter: brightness(1.08); }
+  .run-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<h1>QEC Explorer · Test Runner</h1>
+
+<p class="meta">Browser-based unit tests for <code>lattice-core.js</code> (rotated-surface-code physics) and <code>decoders.js</code> (lookup, MWPM, BP). Runs offline, no build step.</p>
+
+<p><button class="run-btn" id="runBtn">▶ Run all tests</button>
+   <button class="run-btn" id="runBtnAgain" style="background: var(--surface-3); color: var(--text-primary); border: 1px solid var(--border-default);">Re-run</button></p>
+
+<div id="summary" class="summary" aria-live="polite">
+  <div class="stat"><div class="v" id="sumTotal">0</div><div class="k">Total</div></div>
+  <div class="stat"><div class="v" id="sumPass">0</div><div class="k">Passed</div></div>
+  <div class="stat"><div class="v" id="sumFail">0</div><div class="k">Failed</div></div>
+  <div class="stat"><div class="v" id="sumMs">0</div><div class="k">Last run (ms)</div></div>
+</div>
+
+<div id="results"></div>
+
+<!-- Load the SAME physics and decoders that the production pages use. -->
+<script src="../lattice-core.js"></script>
+<script src="../decoders.js"></script>
+<!-- Tiny test framework: QECT.describe / it / assert. Must load BEFORE the test
+     files because each test file calls QECT.describe(...) at parse time. -->
+<script src="./qec-tests.js"></script>
+<!-- Load each test file -->
+<script src="./syndrome.test.js"></script>
+<script src="./decoder.test.js"></script>
+<script src="./lookup.test.js"></script>
+
+<!-- Boot -->
+<script>
+  document.getElementById("runBtn").addEventListener("click", function () { QECT.run(); });
+  document.getElementById("runBtnAgain").addEventListener("click", function () { QECT.run(); });
+  // auto-run on load (so CI / a researcher can just open the page)
+  window.addEventListener("DOMContentLoaded", function () { QECT.run(); });
+</script>
+</body>
+</html>

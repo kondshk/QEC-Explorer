@@ -4,126 +4,193 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QEC Explorer · Today's Puzzle</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
+
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-/* --- Design tokens copied verbatim from index.html --- */
-:root{
-  --bg:#08080c;--s1:#10101a;--s2:#171724;--s3:#1e1e30;
-  --bdr:#2a2a42;--bdr2:#3a3a56;
-  --txt:#e4e2dc;--dim:#8887a0;--hint:#5c5b72;
-  --red:#e04040;--coral:#ef6e4e;--gold:#d4a855;
-  --blue:#4a8fe7;--teal:#2ec4a0;--green:#3dba6e;
-  --purple:#9b6dff;--pink:#e45d9a;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:'Outfit',sans-serif;line-height:1.6;overflow-x:hidden}
+  /* Page-specific */
+  .wrap { max-width: 760px; }
 
-.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:14px 28px;background:rgba(8,8,12,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
-.brand{font-family:'Instrument Serif',serif;font-size:22px}
-.brand em{font-style:italic;color:var(--purple)}
-.brand span{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--hint);
-  text-transform:uppercase;margin-left:10px}
-.topbar .links{display:flex;gap:20px}
-.topbar a{color:var(--dim);font-size:13px;text-decoration:none;transition:color .2s}
-.topbar a:hover{color:var(--txt)}
+  /* Center-aligned lead */
+  .lead { text-align: center; margin-bottom: var(--space-7); }
+  .lead .flame { font-size: 34px; margin-bottom: 6px; }
+  .lead .eyebrow {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 4px; text-transform: uppercase;
+    color: var(--warning); margin-bottom: 10px;
+  }
+  .lead h1 {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 5vw, 46px);
+    line-height: 1.05;
+    font-weight: 400;
+    margin-bottom: var(--space-2);
+  }
+  .lead h1 em { font-style: italic; color: var(--syndrome); }
+  .lead .date { font-family: var(--font-mono); font-size: 12px; color: var(--text-hint); }
+  .lead .streak {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: var(--warning);
+    background: rgba(241, 194, 27, 0.10);
+    border: 1px solid rgba(241, 194, 27, 0.30);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+  }
 
-.project-strip{max-width:760px;margin:18px auto 0;padding:0 28px}
-.project-strip-inner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
-  background:linear-gradient(90deg,rgba(155,109,255,.10),rgba(46,196,160,.06));
-  border:1px solid var(--bdr);border-radius:8px;padding:12px 18px}
-.project-strip .crumb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
-  text-transform:uppercase;color:var(--purple);white-space:nowrap}
-.project-strip .crumb b{color:var(--txt);font-weight:500}
-.project-strip .pill{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--bdr2);
-  white-space:nowrap;text-decoration:none;color:var(--dim);transition:all .15s}
-.project-strip a.pill:hover{border-color:var(--purple);color:var(--txt)}
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-7);
+    margin-bottom: var(--space-5);
+  }
+  .card h3 {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--syndrome);
+    margin-bottom: var(--space-4);
+  }
 
-.wrap{max-width:760px;margin:0 auto;padding:36px 28px 80px}
+  .scenario { font-size: 15.5px; color: var(--text-secondary); line-height: 1.7; margin-bottom: var(--space-2); }
+  .scenario b { color: var(--text-primary); font-weight: 500; }
+  .scenario .chip {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface-3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--warning);
+  }
 
-.lead{text-align:center;margin-bottom:30px}
-.lead .flame{font-size:34px;margin-bottom:6px}
-.lead .eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;
-  color:var(--gold);margin-bottom:10px}
-.lead h1{font-family:'Instrument Serif',serif;font-size:clamp(30px,5vw,46px);line-height:1.05;font-weight:400;margin-bottom:8px}
-.lead h1 em{font-style:italic;color:var(--purple)}
-.lead .date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--hint)}
-.lead .streak{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--gold);
-  background:rgba(212,168,85,.1);border:1px solid rgba(212,168,85,.3);padding:4px 12px;border-radius:20px}
+  .mini-wrap { display: flex; justify-content: center; padding: var(--space-4) 0 var(--space-2); }
+  svg.mini { width: 100%; height: auto; max-width: 300px; }
+  .mini .bond { stroke: var(--border-default); stroke-width: 1.3; }
+  .mini .plaq { stroke-width: 1; }
+  .mini .qubit { transition: fill 200ms ease; }
+  .mini .corr-ring {
+    fill: none;
+    stroke: var(--stab-z);
+    stroke-dasharray: 4 3;
+    stroke-width: 2.5;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .synd-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: 500;
+    fill: var(--text-primary);
+    pointer-events: none;
+  }
 
-.card{background:var(--s1);border:1px solid var(--bdr);border-radius:12px;padding:28px 30px;margin-bottom:20px}
-.card h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:14px}
+  .question {
+    font-size: 17px;
+    color: var(--text-primary);
+    text-align: center;
+    margin: var(--space-2) 0 var(--space-5);
+    font-weight: 500;
+  }
+  .choices { display: flex; gap: var(--space-4); flex-wrap: wrap; justify-content: center; }
+  .choice {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-5);
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .choice:hover { border-color: var(--syndrome); background: var(--surface-3); }
+  .choice:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .choice .ic { font-size: 24px; display: block; margin-bottom: var(--space-2); }
+  .choice .sub { font-size: 12px; color: var(--text-secondary); font-weight: 400; margin-top: var(--space-1); }
+  .choice.picked { border-width: 2px; }
+  .choice.picked.fixed { border-color: var(--stab-z); background: rgba(8, 189, 186, 0.08); }
+  .choice.picked.error { border-color: var(--pauli-x); background: rgba(255, 131, 137, 0.08); }
+  .choice:disabled { cursor: default; opacity: 0.6; }
 
-.scenario{font-size:15.5px;color:var(--dim);line-height:1.7;margin-bottom:6px}
-.scenario b{color:var(--txt);font-weight:500}
-.scenario .chip{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--s3);padding:2px 8px;border-radius:4px;color:var(--gold)}
+  .reveal-btn {
+    display: block; width: 100%;
+    margin-top: var(--space-5);
+    padding: 13px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--syndrome);
+    background: var(--syndrome);
+    color: var(--text-on-color);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+  .reveal-btn:hover { filter: brightness(1.08); }
+  .reveal-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.mini-wrap{display:flex;justify-content:center;padding:16px 0 6px}
-svg.mini{width:100%;height:auto;max-width:300px}
-.mini .bond{stroke:var(--bdr2);stroke-width:1.3}
-.mini .plaq{stroke-width:1}
-.mini .qubit{transition:fill .2s}
-.mini .corr-ring{fill:none;stroke:var(--teal);stroke-dasharray:4 3;stroke-width:2.5;opacity:0;transition:opacity .4s}
-.synd-label{font-family:'JetBrains Mono',monospace;font-size:11px;text-anchor:middle;dominant-baseline:central;font-weight:500;fill:#fff;pointer-events:none}
+  .result {
+    display: none;
+    margin-top: var(--space-5);
+    padding: var(--space-5) var(--space-5);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-2);
+  }
+  .result.show { display: block; }
+  .result.correct { border-left: 3px solid var(--stab-z); }
+  .result.wrong { border-left: 3px solid var(--pauli-x); }
+  .result .verdict {
+    font-family: var(--font-display);
+    font-size: 24px;
+    margin-bottom: var(--space-2);
+  }
+  .result .verdict.correct { color: var(--stab-z); }
+  .result .verdict.wrong { color: var(--pauli-x); }
+  .result .explain { font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
+  .result .explain b { color: var(--text-primary); font-weight: 500; }
+  .result .outcome-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .result .outcome-tag.fixed { background: rgba(66, 190, 101, 0.16); color: var(--success); }
+  .result .outcome-tag.error { background: rgba(255, 131, 137, 0.14); color: var(--danger); }
 
-.question{font-size:17px;color:var(--txt);text-align:center;margin:8px 0 18px;font-weight:500}
-.choices{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-.choice{flex:1;min-width:200px;background:var(--s2);border:1px solid var(--bdr2);border-radius:10px;
-  padding:18px 20px;cursor:pointer;transition:all .15s;text-align:center;font-size:15px;font-weight:500;color:var(--txt)}
-.choice:hover{border-color:var(--purple);background:var(--s3)}
-.choice:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.choice .ic{font-size:24px;display:block;margin-bottom:6px}
-.choice .sub{font-size:12px;color:var(--dim);font-weight:400;margin-top:4px}
-.choice.fixed:hover{border-color:var(--teal)}
-.choice.error:hover{border-color:var(--coral)}
-.choice.picked{border-width:2px}
-.choice.picked.fixed{border-color:var(--teal);background:rgba(46,196,160,.08)}
-.choice.picked.error{border-color:var(--coral);background:rgba(239,110,78,.08)}
-.choice:disabled{cursor:default;opacity:.6}
-
-.reveal-btn{display:block;width:100%;margin-top:20px;padding:13px;border-radius:8px;border:1px solid var(--purple);
-  background:var(--purple);color:#08080c;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
-.reveal-btn:hover{filter:brightness(1.08)}
-.reveal-btn:disabled{opacity:.4;cursor:not-allowed}
-
-.result{display:none;margin-top:22px;padding:20px 22px;border-radius:10px;border:1px solid var(--bdr);background:var(--s2)}
-.result.show{display:block}
-.result.correct{border-left:3px solid var(--teal)}
-.result.wrong{border-left:3px solid var(--coral)}
-.result .verdict{font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:8px}
-.result .verdict.correct{color:var(--teal)}
-.result .verdict.wrong{color:var(--coral)}
-.result .explain{font-size:14px;color:var(--dim);line-height:1.65}
-.result .explain b{color:var(--txt);font-weight:500}
-.result .outcome-tag{font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 9px;border-radius:4px;margin-left:6px}
-.result .outcome-tag.fixed{background:rgba(46,196,160,.16);color:var(--teal)}
-.result .outcome-tag.error{background:rgba(224,64,64,.14);color:var(--red)}
-
-.result-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-.result-actions button,.result-actions a{padding:10px 16px;border-radius:7px;font-size:13px;font-weight:500;
-  cursor:pointer;text-decoration:none;border:1px solid var(--bdr2);background:var(--s2);color:var(--txt);transition:all .15s}
-.result-actions button:hover,.result-actions a:hover{border-color:var(--purple)}
-.tomorrow{text-align:center;color:var(--hint);font-size:13px;margin-top:18px;font-style:italic}
-
-footer{max-width:760px;margin:0 auto;padding:36px 28px;border-top:1px solid var(--bdr);
-  color:var(--hint);font-size:12.5px;text-align:center;line-height:1.7}
-footer a{color:var(--dim);text-decoration:none;border-bottom:1px solid var(--bdr)}
-footer a:hover{color:var(--txt)}
-
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--s3);border:1px solid var(--bdr2);color:var(--txt);padding:12px 22px;border-radius:8px;
-  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:100;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast b{color:var(--purple)}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  .result-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-4); }
+  .result-actions button, .result-actions a {
+    padding: 10px 16px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid var(--border-default);
+    background: var(--surface-2);
+    color: var(--text-primary);
+    transition: all 150ms ease;
+  }
+  .result-actions button:hover, .result-actions a:hover { border-color: var(--syndrome); }
+  .tomorrow { text-align: center; color: var(--text-hint); font-size: 13px; margin-top: var(--space-4); font-style: italic; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">QEC <em>Explorer</em><span>Today's Puzzle</span></div>
+  <div class="brand">QEC <em>Explorer</em><span class="module">Today's Puzzle</span></div>
   <div class="links">
     <a href="landing.html">Home</a>
     <a href="index.html">Playground</a>
@@ -185,7 +252,6 @@ footer a:hover{color:var(--txt)}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
 <div class="sr-only" id="srLive" aria-live="polite"></div>
 
 <footer>
@@ -196,34 +262,42 @@ footer a:hover{color:var(--txt)}
 <!-- Real physics + decoders (no reimplementation) -->
 <script src="lattice-core.js"></script>
 <script src="decoders.js"></script>
+<script src="assets/qec-shared.js"></script>
 <script src="counter.js"></script>
 <script>
 /* ============================================================
-   puzzle.html, deterministic daily puzzle
+   puzzle.html — deterministic daily puzzle.
    The day's puzzle is derived ENTIRELY from the current UTC date,
    so everyone worldwide gets the same puzzle and it resets at UTC
-   midnight with no server. The outcome is computed by the real
-   evaluateCorrection / decoders from decoders.js.
-   localStorage records only "did I solve today's" (a legitimate
-   local-only use; this is a standalone deployed site, not a React
-   artifact, so the artifact-storage restriction does not apply).
+   midnight with no server. Outcome computed by the real
+   evaluateCorrection / decoders from decoders.js. localStorage
+   records only "did I solve today's?"
    ============================================================ */
 const SVG_NS = "http://www.w3.org/2000/svg";
 state.errors = {};
 
-/* ---- deterministic helpers ---- */
 function utcDateStr(d) {
   const dt = d || new Date();
   return dt.getUTCFullYear() + "-" +
     String(dt.getUTCMonth() + 1).padStart(2, "0") + "-" +
     String(dt.getUTCDate()).padStart(2, "0");
 }
-function hashStr(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
 
 const DECODER_NAME = { lookup: "lookup table", mwpm: "minimum-weight matching", bp: "belief propagation" };
 
-/* ---- build the day's puzzle purely from the date string ---- */
 function puzzleFor(dateStr) {
   const rng = mulberry32(hashStr("qec-puzzle-" + dateStr));
   const d = rng() < 0.7 ? 3 : 5;
@@ -237,13 +311,14 @@ function puzzleFor(dateStr) {
     const k = keys[Math.floor(rng() * keys.length)];
     const roll = rng();
     const e = errors[k] || { x: false, z: false };
-    if (roll < 0.45) e.x = true; else if (roll < 0.9) e.z = true; else { e.x = true; e.z = true; }
+    if (roll < 0.45) e.x = true;
+    else if (roll < 0.9) e.z = true;
+    else { e.x = true; e.z = true; }
     errors[k] = e;
   }
   return { dateStr, d, decoder, errors };
 }
 
-/* ---- solve with the REAL decoder + evaluateCorrection ---- */
 function solvePuzzle(p) {
   const code = buildCode(p.d);
   const table = p.decoder === "lookup" ? buildLookupTable(code) : null;
@@ -252,12 +327,10 @@ function solvePuzzle(p) {
   else if (p.decoder === "mwpm") res = mwpmDecode(code, p.errors);
   else res = bpDecode(code, p.errors, false);
   const evalRes = evaluateCorrection(code, p.errors, res.correction);
-  // map 3 statuses -> binary bucket for the player's Fixed/Error choice
   const bucket = evalRes.status === "fixed" ? "fixed" : "error";
   return { status: evalRes.status, bucket, correction: res.correction, code };
 }
 
-/* ---- render the mini lattice with the error pattern ---- */
 function renderPuzzle(p) {
   const svg = document.getElementById("puzzleSvg");
   while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -279,7 +352,7 @@ function renderPuzzle(p) {
     const pts = s.data.map(k => { const [rr, cc] = k.split(",").map(Number); return [toX(cc), toY(rr)]; });
     pts.sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx));
     const fired = synd[i] === 1;
-    const col = fired ? "var(--purple)" : (s.type === "Z" ? "var(--teal)" : "var(--pink)");
+    const col = fired ? "var(--syndrome)" : (s.type === "Z" ? "var(--stab-z)" : "var(--stab-x)");
     svg.appendChild(el("polygon", { class: "plaq", points: pts.map(p => p.join(",")).join(" "),
       fill: col, "fill-opacity": fired ? 0.55 : 0.1, stroke: col }));
     if (fired) { const t = el("text", { class: "synd-label", x: cx, y: cy }); t.textContent = "!"; svg.appendChild(t); }
@@ -287,25 +360,23 @@ function renderPuzzle(p) {
   // qubits
   code.data.forEach(({ r, c }) => {
     const e = p.errors[`${r},${c}`];
-    const fill = e && e.x && e.z ? "var(--gold)" : e && e.x ? "var(--coral)" : e && e.z ? "var(--blue)" : "#2a2a3a";
-    svg.appendChild(el("circle", { class: "qubit", cx: toX(c), cy: toY(r), r: visR, fill, stroke: "#43435f", "stroke-width": 1.4 }));
+    const fill = e && e.x && e.z ? "var(--pauli-y)" : e && e.x ? "var(--pauli-x)" : e && e.z ? "var(--pauli-z)" : "var(--qubit-rest)";
+    svg.appendChild(el("circle", { class: "qubit", cx: toX(c), cy: toY(r), r: visR, fill, stroke: "var(--qubit-stroke)", "stroke-width": 1.4 }));
   });
 }
 
-/* ---- the day's puzzle + state ---- */
 const TODAY = utcDateStr();
 const PUZZLE = puzzleFor(TODAY);
 const SOLUTION = solvePuzzle(PUZZLE);
-const STORE_KEY = "qec_puzzle_" + TODAY;   // localStorage: have I solved today's?
-
+const STORE_KEY = "qec_puzzle_" + TODAY;
 let picked = null;
 
-/* ---- describe the scenario in words ---- */
 function describeErrors(errors) {
   const parts = [];
   for (const k of Object.keys(errors).sort()) {
-    const e = errors[k]; const t = e.x && e.z ? "Y" : e.x ? "X" : "Z";
-    parts.push(`${t} on (${k})`);
+    const e = errors[k];
+    const t = e.x && e.z ? "Y" : e.x ? "X" : "Z";
+    parts.push(t + " on (" + k + ")");
   }
   return parts.join(", ");
 }
@@ -313,11 +384,10 @@ function describeErrors(errors) {
 function initPuzzle() {
   document.getElementById("puzzleDate").textContent = TODAY + " (UTC)";
   document.getElementById("scenario").innerHTML =
-    `A distance-<b>${PUZZLE.d}</b> surface code is hit with <b>${Object.keys(PUZZLE.errors).length} error${Object.keys(PUZZLE.errors).length > 1 ? "s" : ""}</b>, ` +
-    `<span class="chip">${describeErrors(PUZZLE.errors)}</span>, then decoded by <b>${DECODER_NAME[PUZZLE.decoder]}</b>. ` +
-    `The lit purple plaquettes below are the syndrome the decoder sees.`;
+    "A distance-<b>" + PUZZLE.d + "</b> surface code is hit with <b>" + Object.keys(PUZZLE.errors).length + " error" + (Object.keys(PUZZLE.errors).length > 1 ? "s" : "") + "</b>, " +
+    "<span class=\"chip\">" + describeErrors(PUZZLE.errors) + "</span>, then decoded by <b>" + DECODER_NAME[PUZZLE.decoder] + "</b>. " +
+    "The lit purple plaquettes below are the syndrome the decoder sees.";
   renderPuzzle(PUZZLE);
-  // If already solved today, restore the solved state
   const prior = localStorage.getItem(STORE_KEY);
   if (prior) {
     try { const saved = JSON.parse(prior); picked = saved.picked; lockAndReveal(true); } catch (e) {}
@@ -325,9 +395,8 @@ function initPuzzle() {
   updateStreak();
 }
 
-/* ---- choice handling ---- */
 function pick(v) {
-  if (localStorage.getItem(STORE_KEY)) return; // already solved today
+  if (localStorage.getItem(STORE_KEY)) return;
   picked = v;
   document.getElementById("choiceFixed").classList.toggle("picked", v === "fixed");
   document.getElementById("choiceError").classList.toggle("picked", v === "error");
@@ -339,16 +408,18 @@ document.getElementById("choiceError").addEventListener("click", () => pick("err
 
 function lockAndReveal(fromStorage) {
   const correct = picked === SOLUTION.bucket;
-  // disable choices + reveal
   document.getElementById("choiceFixed").disabled = true;
   document.getElementById("choiceError").disabled = true;
   document.getElementById("revealBtn").disabled = true;
   document.getElementById("revealBtn").style.display = "none";
-  // mark which the user picked
   document.getElementById("choiceFixed").classList.toggle("picked", picked === "fixed");
   document.getElementById("choiceError").classList.toggle("picked", picked === "error");
 
-  const statusWord = { "fixed": "Fixed", "logical-introduced": "Logical error introduced", "left-codespace": "Left the codespace (syndrome not cleared)" }[SOLUTION.status];
+  const statusWord = {
+    "fixed": "Fixed",
+    "logical-introduced": "Logical error introduced",
+    "left-codespace": "Left the codespace (syndrome not cleared)"
+  }[SOLUTION.status];
   const tagClass = SOLUTION.bucket === "fixed" ? "fixed" : "error";
   const res = document.getElementById("result");
   res.className = "result show " + (correct ? "correct" : "wrong");
@@ -356,16 +427,16 @@ function lockAndReveal(fromStorage) {
   v.className = "verdict " + (correct ? "correct" : "wrong");
   v.textContent = correct ? "✓ You got it!" : "✗ Not quite";
   document.getElementById("explain").innerHTML =
-    `The real outcome: <b>${statusWord}</b> <span class="outcome-tag ${tagClass}">${SOLUTION.bucket === "fixed" ? "FIXED" : "ERROR THROUGH"}</span><br>` +
+    "The real outcome: <b>" + statusWord + "</b> " +
+    "<span class=\"outcome-tag " + tagClass + "\">" +
+    (SOLUTION.bucket === "fixed" ? "FIXED" : "ERROR THROUGH") + "</span><br>" +
     (SOLUTION.bucket === "fixed"
-      ? `${DECODER_NAME[PUZZLE.decoder]} found a correction whose residual is a product of stabilizers, the logical qubit is safe.`
+      ? DECODER_NAME[PUZZLE.decoder] + " found a correction whose residual is a product of stabilizers, the logical qubit is safe."
       : SOLUTION.status === "logical-introduced"
-        ? `The decoder cleared the syndrome, but its correction combined with the error to form a <b>logical operator</b>, the stored qubit silently flipped. This is the failure decoders exist to prevent.`
-        : `The decoder couldn't even return the code to a valid state, the residual still triggers a syndrome.`);
-  // persist solved state (binary "have I solved today's", legitimate localStorage use)
+        ? "The decoder cleared the syndrome, but its correction combined with the error to form a <b>logical operator</b>, the stored qubit silently flipped. This is the failure decoders exist to prevent."
+        : "The decoder couldn't even return the code to a valid state, the residual still triggers a syndrome.");
   if (!fromStorage) {
     localStorage.setItem(STORE_KEY, JSON.stringify({ picked, correct, status: SOLUTION.status, ts: Date.now() }));
-    bumpSolveCount(correct);
   }
   document.getElementById("srLive").textContent = (correct ? "Correct. " : "Incorrect. ") + "The real outcome was " + statusWord + ".";
   updateStreak();
@@ -373,7 +444,6 @@ function lockAndReveal(fromStorage) {
 
 document.getElementById("revealBtn").addEventListener("click", () => { if (picked) lockAndReveal(false); });
 
-/* ---- streak / solved-count via the same external counter approach (optional) ---- */
 function localSolvedCount() {
   let n = 0;
   for (let i = 0; i < localStorage.length; i++) {
@@ -382,44 +452,36 @@ function localSolvedCount() {
   }
   return n;
 }
-function bumpSolveCount() { /* solved tracked locally via the per-day keys */ }
 function updateStreak() {
   const n = localSolvedCount();
   const el = document.getElementById("streak");
-  if (n > 0) { el.style.display = ""; el.textContent = `🔥 You've played ${n} daily puzzle${n > 1 ? "s" : ""}`; }
+  if (n > 0) { el.style.display = ""; el.textContent = "🔥 You've played " + n + " daily puzzle" + (n > 1 ? "s" : ""); }
   else el.style.display = "none";
 }
 
-/* ---- share ---- */
 document.getElementById("shareBtn").addEventListener("click", async () => {
   const solved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
   const outcomeWord = SOLUTION.bucket === "fixed" ? "Fixed ✓" : "Error gets through ✗";
   const correctWord = solved.correct ? "correctly predicted" : "guessed";
-  const url = location.origin + location.pathname; // date-derived, no params needed
-  const text = `Today's QEC puzzle: I ${correctWord} "${outcomeWord}", can you? ${url}`;
+  const url = location.origin + location.pathname;
+  const text = "Today's QEC puzzle: I " + correctWord + " \"" + outcomeWord + "\", can you? " + url;
   if (navigator.share) {
-    try { await navigator.share({ title: "QEC Explorer, Daily Puzzle", text, url }); showToast(`Shared!`); return; }
-    catch (err) { if (err && err.name === "AbortError") return; }
+    try {
+      await navigator.share({ title: "QEC Explorer, Daily Puzzle", text, url });
+      QEC.toast("Shared!");
+      return;
+    } catch (err) { if (err && err.name === "AbortError") return; }
   }
-  try { await navigator.clipboard.writeText(text); showToast(`Result + link copied, <b>challenge a friend</b>.`); }
-  catch (err) { showToast(`Couldn't auto-copy, copy the URL from your address bar to share.`); }
+  try { await navigator.clipboard.writeText(text); QEC.toast("Result + link copied, <b>challenge a friend</b>."); }
+  catch (err) { QEC.toast("Couldn't auto-copy, copy the URL from your address bar to share."); }
 });
 
-/* ---- toast ---- */
-let toastTimer;
-function showToast(html) {
-  const t = document.getElementById("toast");
-  t.innerHTML = html; t.classList.add("show");
-  document.getElementById("srLive").textContent = t.textContent;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
-}
-
-/* ---- init ---- */
 initPuzzle();
 if (window.QECCounter) QECCounter.init();
-// expose for deterministic-verification tests (no side effects)
-window.__puzzleFor = puzzleFor;
-window.__solvePuzzle = solvePuzzle;
+
+QEC.shortcuts([
+  { combo: "?", label: "Open the keyboard cheat sheet" },
+]);
 </script>
 </body>
 </html>
