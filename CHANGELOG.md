@@ -22,6 +22,22 @@ tests, and developer-facing tooling.
   `QEC.debounce()`. Zero dependencies, progressively-enhanced.
 - **`assets/qec-modal.css`** — modal + keyboard-shortcut cheat sheet
   styles. Press `?` on any page to open the cheat sheet.
+- **`assets/qec-openqasm.js` + OpenQASM 3 export** — pure emitter
+  that turns a QEC Explorer state (errors + code distance) into an
+  OpenQASM 3.0 string parseable by `QuantumCircuit.from_qasm3_str(...)`.
+  Module 1 (`index.html`) exports the injected error pattern with the
+  full syndrome-extraction circuit. Module 2 (`decoder.html`) exports
+  the same plus all three decoder corrections (Lookup, MWPM, BP),
+  separated by header comments so a learner can compare them on the
+  same circuit. Module 3 (`noise.html`) exports a parameterised
+  Python template that runs the same experiment under
+  `qiskit_aer.NoiseModel` — directly pasteable into a Jupyter cell.
+  Every page ships with a one-click "📋 Export" button that opens a
+  modal, copies to clipboard, and downloads as a `.qasm` / `.py` file.
+- **`tests/openqasm.test.js`** — unit tests for the emitter: header
+  validity, qubit-index round-trip, syndrome-block completeness, all
+  four schema kinds (`correction` / `corrections[]` / `corrections[]`
+  empty / clean-circuit), and noise-template shape.
 - **`tests/`** directory with:
   - `tests/test-runner.html` — browser-based unit test runner.
     Open it in any browser to run every suite and view results.

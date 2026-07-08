@@ -19,21 +19,34 @@ QECT.describe("decoder utilities · evaluateCorrection", () => {
     QECT.assert.ok(res.ok);
   });
 
-  QECT.it("flags a logical-error introduction when correction is wrong on a full chain", () => {
-    // Real error: a single X on (1,1). Decoder wrongly returns a 3-qubit X chain
-    // spanning the lattice. Residual = error XOR chain still does not flip
-    // a stabilizer (it's two commutable chains) -> silent syndrome AND a
-    // logical observable flip -> logicalIntroduced.
+  QECT.it("flags a 'broken chain' correction as LEFT-CODESPACE (syndrome still fires)", () => {
+    // Real error: single X on (1,1). Decoder proposes a 3-qubit correction
+    // {(0,1)X, (1,1)X, (2,1)X}. residual = error XOR correction = {(0,1)X, (2,1)X}
+    // — the middle flakes cancel, leaving a BROKEN CHAIN with a gap at (1,1).
+    // The two endpoint stabs still fire (parity 1 each), so the syndrome is
+    // NOT silent: evaluateCorrection correctly returns "left-codespace".
+    //
+    // A TRUE logical-introduced case requires the residual to be
+    // SILENT (zero syndrome) AND to anti-commute with a logical observable.
+    // That needs a residue equal to (some stabilizer product) * (logical),
+    // which a 3-qubit correction cannot reach from a single (1,1)X error.
+    // Such a case is rare in practice — the much more common failure is a
+    // broken chain or a non-matching pair, both producing left-codespace.
     const code = buildCode(3);
     const err = { "1,1": { x: true, z: false } };
     const badCorrection = {
       "0,1": { x: true, z: false },
-      "1,1": { x: true, z: false },   // cancels the original
+      "1,1": { x: true, z: false },   // cancels the original at (1,1)
       "2,1": { x: true, z: false },
     };
     const res = evaluateCorrection(code, err, badCorrection);
-    QECT.assert.equal(res.status, "logical-introduced");
+    QECT.assert.equal(res.status, "left-codespace");
     QECT.assert.equal(res.ok, false);
+    // Sanity: residual syndrome actually still fires — proves we are
+    // counting this as left-codespace and not a logical flip.
+    const resStab = computeSyndromeFor(code, res.residual);
+    QECT.assert.ok(resStab.some(v => v === 1),
+      "broken chain leaves syndrome lit");
   });
 
   QECT.it("flags left-codespace when residual still triggers a syndrome", () => {

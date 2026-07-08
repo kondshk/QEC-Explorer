@@ -179,6 +179,7 @@ svg.plot{width:100%;height:auto;display:block;background:var(--surface-1);border
 
       <button class="btn primary" id="runBtn">▶ Run experiment</button>
       <button class="btn ghost" id="stopBtn" disabled>■ Stop</button>
+      <button class="btn ghost" id="qasmBtn">📦 Export Qiskit template</button>
     </div>
 
     <!-- RESULTS -->
@@ -230,10 +231,27 @@ svg.plot{width:100%;height:auto;display:block;background:var(--surface-1);border
   <a href="index.html">Module 1 · Detection</a> &nbsp;·&nbsp; <a href="decoder.html">Module 2 · Decoder race</a>
 </footer>
 
+<!-- Qiskit runnable template modal.
+     noise.html emits a parameterised Python script (not QASM 3) that
+     reproduces the current experiment under qiskit_aer NoiseModel. -->
+<div class="qec-modal" id="qasmModal" role="dialog" aria-modal="true" aria-labelledby="qasmModalTitle" aria-hidden="true">
+  <div class="qec-modal-card" style="max-width:760px">
+    <h3 id="qasmModalTitle">Qiskit runnable template</h3>
+    <p class="hint">A Python script that imports the QASM 3 syndrome-extraction circuit (from <code>assets/qec-openqasm.js</code>) and reproduces this experiment under <code>qiskit_aer.NoiseModel</code>. Paste into a Jupyter cell with <code>qiskit</code> + <code>qiskit-aer</code> installed.</p>
+    <pre id="qasmPre" style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:14px; max-height:60vh; overflow:auto; font-size:11.5px; font-family:var(--font-mono); white-space:pre; line-height:1.45;"></pre>
+    <p style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+      <button class="btn" id="qasmCopyBtn" style="margin-top:0">📋 Copy to clipboard</button>
+      <button class="btn" id="qasmDownloadBtn" style="margin-top:0">⬇ Download .py</button>
+      <button class="btn" id="qasmCloseBtn" style="margin-top:0; background:var(--surface-3); border-color:var(--border-default)">Close</button>
+    </p>
+  </div>
+</div>
+
 <!-- Shared physics + decoder algorithms (local scripts, no CDN) -->
 <script src="lattice-core.js"></script>
 <script src="decoders.js"></script>
 <script src="assets/qec-shared.js"></script>
+<script src="assets/qec-openqasm.js"></script>
 <script>
 /* ============================================================
    noise.html, Module 3 UI
@@ -710,6 +728,78 @@ window.__mcSinglePoint = async function (d, p, model, bias, decoder, trials) {
   }
   return failures / trials;
 };
+
+/* ============================================================
+   Qiskit runnable template export (Module 3, noise explorer).
+   Click the "📦 Export Qiskit template" button to download a
+   parameterised Python script that reproduces this experiment under
+   qiskit_aer.NoiseModel. The emitter lives in
+   `assets/qec-openqasm.js` as `QecOQ3.noiseTemplate({...})`.
+   ============================================================ */
+const _qasmModal3 = document.getElementById("qasmModal");
+const _qasmPre3   = document.getElementById("qasmPre");
+const _qasmTitle3 = document.getElementById("qasmModalTitle");
+const _qasmDownload3 = document.getElementById("qasmDownloadBtn");
+
+function _showQasm3(title, body, filenameBase, ext) {
+  _qasmTitle3.textContent = title;
+  _qasmPre3.textContent   = body;
+  _qasmDownload3.textContent = "⬇ Download ." + ext;
+  _qasmDownload3.dataset.filename = filenameBase + "." + ext;
+  _qasmModal3.classList.add("open");
+  _qasmModal3.setAttribute("aria-hidden", "false");
+}
+function _hideQasm3() {
+  _qasmModal3.classList.remove("open");
+  _qasmModal3.setAttribute("aria-hidden", "true");
+}
+
+document.getElementById("qasmBtn").addEventListener("click", () => {
+  try {
+    const text = QecOQ3.noiseTemplate({
+      d:       PARAMS.d,
+      model:   PARAMS.model,
+      bias:    PARAMS.bias,
+      decoder: PARAMS.decoder,
+    });
+    const slug = "d" + PARAMS.d + "-" + PARAMS.model +
+      (PARAMS.model === "biased" ? "-x" + PARAMS.bias : "") + "-" + PARAMS.decoder;
+    _showQasm3("Qiskit runnable template", text,
+      "qec-explorer-noise-" + slug, "py");
+  } catch (err) {
+    QEC.toast("Couldn't generate template: " + err.message);
+  }
+});
+
+document.getElementById("qasmCopyBtn").addEventListener("click", async () => {
+  const text = _qasmPre3.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    QEC.toast("Python copied, <b>paste into a Jupyter cell</b>.");
+  } catch (err) {
+    const r = document.createRange();
+    r.selectNodeContents(_qasmPre3);
+    const sel = document.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    QEC.toast("Couldn't auto-copy, <b>text is selected, press Ctrl/Cmd+C</b>.");
+  }
+});
+
+_qasmDownload3.addEventListener("click", () => {
+  const text = _qasmPre3.textContent;
+  const blob = new Blob([text], { type: "text/x-python" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = _qasmDownload3.dataset.filename || "qec-noise-template.py";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("qasmCloseBtn").addEventListener("click", _hideQasm3);
+_qasmModal3.addEventListener("click", (e) => {
+  if (e.target === _qasmModal3) _hideQasm3();
+});
 </script>
 
 <!-- Community counter (graceful-degrades if unreachable) -->

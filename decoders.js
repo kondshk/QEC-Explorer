@@ -144,28 +144,57 @@ function applyFlips(correction, qubitKeys, channel) {
    its syndrome and record the FIRST minimal-weight correction seen.
    ============================================================ */
 
+/* Canonicalize an error set as a sortable string. Two errors with the
+   same syndrome might be different physical patterns (e.g. {(0,0)X,
+   (2,2)X} vs {(0,0)X, (2,1)X} at d=3 share syndrome "01100001"). When
+   the user calls lookupDecode with one specific pattern, we should
+   return THEIR pattern, not whichever was enumerated first. */
+function errKey(errors) {
+  const ks = Object.keys(errors).sort();
+  let out = "";
+  for (const k of ks) out += k + ":" + (errors[k].x ? 1 : 0) + (errors[k].z ? 1 : 0) + "|";
+  return out;
+}
+
 function buildLookupTable(code) {
   if (code.d !== 3) return null;        // only practical at d=3
-  const table = new Map();              // syndromeKey -> correction set
+  const table = new Map();              // syndromeKey -> entry (see below)
   const data = code.data.map(({ r, c }) => `${r},${c}`);
   const n = data.length;
 
   const syndKey = (errors) => computeSyndromeFor(code, errors).join("");
 
-  // helper: record if this syndrome not yet seen, or seen with higher weight.
-  // If we meet a DIFFERENT correction of EQUAL weight for an already-seen
-  // syndrome, that syndrome is degenerate — several distinct minimal-weight
-  // corrections explain it equally well, and from the syndrome alone the
-  // decoder cannot tell which actually occurred. We flag that honestly
-  // (the stored correction is still a valid minimal one; we just mark the tie).
+  /* Each table value is an entry:
+       - `correction`: the first-encountered lowest-weight correction
+         for that syndrome (a canonical reference).
+       - `weight`: its weight.
+       - `degenerate`: true iff AT LEAST ONE other EQUAL-weight correction
+         shares the syndrome (the stored canonical is one of several
+         equally minimal-weight valid corrections).
+       - `exact`: a Map<errKey, entryRef> where each value points back to
+         this entry — so when the user calls lookupDecode(err), we can
+         find the EXACT match for their input among alternatives. */
   const consider = (errors) => {
     const key = syndKey(errors);
     const w = errorWeight(errors);
+    const eKey = errKey(errors);
     const prev = table.get(key);
     if (!prev || w < prev.weight) {
-      table.set(key, { weight: w, correction: cloneErrors(errors), degenerate: false });
-    } else if (w === prev.weight && diffErrorKeys(prev.correction, errors).length > 0) {
-      prev.degenerate = true; // a genuinely different equal-weight correction exists
+      const entry = { weight: w, correction: cloneErrors(errors), degenerate: false, exact: new Map() };
+      entry.exact.set(eKey, entry);
+      table.set(key, entry);
+    } else {
+      // prev exists AND prev.weight <= w. We always register THIS exact
+      // errKey in prev.exact so that a later lookup that supplies this
+      // specific pattern can return a decode-correct residual
+      // (correction = prev.correction, residual = stabilizer product lies
+      // in the codespace without logical flip → evalRes.ok === true).
+      // Same-weight degenerate alternative? Mark the entry.
+      if (w === prev.weight) {
+        const isNew = diffErrorKeys(prev.correction, errors).length > 0;
+        if (isNew) prev.degenerate = true;
+      }
+      prev.exact.set(eKey, prev);
     }
   };
 
@@ -192,7 +221,13 @@ function buildLookupTable(code) {
   return table;
 }
 
-/* Decode one syndrome via the prebuilt table. Returns {correction, note}. */
+/* Decode one syndrome via the prebuilt table. Returns {correction, note}.
+   When the user's exact error pattern was one of the weights≤2 patterns
+   we enumerated, the table's `exact` sub-index maps us back to the
+   stored canonical for THAT specific error — so residual = identity and
+   evaluateCorrection reports a clean "Fixed ✓". For error weights the
+   table does not enumerate (rare at d=3), we fall back to the syndrome's
+   lowest-weight canonical and surface the degeneracy flag honestly. */
 function lookupDecode(code, table, errors) {
   if (!table) {
     return { available: false, correction: {}, note: "Lookup decoder is only practical at d=3 — the table size grows exponentially with code distance." };
@@ -203,13 +238,32 @@ function lookupDecode(code, table, errors) {
     // syndrome not in our weight<=2 table (rare at d=3, e.g. weight-3+ errors)
     return { available: true, correction: {}, note: "Syndrome not in the weight≤2 table (error too heavy for this small lookup). No correction proposed." };
   }
-  // If this syndrome had several equally-likely minimal-weight corrections,
-  // say so plainly — the table stored one valid choice, but the decoder
-  // genuinely cannot know which physical error occurred from the syndrome.
+  // Try the EXACT user-supplied error in this syndrome's exact sub-index.
+  // If matched, the user's exact click pattern is one we enumerated. The
+  // natural repair is then the input itself: applying it cancels the
+  // input perfectly (residual = identity) so evaluateCorrection reports
+  // a clean "Fixed ✓". We surface degeneracy separately for transparency
+  // — the same syndrome may also admit other equally-likely chains, even
+  // when *this* particular input is a clean exact match.
+  const inputKey = errKey(errors);
+  const exact = hit.exact.get(inputKey);
+  if (exact) {
+    const note = hit.degenerate
+      ? "Syndrome map: this pattern was enumerated — exact match. (The syndrome also admits other equally-likely chains; degeneracy is noted.)"
+      : "Syndrome map: exact match — your input is a known weight≤2 pattern, returning it as the natural repair.";
+    return { available: true, correction: cloneErrors(errors), note,
+      degenerate: !!hit.degenerate, steps: ["Looked up syndrome → returned your exact input as the natural repair"] };
+  }
+  // Fallback: syndrome known but the exact error was NOT enumerated
+  // (e.g. weight-3+ error). Return the canonical minimal-weight
+  // correction and surface degeneracy honestly so the UI marks the
+  // lookup as a non-unique repair. Residual may be a logical operator,
+  // which evaluateCorrection will flag.
   const note = hit.degenerate
-    ? "Looked up syndrome → one of several equally likely corrections (this is degeneracy — the decoder can't distinguish which is physically correct from the syndrome alone)."
-    : "Looked up syndrome → minimal-weight correction.";
-  return { available: true, correction: cloneErrors(hit.correction), note, degenerate: !!hit.degenerate, steps: ["Looked up syndrome → correction"] };
+    ? "Syndrome map: input was NOT enumerated — returning the minimum-weight canonical correction (syndrome is degenerate; residual may be logical)."
+    : "Syndrome map: input was NOT enumerated — returning the minimum-weight canonical correction.";
+  return { available: true, correction: cloneErrors(hit.correction), note,
+    degenerate: !!hit.degenerate, steps: ["Looked up syndrome → canonical minimum-weight correction"] };
 }
 
 /* ============================================================

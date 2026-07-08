@@ -286,6 +286,7 @@
 
       <button class="btn" id="randomBtn">⚡ Inject random errors</button>
       <button class="btn" id="copyBtn">🔗 Share this pattern</button>
+      <button class="btn" id="qasmBtn">📋 Export OpenQASM 3</button>
       <button class="btn danger" id="clearBtn">Clear all errors</button>
       <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
 
@@ -392,6 +393,21 @@
 
 <div class="sr-only" id="srLive" aria-live="polite"></div>
 
+<!-- OpenQASM 3 export modal. Click "📋 Copy OpenQASM 3" in the controls above; the emitter
+     writes the circuit to the <pre> below; the inner buttons copy/download. -->
+<div class="qec-modal" id="qasmModal" role="dialog" aria-modal="true" aria-labelledby="qasmModalTitle" aria-hidden="true">
+  <div class="qec-modal-card" style="max-width:760px">
+    <h3 id="qasmModalTitle">OpenQASM 3 export</h3>
+    <p class="hint">Paste into <code>QuantumCircuit.from_qasm3_str(...)</code> and run locally with Qiskit. All qubit indices follow <code>data[r*D + c]</code>.</p>
+    <pre id="qasmPre" style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:14px; max-height:60vh; overflow:auto; font-size:11.5px; font-family:var(--font-mono); white-space:pre; line-height:1.45;"></pre>
+    <p style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+      <button class="btn" id="qasmCopyBtn" style="margin-top:0">📋 Copy to clipboard</button>
+      <button class="btn" id="qasmDownloadBtn" style="margin-top:0">⬇ Download .qasm</button>
+      <button class="btn" id="qasmCloseBtn" style="margin-top:0; background:var(--surface-3); border-color:var(--border-default)">Close</button>
+    </p>
+  </div>
+</div>
+
 <footer>
   QEC Explorer · Open-source · Built with no dependencies, view source to see exactly how it works.<br>
   The lattice physics is real. <a href="#how">Read how it works ↑</a> &nbsp;·&nbsp; <a href="PRODUCT_PLAN.html">Product plan</a> &nbsp;·&nbsp; <a href="tests/test-runner.html">Tests</a>
@@ -401,6 +417,7 @@
 <script src="lattice-core.js"></script>
 <!-- Shared helpers -->
 <script src="assets/qec-shared.js"></script>
+<script src="assets/qec-openqasm.js"></script>
 <script>
 /* ============================================================
    Module 1 — Surface Code Playground: physics, rendering, glue.
@@ -890,6 +907,75 @@ QEC.shortcuts([
 })();
 
 if (window.QECCounter) QECCounter.init();
+
+/* ============================================================
+   OpenQASM 3 export (Module 1, surface-code playground).
+   Emits a QASM 3.0 string containing the full syndrome-extraction
+   circuit + injected errors (no decoder yet, this is the detection
+   page). Pure-function emitter lives in `assets/qec-openqasm.js`.
+   ============================================================ */
+const _qasmModal = document.getElementById("qasmModal");
+const _qasmPre   = document.getElementById("qasmPre");
+const _qasmTitle = document.getElementById("qasmModalTitle");
+const _qasmDownload = document.getElementById("qasmDownloadBtn");
+
+function _showQasm(title, body, filenameBase, ext) {
+  _qasmTitle.textContent = title;
+  _qasmPre.textContent   = body;
+  _qasmDownload.textContent = "⬇ Download ." + ext;
+  _qasmDownload.dataset.filename = filenameBase + "." + ext;
+  _qasmModal.classList.add("open");
+  _qasmModal.setAttribute("aria-hidden", "false");
+}
+function _hideQasm() {
+  _qasmModal.classList.remove("open");
+  _qasmModal.setAttribute("aria-hidden", "true");
+}
+
+document.getElementById("qasmBtn").addEventListener("click", () => {
+  try {
+    const text = QecOQ3.emit({
+      d: state.d,
+      source: location.href.replace(/[?#].*$/, ""),
+      errors: state.errors,
+      includeSyndrome: true,
+    });
+    _showQasm("OpenQASM 3 export", text,
+      "qec-explorer-d" + state.d, "qasm");
+  } catch (err) {
+    QEC.toast("Couldn't generate QASM: " + err.message);
+  }
+});
+
+document.getElementById("qasmCopyBtn").addEventListener("click", async () => {
+  const text = _qasmPre.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    QEC.toast("QASM 3 string copied, <b>paste into QuantumCircuit.from_qasm3_str(...)</b>.");
+  } catch (err) {
+    const r = document.createRange();
+    r.selectNodeContents(_qasmPre);
+    const sel = document.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    QEC.toast("Couldn't auto-copy, <b>text is selected, press Ctrl/Cmd+C</b>.");
+  }
+});
+
+_qasmDownload.addEventListener("click", () => {
+  const text = _qasmPre.textContent;
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = _qasmDownload.dataset.filename || "qec-export.qasm";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("qasmCloseBtn").addEventListener("click", _hideQasm);
+_qasmModal.addEventListener("click", (e) => {
+  if (e.target === _qasmModal) _hideQasm();
+});
 </script>
 <!-- Community counter (optional, degrades gracefully) -->
 <script src="counter.js"></script>

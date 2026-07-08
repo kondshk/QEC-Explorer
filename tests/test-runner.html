@@ -53,10 +53,13 @@
 <!-- Load the SAME physics and decoders that the production pages use. -->
 <script src="../lattice-core.js"></script>
 <script src="../decoders.js"></script>
+<!-- Pure OpenQASM 3 emitter shared by the production export buttons. -->
+<script src="../assets/qec-openqasm.js"></script>
 <!-- Tiny test framework: QECT.describe / it / assert. Must load BEFORE the test
      files because each test file calls QECT.describe(...) at parse time. -->
 <script src="./qec-tests.js"></script>
 <!-- Load each test file -->
+<script src="./openqasm.test.js"></script>
 <script src="./syndrome.test.js"></script>
 <script src="./decoder.test.js"></script>
 <script src="./lookup.test.js"></script>

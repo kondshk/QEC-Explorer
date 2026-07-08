@@ -83,20 +83,25 @@ QECT.describe("lattice-core.js · syndrome & logic", () => {
     }
   });
 
-  QECT.it("a single X on a BULK data qubit triggers ONE X-detectable (Z-type) stab", () => {
+  QECT.it("a single X on an interior (4-neighbor) data qubit triggers BOTH adjacent Z-type stabs (lit=2)", () => {
+    // Real rotated-surface-code geometry: corner (1,1) touches four
+    // stabilizers in the d=3 lattice — 2 Z-type + 2 X-type. That's why a
+    // single X error fires 2 Z-type stabs (its 2 Z-type neighbors), and
+    // symmetrically a single Z error fires 2 X-type stabs. Bulk qubits
+    // have 4 neighbors; qubits on the rotated-code boundary have fewer.
     const code = buildCode(3);
     state.errors = { "1,1": { x: true, z: false } };
     const s = computeSyndrome(code);
     const lit = s.reduce((a, v) => a + v, 0);
-    QECT.assert.equal(lit, 1, "exactly one Z-type stab fires on a single X");
+    QECT.assert.equal(lit, 2, "two Z-type stabs fire on a single interior X");
   });
 
-  QECT.it("a single Z on a BULK data qubit triggers ONE Z-detectable (X-type) stab", () => {
+  QECT.it("a single Z on an interior (4-neighbor) data qubit triggers BOTH adjacent X-type stabs (lit=2)", () => {
     const code = buildCode(3);
     state.errors = { "1,1": { x: false, z: true } };
     const s = computeSyndrome(code);
     const lit = s.reduce((a, v) => a + v, 0);
-    QECT.assert.equal(lit, 1, "exactly one X-type stab fires on a single Z");
+    QECT.assert.equal(lit, 2, "two X-type stabs fire on a single interior Z");
   });
 
   QECT.it("two adjacent errors CANCEL between stabilizers (only endpoints fire)", () => {

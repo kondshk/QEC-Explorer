@@ -13,3 +13,7 @@ Thumbs.db
 _cleanenv/
 *.venv/
 .ipynb_checkpoints/
+
+# Local scratch / diagnostic scripts (not part of the project)
+.tmp-*.js
+.tmp-*.html

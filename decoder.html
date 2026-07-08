@@ -193,6 +193,12 @@ body.guiding .decoder{cursor:help}
       </div>
     </div>
     <div class="ctrl-group">
+      <span class="lbl">Export</span>
+      <div class="seg">
+        <button class="btn" id="qasmBtn">📋 Export OpenQASM 3</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
       <span class="lbl">Learn</span>
       <div class="seg">
         <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
@@ -307,10 +313,28 @@ body.guiding .decoder{cursor:help}
   <a href="index.html">← Back to the detection module</a>
 </footer>
 
+<!-- OpenQASM 3 export modal (decoder race).
+     Re-runs all three decoders at click time and emits a single QASM 3
+     string containing the injected errors + all three corrections,
+     separated by labeled header comments. -->
+<div class="qec-modal" id="qasmModal" role="dialog" aria-modal="true" aria-labelledby="qasmModalTitle" aria-hidden="true">
+  <div class="qec-modal-card" style="max-width:760px">
+    <h3 id="qasmModalTitle">OpenQASM 3 export</h3>
+    <p class="hint">Paste into <code>QuantumCircuit.from_qasm3_str(...)</code> and run locally with Qiskit. The string below contains your injected errors plus the corrections proposed by <b>Lookup</b>, <b>MWPM</b>, and <b>BP</b>, separated by headers. Qubit indices follow <code>data[r·D + c]</code>.</p>
+    <pre id="qasmPre" style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:14px; max-height:60vh; overflow:auto; font-size:11.5px; font-family:var(--font-mono); white-space:pre; line-height:1.45;"></pre>
+    <p style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+      <button class="btn" id="qasmCopyBtn" style="margin-top:0">📋 Copy to clipboard</button>
+      <button class="btn" id="qasmDownloadBtn" style="margin-top:0">⬇ Download .qasm</button>
+      <button class="btn" id="qasmCloseBtn" style="margin-top:0; background:var(--surface-3); border-color:var(--border-default)">Close</button>
+    </p>
+  </div>
+</div>
+
 <!-- Shared physics + decoder algorithms (local scripts, no CDN) -->
 <script src="lattice-core.js"></script>
 <script src="decoders.js"></script>
 <script src="assets/qec-shared.js"></script>
+<script src="assets/qec-openqasm.js"></script>
 <script>
 /* ============================================================
    decoder.html UI, Module 2
@@ -941,6 +965,91 @@ document.addEventListener("keydown", (e) => {
 });
 // If arriving via a shared link, load that pattern and auto-run the race.
 if (location.hash) loadFromHash(true);
+
+/* ============================================================
+   OpenQASM 3 export (Module 2 — decoder race)
+   Re-runs the three decoders against current state at click time and
+   emits ONE QASM 3 string containing all three corrections, each
+   labeled (LOOKUP / MWPM / BP). Pure-function emitter lives in
+   assets/qec-openqasm.js.
+   ============================================================ */
+const QASM_MODAL_2 = document.getElementById("qasmModal");
+const QASM_PRE_2   = document.getElementById("qasmPre");
+const QASM_TITLE_2 = document.getElementById("qasmModalTitle");
+const QASM_DL_2    = document.getElementById("qasmDownloadBtn");
+
+function showQasmModal(title, body, filenameBase, ext) {
+  QASM_TITLE_2.textContent = title;
+  QASM_PRE_2.textContent   = body;
+  QASM_DL_2.textContent    = "⬇ Download ." + ext;
+  QASM_DL_2.dataset.filename = filenameBase + "." + ext;
+  QASM_MODAL_2.classList.add("open");
+  QASM_MODAL_2.setAttribute("aria-hidden", "false");
+}
+function hideQasmModal() {
+  QASM_MODAL_2.classList.remove("open");
+  QASM_MODAL_2.setAttribute("aria-hidden", "true");
+}
+
+document.getElementById("qasmBtn").addEventListener("click", () => {
+  try {
+    const errs = cloneErrors(state.errors);
+    const corrections = [];
+    if (CODE.d === 3 && lookupTable) {
+      const r = lookupDecode(CODE, lookupTable, errs);
+      corrections.push({ correction: r.correction, decoderLabel: "LOOKUP" });
+    }
+    corrections.push({
+      correction: mwpmDecode(CODE, errs).correction,
+      decoderLabel: "MWPM",
+    });
+    corrections.push({
+      correction: bpDecode(CODE, errs, false).correction,
+      decoderLabel: "BP",
+    });
+    const text = QecOQ3.emit({
+      d: state.d,
+      source: location.href.replace(/[?#].*$/, ""),
+      errors: errs,
+      includeSyndrome: true,
+      corrections: corrections,
+    });
+    showQasmModal("OpenQASM 3 export", text,
+      "qec-decoder-race-d" + state.d, "qasm");
+  } catch (err) {
+    QEC.toast("Couldn't generate QASM: " + err.message);
+  }
+});
+
+document.getElementById("qasmCopyBtn").addEventListener("click", async () => {
+  const text = QASM_PRE_2.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    QEC.toast("QASM 3 string copied, <b>paste into QuantumCircuit.from_qasm3_str(...)</b>.");
+  } catch (err) {
+    const r = document.createRange();
+    r.selectNodeContents(QASM_PRE_2);
+    const sel = document.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+    QEC.toast("Couldn't auto-copy, <b>text is selected, press Ctrl/Cmd+C</b>.");
+  }
+});
+
+QASM_DL_2.addEventListener("click", () => {
+  const text = QASM_PRE_2.textContent;
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = QASM_DL_2.dataset.filename || "qec-export.qasm";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("qasmCloseBtn").addEventListener("click", hideQasmModal);
+QASM_MODAL_2.addEventListener("click", (e) => {
+  if (e.target === QASM_MODAL_2) hideQasmModal();
+});
 </script>
 
 <!-- Community counter (graceful-degrades if unreachable) -->
