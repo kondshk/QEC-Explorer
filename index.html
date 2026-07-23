@@ -251,6 +251,8 @@
       <a class="pill" href="decoder.html">2 · Decoder race</a>
       <span class="arrow">→</span>
       <a class="pill" href="noise.html">3 · Noise explorer</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="notebooks.html">Notebooks</a>
     </div>
   </div>
 </div>
@@ -650,10 +652,44 @@ function updateReadout(synd) {
   sEl.textContent = lit;
   sEl.className = "v" + (lit > 0 ? " warn" : "");
 
+  // Logical-state readout — three honest states, not a binary.
+  // The physics (logicalStatus, in lattice-core.js) is unchanged; we
+  // just stop collapsing "clean" and "errors present but detected" into
+  // one word. A lit syndrome means the errors ARE being tracked and are
+  // still correctable — that is NOT the same as a clean, untouched code.
   const { logical } = logicalStatus(CODE);
   const lEl = document.getElementById("rLogical");
-  if (logical) { lEl.textContent = "FLIPPED ✗"; lEl.className = "v warn"; }
-  else { lEl.textContent = "Protected ✓"; lEl.className = "v ok"; }
+  const noteEl = document.getElementById("logicalNote");
+  if (logical) {
+    // Silent syndrome, but an error chain spans the code: the stored
+    // qubit has secretly flipped. This is the real failure.
+    lEl.textContent = "FLIPPED ✗";
+    lEl.className = "v warn";
+    if (noteEl) noteEl.innerHTML =
+      'A <b>logical error</b> has occurred. Your errors form an unbroken chain across the code, so every stabilizer reads clear again, but the stored information has flipped. This is exactly the failure decoders exist to prevent.';
+  } else if (nErr === 0) {
+    // Nothing placed — genuinely untouched.
+    lEl.textContent = "Clean ✓";
+    lEl.className = "v ok";
+    if (noteEl) noteEl.innerHTML =
+      'No errors placed. Every stabilizer reads +1. Click a data qubit to inject one and watch the detectors respond.';
+  } else if (lit > 0) {
+    // Errors present and flagged by the syndrome: detectable, correctable.
+    lEl.textContent = "Detected · correctable";
+    lEl.className = "v";
+    lEl.style.color = "var(--stab-z)";
+    if (noteEl) noteEl.innerHTML =
+      '<b>' + nErr + ' error' + (nErr > 1 ? 's' : '') + ' present, ' + lit + ' detector' + (lit > 1 ? 's' : '') + ' lit.</b> The code has caught them: the stored qubit has <i>not</i> flipped yet, and a decoder could still undo this. "Protected" only means no <i>logical</i> flip, not that the code is untouched. Keep extending an error chain across the whole code to force a logical error.';
+  } else {
+    // Errors present but syndrome silent without a logical flip:
+    // an even/closed pattern that commutes with every stabilizer.
+    lEl.textContent = "Undetected (no flip)";
+    lEl.className = "v warn";
+    if (noteEl) noteEl.innerHTML =
+      '<b>' + nErr + ' error' + (nErr > 1 ? 's' : '') + ' present, but the syndrome is silent.</b> These errors happen to commute with every stabilizer (an even count per detector), so they hide, yet they have not formed a logical flip either. Detectable patterns need an <i>odd</i> count at some detector.';
+  }
+  // Clear any inline color when we are not in the "detected" branch.
+  if (lEl.textContent !== "Detected · correctable") lEl.style.color = "";
 }
 
 /* ---------------- URL hash sharing ---------------- */
