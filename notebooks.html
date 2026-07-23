@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer · Notebooks</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
+
+<style>
+  .wrap { max-width: 1040px; }
+  .lead { margin-bottom: var(--space-6); max-width: 780px; }
+
+  /* Learning-path rail */
+  .path {
+    display: flex; align-items: stretch; gap: 0; flex-wrap: wrap;
+    margin: var(--space-5) 0 var(--space-7);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+  .path a {
+    flex: 1; min-width: 120px;
+    text-decoration: none; color: var(--text-secondary);
+    padding: 12px 14px; border-radius: var(--radius-sm);
+    display: flex; flex-direction: column; gap: 3px;
+    transition: background 150ms ease, color 150ms ease;
+  }
+  .path a:hover { background: var(--surface-2); color: var(--text-primary); }
+  .path a.on { background: var(--surface-3); color: var(--text-primary); }
+  .path a .pk { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--syndrome); }
+  .path a .pt { font-size: 13px; font-weight: 500; }
+  .path .psep { align-self: center; color: var(--text-hint); padding: 0 2px; }
+  @media (max-width: 720px) { .path .psep { display: none; } }
+
+  /* Filter chips */
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: var(--space-5); align-items: center; }
+  .filters .flabel {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-hint); margin-right: 4px;
+  }
+  .chip {
+    font-family: var(--font-mono); font-size: 12px;
+    padding: 5px 13px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border-default);
+    background: var(--surface-1); color: var(--text-secondary);
+    cursor: pointer; transition: all 150ms ease;
+  }
+  .chip:hover { border-color: var(--interactive); color: var(--text-primary); }
+  .chip.on { background: var(--syndrome); border-color: var(--syndrome); color: var(--text-on-color); font-weight: 600; }
+  .chip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* Notebook cards */
+  .nb-grid { display: flex; flex-direction: column; gap: var(--space-4); }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-6);
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: var(--space-5);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 160ms ease, transform 160ms ease;
+  }
+  .card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--syndrome);
+  }
+  .card.lvl-intro::before  { background: var(--stab-z); }
+  .card.lvl-core::before   { background: var(--syndrome); }
+  .card.lvl-adv::before    { background: var(--pauli-x); }
+
+  .card .idx {
+    font-family: var(--font-display);
+    font-size: 40px; font-weight: 400; font-style: italic;
+    color: var(--text-hint); line-height: 1; padding-top: 2px;
+  }
+  .card.lvl-intro .idx { color: var(--stab-z); }
+  .card.lvl-core .idx  { color: var(--syndrome); }
+  .card.lvl-adv .idx   { color: var(--pauli-x); }
+
+  .card h3 {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 400;
+    margin-bottom: 6px; line-height: 1.2;
+  }
+  .card .desc { color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 14px; max-width: 660px; }
+
+  /* Meta row: level, time, cell count */
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .meta {
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 3px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-tertiary);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .meta.level.intro { color: var(--stab-z); border-color: rgba(8,189,186,0.4); }
+  .meta.level.core  { color: var(--syndrome); border-color: rgba(165,110,255,0.4); }
+  .meta.level.adv   { color: var(--pauli-x); border-color: rgba(255,131,137,0.4); }
+
+  /* Topic tags */
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tag {
+    font-size: 11px; padding: 2px 9px; border-radius: var(--radius-pill);
+    background: var(--surface-2); color: var(--text-tertiary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Action buttons */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .act {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 500;
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    text-decoration: none; transition: all 150ms ease;
+    border: 1px solid var(--border-default);
+    background: var(--surface-2); color: var(--text-primary);
+  }
+  .act:hover { border-color: var(--interactive); background: var(--surface-3); color: var(--text-primary); }
+  .act.colab { border-color: rgba(241,194,27,0.5); }
+  .act.colab:hover { background: rgba(241,194,27,0.12); }
+  .act .ic { font-size: 14px; }
+  .act.primary { background: var(--syndrome); border-color: var(--syndrome); color: var(--text-on-color); font-weight: 600; }
+  .act.primary:hover { filter: brightness(1.08); background: var(--syndrome); }
+
+  .card.hidden { display: none; }
+  .card { scroll-margin-top: 90px; }
+  .card.flash { animation: cardflash 1.6s ease; }
+  @keyframes cardflash {
+    0%, 100% { border-color: var(--border-subtle); }
+    30% { border-color: var(--syndrome); box-shadow: 0 0 0 3px rgba(165,110,255,0.15); }
+  }
+
+  /* Honesty / how-to note */
+  .howto {
+    margin-top: var(--space-7);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+  .howto h2 { font-family: var(--font-display); font-size: 22px; font-weight: 400; margin-bottom: 12px; }
+  .howto p { color: var(--text-secondary); font-size: 14px; line-height: 1.7; margin-bottom: 12px; max-width: 760px; }
+  .howto b { color: var(--text-primary); font-weight: 500; }
+  .howto code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--surface-2); padding: 2px 6px; border-radius: 4px;
+    border: 1px solid var(--border-subtle); color: var(--text-secondary);
+  }
+  .howto ol { margin: 0 0 12px 20px; color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+  .empty-note { color: var(--text-hint); font-size: 14px; padding: var(--space-5); text-align: center; display: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span class="module">Notebooks</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="index.html">Playground</a>
+    <a href="research.html">Research</a>
+    <a href="https://github.com/kondshk/QEC-Explorer">GitHub ↗</a>
+  </div>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · The math, by hand</div>
+    <div class="steps">
+      <a class="pill" href="basics.html">0 · Basics</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="index.html">1 · Detect</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="decoder.html">2 · Decode</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="noise.html">3 · Noise</a>
+      <span class="arrow">→</span>
+      <span class="pill now">Notebooks</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Six Colab notebooks · Plain Python, from first principles</div>
+    <h1>See the math, <em>built by hand</em></h1>
+    <p>The interactive pages show you <i>what</i> happens. These notebooks show you <i>exactly how</i>, in code you can run and change. Each one builds its piece of quantum error correction from scratch in plain Python, then checks its own output against the tools on this site so nothing drifts. Open any one in Google Colab and run it in your browser, no install required.</p>
+  </div>
+
+  <!-- Learning path rail -->
+  <nav class="path" aria-label="Learning path">
+    <a href="basics.html"><span class="pk">Step 0</span><span class="pt">Basics</span></a>
+    <span class="psep">→</span>
+    <a href="index.html"><span class="pk">Module 1</span><span class="pt">Detect</span></a>
+    <span class="psep">→</span>
+    <a href="decoder.html"><span class="pk">Module 2</span><span class="pt">Decode</span></a>
+    <span class="psep">→</span>
+    <a href="noise.html"><span class="pk">Module 3</span><span class="pt">Noise</span></a>
+    <span class="psep">→</span>
+    <a href="notebooks.html" class="on"><span class="pk">Deep dive</span><span class="pt">Notebooks</span></a>
+  </nav>
+
+  <!-- Filters -->
+  <div class="filters" role="group" aria-label="Filter notebooks by level">
+    <span class="flabel">Filter</span>
+    <button class="chip on" data-f="all">All 6</button>
+    <button class="chip" data-f="intro">Beginner</button>
+    <button class="chip" data-f="core">Core</button>
+    <button class="chip" data-f="adv">Advanced</button>
+  </div>
+
+  <div class="nb-grid" id="grid">
+    <!-- Cards are generated below by data; kept in the DOM for no-JS fallback -->
+  </div>
+  <div class="empty-note" id="emptyNote">No notebooks match that filter.</div>
+
+  <!-- How to run -->
+  <div class="howto">
+    <h2>How to run these</h2>
+    <ol>
+      <li>Click <b>Open in Colab</b> on any card. Google Colab opens the notebook in your browser, with a free Python environment.</li>
+      <li>Run the cells top to bottom (Runtime → Run all, or Shift+Enter one at a time). Notebooks 0 to 3 need only <code>numpy</code> and <code>matplotlib</code>, which Colab already has.</li>
+      <li>Notebook 5 trains a small neural network and installs <code>torch</code> in its first cell. It runs fine on Colab's free CPU; a GPU runtime is faster but optional.</li>
+    </ol>
+    <p>Prefer to just read? <b>View on GitHub</b> shows the notebook with its saved output already baked in, no run needed. Every notebook re-derives the exact code behind the interactive pages and asserts it matches, so what you read here is the same physics you clicked through.</p>
+    <p style="font-size:13px;color:var(--text-hint)">On honesty: Notebooks 1 to 3 are fully worked and self-checking. Notebook 4 is conceptual (it explains qLDPC and bivariate-bicycle codes without a from-scratch build). Notebook 5 trains a real but deliberately small decoder, and reports where it wins and where it doesn't, rather than claiming a clean victory.</p>
+  </div>
+</div>
+
+<footer>
+  QEC Explorer · Open-source · The notebooks live in the <a href="https://github.com/kondshk/QEC-Explorer">GitHub repository</a> and run in Google Colab.<br>
+  <a href="basics.html">Basics</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+</footer>
+
+<script>
+/* ============================================================
+   notebooks.html — a clickable gallery of the six Colab notebooks.
+   Data-driven so the cards, filters, and links stay consistent and
+   easy to extend. Every link is built from one repo constant, so
+   there is a single place to update if the repo or branch changes.
+   ============================================================ */
+const REPO = "kondshk/QEC-Explorer";
+const BRANCH = "main";
+const colab   = f => `https://colab.research.google.com/github/${REPO}/blob/${BRANCH}/${f}`;
+const github  = f => `https://github.com/${REPO}/blob/${BRANCH}/${f}`;
+const nbviewer= f => `https://nbviewer.org/github/${REPO}/blob/${BRANCH}/${f}`;
+
+/* level: intro | core | adv  (drives color + filter) */
+const NOTEBOOKS = [
+  {
+    file: "notebook00_quantum_bits_from_scratch.ipynb",
+    idx: "0", level: "intro", levelName: "Beginner",
+    title: "Quantum bits from scratch",
+    time: "~15 min", cells: "15 cells",
+    desc: "The gentlest start. Build a single qubit in about 30 lines of NumPy: represent it, flip it the two ways noise can, measure it (and watch measurement destroy information), and see why you can't copy it. The code companion to the Basics page. No prior quantum knowledge needed.",
+    tags: ["qubit", "measurement", "X / Z errors", "no-cloning", "NumPy"],
+  },
+  {
+    file: "notebook01_surface_code_by_hand.ipynb",
+    idx: "1", level: "core", levelName: "Core",
+    title: "Building the surface code by hand",
+    time: "~25 min", cells: "reads like Module 1",
+    desc: "Lay out data qubits and stabilizers on a grid, compute syndromes, and detect errors, exactly the physics behind Module 1. Ends by asserting, cell by cell, that this by-hand code matches the site's lattice-core.js byte for byte.",
+    tags: ["surface code", "stabilizers", "syndromes", "detection"],
+  },
+  {
+    file: "notebook02_decoding_by_hand.ipynb",
+    idx: "2", level: "core", levelName: "Core",
+    title: "Decoding the surface code by hand",
+    time: "~35 min", cells: "28 cells",
+    desc: "The harder half: given only the lit detectors, decide which correction to apply. Build three real decoders from scratch, a lookup table, minimum-weight perfect matching, and belief propagation, the same three that race in Module 2, and test them against it.",
+    tags: ["decoders", "MWPM", "belief propagation", "lookup table"],
+  },
+  {
+    file: "notebook03_noise_and_threshold.ipynb",
+    idx: "3", level: "core", levelName: "Core",
+    title: "Noise, Monte Carlo & the threshold",
+    time: "~40 min", cells: "27 cells",
+    desc: "Earn the threshold plot. Reuse the verified code and decoders, add two real noise models, and run a Monte Carlo to see when a bigger code helps, and when it doesn't. An honest look at what small-distance simulation can and can't show.",
+    tags: ["noise models", "Monte Carlo", "threshold", "logical error rate"],
+  },
+  {
+    file: "notebook04_qldpc_bivariate_bicycle.ipynb",
+    idx: "4", level: "adv", levelName: "Advanced",
+    title: "Beyond the surface code: qLDPC",
+    time: "~20 min", cells: "conceptual",
+    desc: "The surface code needs a lot of physical qubits per logical one. Can we do better? This conceptual notebook introduces quantum low-density parity-check (qLDPC) codes and IBM's bivariate-bicycle family, and the overhead problem they aim to solve.",
+    tags: ["qLDPC", "bivariate-bicycle", "overhead", "conceptual"],
+  },
+  {
+    file: "notebook05_gnn_decoding.ipynb",
+    idx: "5", level: "adv", levelName: "Advanced",
+    title: "Learned decoding with a GNN",
+    time: "~45 min", cells: "22 cells · uses PyTorch",
+    desc: "The bridge to current research. When belief propagation fails, the frontier response is to learn a decoder from data. Build a small but real graph neural network decoder in PyTorch, train it on synthetic noise, and compare it to the baseline, honestly. Connects to AlphaQubit and the neural-decoder wave.",
+    tags: ["machine learning", "GNN", "PyTorch", "AlphaQubit", "research"],
+  },
+];
+
+const grid = document.getElementById("grid");
+function cardHtml(nb) {
+  const tagHtml = nb.tags.map(t => `<span class="tag">${t}</span>`).join("");
+  return `
+  <article class="card lvl-${nb.level}" data-level="${nb.level}" id="nb${nb.idx}">
+    <div class="idx">${nb.idx}</div>
+    <div class="body">
+      <h3>${nb.title}</h3>
+      <div class="meta-row">
+        <span class="meta level ${nb.level}">${nb.levelName}</span>
+        <span class="meta">⏱ ${nb.time}</span>
+        <span class="meta">▤ ${nb.cells}</span>
+      </div>
+      <p class="desc">${nb.desc}</p>
+      <div class="tags">${tagHtml}</div>
+      <div class="actions">
+        <a class="act primary colab" href="${colab(nb.file)}" target="_blank" rel="noopener">
+          <span class="ic">▶</span> Open in Colab</a>
+        <a class="act" href="${github(nb.file)}" target="_blank" rel="noopener">
+          <span class="ic">⌥</span> View on GitHub</a>
+        <a class="act" href="${nbviewer(nb.file)}" target="_blank" rel="noopener">
+          <span class="ic">▦</span> nbviewer</a>
+        <a class="act" href="${nb.file}" download>
+          <span class="ic">⬇</span> Download .ipynb</a>
+      </div>
+    </div>
+  </article>`;
+}
+grid.innerHTML = NOTEBOOKS.map(cardHtml).join("");
+
+/* Filtering */
+const emptyNote = document.getElementById("emptyNote");
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+    chip.classList.add("on");
+    const f = chip.dataset.f;
+    let shown = 0;
+    document.querySelectorAll(".card").forEach(card => {
+      const match = f === "all" || card.dataset.level === f;
+      card.classList.toggle("hidden", !match);
+      if (match) shown++;
+    });
+    emptyNote.style.display = shown === 0 ? "block" : "none";
+  });
+});
+
+/* Deep link: cards are built by JS, so honor a #nbN hash after render. */
+(function scrollToHash() {
+  const id = (location.hash || "").replace("#", "");
+  if (!/^nb[0-5]$/.test(id)) return;
+  const card = document.getElementById(id);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("flash");
+})();
+</script>
+</body>
+</html>

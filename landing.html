@@ -216,7 +216,12 @@
     display: flex;
     gap: var(--space-4);
     align-items: baseline;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
   }
+  a.nb:hover { border-color: var(--syndrome); transform: translateY(-1px); background: var(--surface-3); }
+  a.nb:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .nb .n {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -249,6 +254,7 @@
   <div class="brand">QEC <em>Explorer</em><span class="module">Open Source</span></div>
   <div class="links">
     <a href="index.html">Playground</a>
+    <a href="notebooks.html">Notebooks</a>
     <a href="puzzle.html">🔥 Today's Puzzle</a>
     <a href="research.html">Research</a>
     <a href="https://github.com/kondshk/QEC-Explorer">GitHub ↗</a>
@@ -354,15 +360,15 @@
     <h2>Six Colab notebooks, from first principles to the <em>research frontier</em></h2>
     <div class="prose"><p>Want to see <i>exactly</i> how it works? Each notebook builds the code from scratch in plain Python, and checks its output against the interactive tools above.</p></div>
     <div class="nb-list">
-      <div class="nb"><span class="n">NB 0</span><span class="t">Quantum bits from scratch<small>A qubit, its two errors, measurement, and no-cloning in NumPy</small></span></div>
-      <div class="nb"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, and syndromes, from zero</small></span></div>
-      <div class="nb"><span class="n">NB 2</span><span class="t">Decoding by hand<small>Three real decoders, built and tested</small></span></div>
-      <div class="nb"><span class="n">NB 3</span><span class="t">Noise, Monte Carlo & the threshold<small>The experiment behind Module 3</small></span></div>
-      <div class="nb"><span class="n">NB 4</span><span class="t">Beyond the surface code: qLDPC<small>Bivariate-bicycle codes &amp; the overhead problem</small></span></div>
-      <div class="nb"><span class="n">NB 5</span><span class="t">Learned decoding with a GNN<small>A neural decoder, trained and measured against the baseline</small></span></div>
+      <a class="nb" href="notebooks.html#nb0"><span class="n">NB 0</span><span class="t">Quantum bits from scratch<small>A qubit, its two errors, measurement, and no-cloning in NumPy</small></span></a>
+      <a class="nb" href="notebooks.html#nb1"><span class="n">NB 1</span><span class="t">Building the surface code by hand<small>Data qubits, stabilizers, and syndromes, from zero</small></span></a>
+      <a class="nb" href="notebooks.html#nb2"><span class="n">NB 2</span><span class="t">Decoding by hand<small>Three real decoders, built and tested</small></span></a>
+      <a class="nb" href="notebooks.html#nb3"><span class="n">NB 3</span><span class="t">Noise, Monte Carlo & the threshold<small>The experiment behind Module 3</small></span></a>
+      <a class="nb" href="notebooks.html#nb4"><span class="n">NB 4</span><span class="t">Beyond the surface code: qLDPC<small>Bivariate-bicycle codes &amp; the overhead problem</small></span></a>
+      <a class="nb" href="notebooks.html#nb5"><span class="n">NB 5</span><span class="t">Learned decoding with a GNN<small>A neural decoder, trained and measured against the baseline</small></span></a>
     </div>
-    <div class="prose" style="margin-top:18px">
-      <p style="font-size:14px;color:var(--text-hint)">The notebooks live in the <a href="https://github.com/kondshk/QEC-Explorer" style="color:var(--text-tertiary);border-bottom:1px solid var(--border-subtle);text-decoration:none">GitHub repository</a> and run in Google Colab. See the <a href="research.html" style="color:var(--text-tertiary);border-bottom:1px solid var(--border-subtle);text-decoration:none">research connection</a> for how they tie into current work.</p>
+    <div class="cta-row" style="margin-top:22px">
+      <a class="cta primary" href="notebooks.html">Browse all six notebooks →</a>
     </div>
   </div>
 
@@ -371,7 +377,7 @@
 <footer>
   <div id="qecCounter" class="qec-counter" style="display:none"></div>
   QEC Explorer · An open-source educational project on quantum error correction · MIT licensed<br>
-  <a href="basics.html">Basics</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="puzzle.html">Today's puzzle</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+  <a href="basics.html">Basics</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="noise.html">Noise explorer</a> &nbsp;·&nbsp; <a href="notebooks.html">Notebooks</a> &nbsp;·&nbsp; <a href="puzzle.html">Today's puzzle</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
 
 <!-- Real physics for the hero loop (reuses buildCode/computeSyndrome, no reimplementation) -->
