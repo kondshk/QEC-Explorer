@@ -84,6 +84,71 @@
   .demo-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   svg.viz { display: block; }
 
+  /* Bloch sphere layout: fixed sphere on the LEFT, controls on the RIGHT.
+     The sphere never moves when a gate button is pressed — only the
+     state arrow inside it does. */
+  .bloch-demo {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: var(--space-5);
+    align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    margin: var(--space-2) 0;
+  }
+  @media (max-width: 640px) {
+    .bloch-demo { grid-template-columns: 1fr; justify-items: center; }
+  }
+  .bloch-stage {
+    background:
+      radial-gradient(circle at 50% 38%, rgba(165,110,255,0.08), transparent 70%),
+      var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 6px;
+  }
+  .bloch-stage svg { display: block; }
+  .bloch-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .bloch-hint {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text-hint); text-align: center;
+  }
+  .bloch-state {
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--warning); text-align: left;
+  }
+  .bloch-state b { color: var(--text-primary); }
+
+  /* Gate-button grid for the playground step */
+  .gate-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+  .gate-group-lbl {
+    font-family: var(--font-mono); font-size: 9px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-hint); margin: 6px 0 -2px;
+  }
+  .gate {
+    padding: 8px 13px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all 130ms ease;
+    min-width: 42px;
+  }
+  .gate:hover { border-color: var(--syndrome); background: var(--surface-3); transform: translateY(-1px); }
+  .gate:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .gate.gx { border-color: rgba(255,131,137,0.5); }
+  .gate.gz { border-color: rgba(69,137,255,0.5); }
+  .gate.gy { border-color: rgba(241,194,27,0.5); }
+  .gate.gh { border-color: rgba(8,189,186,0.5); }
+  .gate.ghost-reset { border-color: var(--border-default); color: var(--text-secondary); }
+
   /* Button rows */
   .b-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
   .bx {
@@ -189,6 +254,7 @@
   <div class="links">
     <a href="landing.html">Home</a>
     <a href="index.html">Playground</a>
+    <a href="notebooks.html">Notebooks</a>
     <a href="research.html">Research</a>
   </div>
 </div>
@@ -204,50 +270,52 @@
       <a class="pill" href="decoder.html">2 · Decode</a>
       <span class="arrow">→</span>
       <a class="pill" href="noise.html">3 · Noise</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="notebooks.html">Notebooks</a>
     </div>
   </div>
 </div>
 
 <div class="wrap">
   <div class="lead">
-    <div class="eyebrow">No physics background needed · Five quick steps</div>
-    <h1>Quantum computing, in <em>five clicks</em></h1>
-    <p>Before you watch a quantum code catch errors, it helps to know what a qubit actually is and why protecting one is so hard. No equations here, just buttons to press. Each step takes about a minute.</p>
+    <div class="eyebrow">No physics background needed · Six quick steps</div>
+    <h1>Quantum computing, on a <em>sphere</em></h1>
+    <p>Before you watch a quantum code catch errors, it helps to know what a qubit actually is and why protecting one is so hard. Every qubit state is a point on the ball below, the <b>Bloch sphere</b>, and every gate just rotates that arrow. Drag any sphere to spin it. No equations here, just buttons to press.</p>
   </div>
 
   <!-- STEP 1 -->
   <div class="step-card c1">
-    <div class="step-num">Step 1 of 5</div>
+    <div class="step-num">Step 1 of 6</div>
     <h2>What's a qubit?</h2>
-    <p>An ordinary bit is either <b>0</b> or <b>1</b>. A <b>qubit</b> can be 0, or 1, or a <i>blend</i> of both at once. Click the three states below and watch the arrow swing. The arrow pointing up means "definitely 0," down means "definitely 1," and sideways means "an even blend."</p>
-    <div class="demo">
-      <div class="demo-col">
-        <svg class="viz" id="q1svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="A dial showing the qubit's state"></svg>
-        <div class="state-label" id="q1label">|0⟩, definitely 0</div>
+    <p>An ordinary bit is either <b>0</b> or <b>1</b>. A <b>qubit</b> can be 0, or 1, or a <i>blend</i> of both at once. On the sphere, the <b style="color:var(--pauli-z)">top</b> is "definitely 0," the <b style="color:var(--pauli-x)">bottom</b> is "definitely 1," and anywhere around the middle is a blend. Click the three states and watch the arrow move. Drag the ball to see it in the round.</p>
+    <div class="bloch-demo">
+      <div class="bloch-stage">
+        <svg id="q1svg" width="248" height="248" viewBox="0 0 260 260" role="img" aria-label="A 3D Bloch sphere showing the qubit's state as an arrow."></svg>
       </div>
-      <div class="demo-col">
+      <div class="bloch-side">
         <div class="b-row">
           <button class="bx zero on" id="q1zero" data-s="0">Set to 0</button>
           <button class="bx one" id="q1one" data-s="1">Set to 1</button>
           <button class="bx mix" id="q1mix" data-s="mix">Even blend</button>
         </div>
-        <div class="readout" id="q1read">A qubit at |0⟩: if you measured it now, you'd get 0 every time.</div>
+        <div class="bloch-state" id="q1state"></div>
+        <div class="readout" id="q1read" style="text-align:left">A qubit at |0⟩: if you measured it now, you'd get 0 every time.</div>
+        <div class="bloch-hint">Tip: drag the sphere to rotate it</div>
       </div>
     </div>
-    <div class="takeaway"><b>Takeaway:</b> a qubit isn't limited to 0 or 1. It can hold a blend of both, and that's where all of quantum computing's extra power comes from.</div>
+    <div class="takeaway"><b>Takeaway:</b> a qubit isn't limited to 0 or 1. It can point anywhere on this sphere, and that whole range of "in-between" is where quantum computing's extra power comes from.</div>
   </div>
 
   <!-- STEP 2 -->
   <div class="step-card c2">
-    <div class="step-num">Step 2 of 5</div>
+    <div class="step-num">Step 2 of 6</div>
     <h2>The catch: measuring forces a choice</h2>
-    <p>Here's the strange part. While a qubit is in a blend, it really is "both." But the instant you <b>measure</b> it, it snaps to a single answer, 0 or 1, chosen at random, weighted by the blend. You can't peek without disturbing it. Put this qubit in an even blend, then hit <b>Measure</b> over and over and watch the tally.</p>
-    <div class="demo">
-      <div class="demo-col">
-        <svg class="viz" id="q2svg" width="130" height="130" viewBox="0 0 150 150" role="img" aria-label="The qubit being measured"></svg>
-        <div class="state-label" id="q2label">Even blend</div>
+    <p>Here's the strange part. While a qubit is in a blend (arrow on the equator), it really is "both." But the instant you <b>measure</b> it, the arrow snaps to a pole, 0 or 1, chosen at random, weighted by the blend. You can't peek without disturbing it. Hit <b>Measure</b> over and over and watch the arrow jump to a pole and the tally fill in.</p>
+    <div class="bloch-demo">
+      <div class="bloch-stage">
+        <svg id="q2svg" width="248" height="248" viewBox="0 0 260 260" role="img" aria-label="The qubit being measured, shown on a Bloch sphere."></svg>
       </div>
-      <div class="demo-col">
+      <div class="bloch-side">
         <div class="tally">
           <div class="tally-row"><span class="lbl">0</span><span class="tally-bar zero"><span id="q2bar0"></span></span><span class="ct" id="q2ct0">0</span></div>
           <div class="tally-row"><span class="lbl">1</span><span class="tally-bar one"><span id="q2bar1"></span></span><span class="ct" id="q2ct1">0</span></div>
@@ -255,9 +323,9 @@
         <div class="b-row">
           <button class="bx measure" id="q2measure">Measure once</button>
           <button class="bx" id="q2measure100">Measure ×100</button>
-          <button class="bx" id="q2reset">Reset</button>
+          <button class="bx" id="q2reset">Reset to blend</button>
         </div>
-        <div class="readout" id="q2read">An even blend should land on 0 and 1 about half the time each.</div>
+        <div class="readout" id="q2read" style="text-align:left">An even blend should land on 0 and 1 about half the time each.</div>
       </div>
     </div>
     <div class="takeaway"><b>Takeaway:</b> you can't just read a qubit to check it. Measuring collapses the blend and destroys the information. <b>This is the whole reason error correction is hard,</b> and the clever trick of the surface code is checking for errors <i>without</i> measuring the data.</div>
@@ -265,37 +333,75 @@
 
   <!-- STEP 3 -->
   <div class="step-card c3">
-    <div class="step-num">Step 3 of 5</div>
+    <div class="step-num">Step 3 of 6</div>
     <h2>What's an "error," then?</h2>
-    <p>Noise nudges a qubit in one of two basic ways. An <b style="color:var(--pauli-x)">X flip</b> swaps 0 and 1 (a "bit-flip"). A <b style="color:var(--pauli-z)">Z flip</b> leaves 0 and 1 alone but flips the <i>sign</i> of the blend (a "phase-flip"), which is invisible to a simple 0/1 reading but very real. Click each flip and watch what changes.</p>
-    <div class="demo">
-      <div class="demo-col">
-        <svg class="viz" id="q3svg" width="150" height="150" viewBox="0 0 150 150" role="img" aria-label="The qubit with errors applied"></svg>
-        <div class="state-label" id="q3label">|0⟩</div>
+    <p>Noise nudges a qubit in one of two basic ways. An <b style="color:var(--pauli-x)">X flip</b> is a half-turn that swaps top and bottom (a "bit-flip"). A <b style="color:var(--pauli-z)">Z flip</b> is a half-turn about the vertical axis (a "phase-flip"): it does nothing to a pure 0 or 1, but it swings a <i>blend</i> from one side to the other. Start from a blend (press <b>H</b> first), then try Z, and watch the arrow swing where a flat 0/1 reading would see nothing.</p>
+    <div class="bloch-demo">
+      <div class="bloch-stage">
+        <svg id="q3svg" width="248" height="248" viewBox="0 0 260 260" role="img" aria-label="The qubit with X and Z errors applied, on a Bloch sphere."></svg>
       </div>
-      <div class="demo-col">
+      <div class="bloch-side">
         <div class="b-row">
           <button class="bx xflip" id="q3x">Apply X flip</button>
           <button class="bx zflip" id="q3z">Apply Z flip</button>
+          <button class="bx" id="q3h">Make a blend (H)</button>
           <button class="bx" id="q3reset">Reset to |0⟩</button>
         </div>
-        <div class="readout" id="q3read">Start at |0⟩. Try an X flip, then a Z flip.</div>
+        <div class="bloch-state" id="q3state"></div>
+        <div class="readout" id="q3read" style="text-align:left">Start at |0⟩. Try an X flip. Then press H for a blend and try Z.</div>
       </div>
     </div>
-    <div class="takeaway"><b>Takeaway:</b> these two flips, <b>X</b> and <b>Z</b>, are the exact errors you'll inject in the playground. Every error a real qubit suffers is some combination of them.</div>
+    <div class="takeaway"><b>Takeaway:</b> these two flips, <b>X</b> and <b>Z</b>, are the exact errors you'll inject in the playground. Every error a real qubit suffers is some combination of them, and the sphere is why a phase error is real even when a plain reading can't see it.</div>
   </div>
 
-  <!-- STEP 4 -->
+  <!-- STEP 4 — gate playground -->
+  <div class="step-card c5">
+    <div class="step-num">Step 4 of 6</div>
+    <h2>Play: gates just rotate the arrow</h2>
+    <p>Everything a quantum computer does to one qubit is a <b>rotation of this arrow</b>. Nothing more exotic than that. Press the gates and watch. <b style="color:var(--pauli-x)">X, Y, Z</b> are half-turns about the three axes; <b style="color:var(--stab-z)">H</b> swaps "up/down" with "left/right" (it's how you make a blend); <b>S</b> and <b>T</b> are smaller phase turns; the <b>R</b> gates rotate by a set angle. Chain a few together, then drag the sphere to look from another side.</p>
+    <div class="bloch-demo">
+      <div class="bloch-stage">
+        <svg id="q4svg" width="248" height="248" viewBox="0 0 260 260" role="img" aria-label="Interactive Bloch sphere. Press gate buttons to rotate the qubit state arrow."></svg>
+      </div>
+      <div class="bloch-side">
+        <div class="gate-group-lbl">Pauli half-turns</div>
+        <div class="gate-grid">
+          <button class="gate gx" data-g="X">X</button>
+          <button class="gate gy" data-g="Y">Y</button>
+          <button class="gate gz" data-g="Z">Z</button>
+          <button class="gate gh" data-g="H">H</button>
+        </div>
+        <div class="gate-group-lbl">Phase turns</div>
+        <div class="gate-grid">
+          <button class="gate" data-g="S">S</button>
+          <button class="gate" data-g="Sdg">S†</button>
+          <button class="gate" data-g="T">T</button>
+          <button class="gate" data-g="Tdg">T†</button>
+        </div>
+        <div class="gate-group-lbl">Rotations (45°)</div>
+        <div class="gate-grid">
+          <button class="gate" data-g="Rx(45)">Rx</button>
+          <button class="gate" data-g="Ry(45)">Ry</button>
+          <button class="gate" data-g="Rz(45)">Rz</button>
+          <button class="gate ghost-reset" id="q4reset">Reset</button>
+        </div>
+        <div class="bloch-state" id="q4state"></div>
+      </div>
+    </div>
+    <div class="takeaway"><b>Takeaway:</b> a quantum "program" is just a sequence of these rotations. Errors are unwanted rotations, exactly the X and Z from the last step, and error correction is the job of spotting and undoing them.</div>
+  </div>
+
+  <!-- STEP 5 -->
   <div class="step-card c4">
-    <div class="step-num">Step 4 of 5</div>
+    <div class="step-num">Step 5 of 6</div>
     <h2>Why not just keep a backup copy?</h2>
     <p>With ordinary bits, you'd guard against errors by copying: store three copies, and if one flips, the other two outvote it. The obvious fix. But quantum physics flatly forbids it: there is <b>no operation that copies an unknown qubit</b>. It's called the <b>no-cloning theorem</b>. Try it.</p>
     <div class="demo">
       <div class="demo-col">
         <div class="b-row">
-          <button class="bx primary" id="q4try">Try to copy this qubit →</button>
+          <button class="bx primary" id="q5try">Try to copy this qubit →</button>
         </div>
-        <div class="readout" id="q4read" style="max-width:380px">Press the button to attempt a copy.</div>
+        <div class="readout" id="q5read" style="max-width:380px">Press the button to attempt a copy.</div>
       </div>
     </div>
     <div class="takeaway"><b>Takeaway:</b> no backups allowed. So instead of copying one qubit, error correction <b>spreads a single piece of information across many qubits</b> in a pattern, so a few failures can be detected and undone. That pattern is exactly what the surface code is.</div>
@@ -313,109 +419,76 @@
 
 <footer>
   QEC Explorer · A gentle on-ramp to quantum error correction · Open-source<br>
-  <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+  <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="index.html">Playground</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp; <a href="notebooks.html">Notebooks</a> &nbsp;·&nbsp; <a href="research.html">Research</a> &nbsp;·&nbsp; <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
 </footer>
 
 <script src="assets/qec-shared.js"></script>
+<script src="assets/bloch.js"></script>
 <script>
 /* ============================================================
-   basics.html — five tiny single-qubit demos.
-   Honest single-qubit model: state is amplitudes (a0, a1) with
-   |a0|^2 + |a1|^2 = 1. We only need 0, 1, and even-blend states,
-   plus sign for the phase (Z) demo. No external dependencies.
+   basics.html — six tiny single-qubit demos.
+   The qubit is a real 2-amplitude state; every visual is the same
+   3D Bloch sphere from assets/bloch.js. Gates are real 2x2 unitaries,
+   measurement really samples |amplitude|^2 and collapses. The sphere
+   is created once per step and never moved; buttons only change the
+   state arrow inside it. No external dependencies.
    ============================================================ */
-const SVG = "http://www.w3.org/2000/svg";
-const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function say(t){ const s=document.getElementById("srLive"); if(s) s.textContent=t; }
+const cx = (re, im) => ({ re: re || 0, im: im || 0 });
+const INV2 = 1 / Math.sqrt(2);
 
-function drawDial(svg, angleDeg, opts) {
-  opts = opts || {};
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
-  const cx = 75, cy = 75, R = 52;
-  const ring = document.createElementNS(SVG, "circle");
-  ring.setAttribute("cx", cx); ring.setAttribute("cy", cy); ring.setAttribute("r", R);
-  ring.setAttribute("fill", "none");
-  ring.setAttribute("stroke", "var(--border-default)");
-  ring.setAttribute("stroke-width", "2");
-  svg.appendChild(ring);
-
-  const mk = (x, y, txt, col) => {
-    const t = document.createElementNS(SVG, "text");
-    t.setAttribute("x", x); t.setAttribute("y", y);
-    t.setAttribute("fill", col);
-    t.setAttribute("font-family", "IBM Plex Mono, monospace");
-    t.setAttribute("font-size", "11");
-    t.setAttribute("text-anchor", "middle");
-    t.textContent = txt;
-    svg.appendChild(t);
-  };
-  mk(cx, cy - R - 6, "|0⟩", "var(--pauli-z)");
-  mk(cx, cy + R + 14, "|1⟩", "var(--pauli-x)");
-
-  const a = (angleDeg - 90) * Math.PI / 180;
-  const ex = cx + (R - 8) * Math.cos(a), ey = cy + (R - 8) * Math.sin(a);
-  const color = opts.sign === -1 ? "var(--syndrome)" : (opts.color || "var(--warning)");
-  const line = document.createElementNS(SVG, "line");
-  line.setAttribute("x1", cx); line.setAttribute("y1", cy);
-  line.setAttribute("x2", ex); line.setAttribute("y2", ey);
-  line.setAttribute("stroke", color); line.setAttribute("stroke-width", "3.5");
-  line.setAttribute("stroke-linecap", "round");
-  if (!reduce) line.style.transition = "all .35s ease";
-  svg.appendChild(line);
-
-  const dot = document.createElementNS(SVG, "circle");
-  dot.setAttribute("cx", cx); dot.setAttribute("cy", cy);
-  dot.setAttribute("r", "4"); dot.setAttribute("fill", color);
-  svg.appendChild(dot);
-
-  const tip = document.createElementNS(SVG, "circle");
-  tip.setAttribute("cx", ex); tip.setAttribute("cy", ey);
-  tip.setAttribute("r", "5"); tip.setAttribute("fill", color);
-  if (!reduce) tip.style.transition = "all .35s ease";
-  svg.appendChild(tip);
-}
-
-/* --- Step 1 --- */
-const q1svg = document.getElementById("q1svg");
+/* --- Step 1: what's a qubit --- */
+const q1 = Bloch.create(document.getElementById("q1svg"), { radius: 92, cx: 130, cy: 132 });
+const q1state = document.getElementById("q1state");
+q1.onChange(({ label }) => { q1state.innerHTML = "State: <b>" + label + "</b>"; });
 function q1set(s) {
   ["q1zero", "q1one", "q1mix"].forEach(id => document.getElementById(id).classList.remove("on"));
-  let ang, label, read;
+  let read;
   if (s === "0") {
-    document.getElementById("q1zero").classList.add("on"); ang = 0;
-    label = "|0⟩, definitely 0";
-    read = "A qubit at |0⟩: if you measured it now, you'd get 0 every time.";
+    document.getElementById("q1zero").classList.add("on");
+    q1.setState(cx(1, 0), cx(0, 0));
+    read = "A qubit at |0⟩ points straight up: measure it now and you'd get 0 every time.";
   } else if (s === "1") {
-    document.getElementById("q1one").classList.add("on"); ang = 180;
-    label = "|1⟩, definitely 1";
-    read = "A qubit at |1⟩: measuring gives 1 every time.";
+    document.getElementById("q1one").classList.add("on");
+    q1.setState(cx(0, 0), cx(1, 0));
+    read = "A qubit at |1⟩ points straight down: measuring gives 1 every time.";
   } else {
-    document.getElementById("q1mix").classList.add("on"); ang = 90;
-    label = "an even blend of |0⟩ and |1⟩";
-    read = "A 50/50 blend: measuring gives 0 or 1, each about half the time. Step 2 shows this for real.";
+    document.getElementById("q1mix").classList.add("on");
+    q1.setState(cx(INV2, 0), cx(INV2, 0)); // |+>, on the equator
+    read = "An even blend sits on the equator: measuring gives 0 or 1, about half each. Step 2 shows this for real.";
   }
-  drawDial(q1svg, ang);
-  document.getElementById("q1label").textContent = label;
   document.getElementById("q1read").textContent = read;
-  say(label);
+  say(read);
 }
 document.getElementById("q1zero").addEventListener("click", () => q1set("0"));
 document.getElementById("q1one").addEventListener("click", () => q1set("1"));
 document.getElementById("q1mix").addEventListener("click", () => q1set("mix"));
 
-/* --- Step 2 --- */
-let q2c0 = 0, q2c1 = 0;
-const q2svg = document.getElementById("q2svg");
-drawDial(q2svg, 90);
+/* --- Step 2: measurement ---
+   Each click prepares a FRESH even blend, then measures it once. That
+   is the honest thing to show: a single qubit, measured once, collapses
+   and stays collapsed (measuring again just repeats the same answer).
+   The lesson is the DISTRIBUTION over many independent preparations, so
+   we re-prepare the blend before each shot and let the tally converge to
+   50/50. The sphere visibly snaps to the sampled pole, then returns. */
+const reduce2 = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let q2c0 = 0, q2c1 = 0, q2busy = false;
+const q2 = Bloch.create(document.getElementById("q2svg"), { radius: 92, cx: 130, cy: 132 });
+function q2blend() { q2.setState(cx(INV2, 0), cx(INV2, 0)); }
+q2blend();
 function q2measureOnce() {
-  const r = Math.random() < 0.5 ? 0 : 1;
+  if (q2busy) return;
+  q2blend();                         // fresh even blend for an independent shot
+  const r = q2.measureZ();           // real Born-rule sample + collapse to a pole
   if (r === 0) q2c0++; else q2c1++;
-  drawDial(q2svg, r === 0 ? 0 : 180, { color: r === 0 ? "var(--pauli-z)" : "var(--pauli-x)" });
-  document.getElementById("q2label").textContent = "measured " + r;
   q2render();
-  if (!reduce) setTimeout(() => {
-    if (q2c0 + q2c1 > 0) drawDial(q2svg, 90);
-    document.getElementById("q2label").textContent = "Even blend";
-  }, 350);
+  say("Measured " + r + ".");
+  if (!reduce2) {                    // let the collapse show, then re-arm the blend
+    q2busy = true;
+    setTimeout(() => { q2blend(); q2busy = false; }, 450);
+  } else {
+    q2blend();
+  }
   return r;
 }
 function q2render() {
@@ -431,55 +504,65 @@ function q2render() {
       n + " measurement" + (n > 1 ? "s" : "") + ": " + q2c0 + " zeros, " + q2c1 + " ones (" + p0 + "% / " + (100 - p0) + "%). The more you measure, the closer to 50/50.";
   }
 }
-document.getElementById("q2measure").addEventListener("click", () => { q2measureOnce(); say("Measured."); });
+document.getElementById("q2measure").addEventListener("click", () => q2measureOnce());
 document.getElementById("q2measure100").addEventListener("click", () => {
-  for (let i = 0; i < 100; i++) { const r = Math.random() < 0.5 ? 0 : 1; if (r === 0) q2c0++; else q2c1++; }
+  // 100 shots on a fresh even blend each time (independent samples)
+  for (let i = 0; i < 100; i++) { if (Math.random() < 0.5) q2c0++; else q2c1++; }
+  q2blend();  // leave the arrow back on the equator so the lesson stays visible
   q2render(); say("Measured 100 times.");
 });
 document.getElementById("q2reset").addEventListener("click", () => {
-  q2c0 = 0; q2c1 = 0; q2render();
-  drawDial(q2svg, 90);
-  document.getElementById("q2label").textContent = "Even blend";
+  q2c0 = 0; q2c1 = 0; q2render(); q2blend();
   document.getElementById("q2read").textContent = "An even blend should land on 0 and 1 about half the time each.";
 });
 
-/* --- Step 3 --- */
-let q3bit = 0, q3sign = 1;
-const q3svg = document.getElementById("q3svg");
-function q3render(read) {
-  const ang = q3bit === 0 ? 0 : 180;
-  drawDial(q3svg, ang, { sign: q3sign });
-  const ket = q3bit === 0 ? "|0⟩" : "|1⟩";
-  const signTxt = q3sign === -1 ? " (phase flipped)" : "";
-  document.getElementById("q3label").textContent = (q3sign === -1 ? "−" : "") + ket + signTxt;
-  if (read) document.getElementById("q3read").textContent = read;
-  say(ket + signTxt);
-}
-q3render("Start at |0⟩. Try an X flip, then a Z flip.");
+/* --- Step 3: X and Z errors --- */
+const q3 = Bloch.create(document.getElementById("q3svg"), { radius: 92, cx: 130, cy: 132 });
+const q3state = document.getElementById("q3state");
+q3.onChange(({ label }) => { q3state.innerHTML = "State: <b>" + label + "</b>"; });
+q3.reset();
+function q3read(t){ document.getElementById("q3read").textContent = t; say(t); }
 document.getElementById("q3x").addEventListener("click", () => {
-  q3bit = q3bit ? 0 : 1;
-  q3render("X flip: the bit swapped, now " + (q3bit === 0 ? "|0⟩" : "|1⟩") + ". A measurement would read the opposite of before.");
+  q3.applyGate("X");
+  q3read("X flip: a half-turn top-to-bottom. On a pure 0 or 1 it just swaps them; on a blend it flips which side is heavier.");
 });
 document.getElementById("q3z").addEventListener("click", () => {
-  q3sign *= -1;
-  q3render("Z flip: the bit value is unchanged, but its phase sign flipped (the arrow turned purple). A plain 0/1 reading can't see this, yet it matters when qubits combine.");
+  q3.applyGate("Z");
+  q3read("Z flip: a half-turn about the vertical axis. It does nothing to |0⟩ or |1⟩, but it swings a blend across the sphere. A flat 0/1 reading can't see it, yet it's a real error.");
 });
-document.getElementById("q3reset").addEventListener("click", () => { q3bit = 0; q3sign = 1; q3render("Back to |0⟩."); });
+document.getElementById("q3h").addEventListener("click", () => {
+  q3.applyGate("H");
+  q3read("H put the qubit into a blend (arrow on the equator). Now press Z and watch it swing, that's the phase error a plain reading would miss.");
+});
+document.getElementById("q3reset").addEventListener("click", () => { q3.reset(); q3read("Back to |0⟩."); });
 
-/* --- Step 4 --- */
-let q4stage = 0;
-document.getElementById("q4try").addEventListener("click", () => {
-  const read = document.getElementById("q4read");
-  q4stage++;
-  if (q4stage === 1) {
+/* --- Step 4: gate playground --- */
+const q4 = Bloch.create(document.getElementById("q4svg"), { radius: 92, cx: 130, cy: 132 });
+const q4state = document.getElementById("q4state");
+q4.onChange(({ label }) => { q4state.innerHTML = "State: <b>" + label + "</b>"; });
+q4.reset();
+document.querySelectorAll(".gate[data-g]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    q4.applyGate(btn.dataset.g);
+    say(btn.textContent + " applied. State " + q4.label());
+  });
+});
+document.getElementById("q4reset").addEventListener("click", () => { q4.reset(); say("Reset to |0⟩."); });
+
+/* --- Step 5: no-cloning (text-only walkthrough) --- */
+let q5stage = 0;
+document.getElementById("q5try").addEventListener("click", () => {
+  const read = document.getElementById("q5read");
+  q5stage++;
+  if (q5stage === 1) {
     read.innerHTML = 'You hand the copier a qubit in some <b>unknown</b> blend. To copy it, the machine would have to read it first… but you just saw in Step 2 that reading <b>collapses</b> the blend. The original is destroyed before it can be duplicated.';
-  } else if (q4stage === 2) {
+  } else if (q5stage === 2) {
     read.innerHTML = '"Fine," you say, "copy it <i>without</i> reading it." But the only operations physics allows can\'t turn one unknown qubit into two identical ones. This is a theorem, not an engineering limit. <b>It simply can\'t be done.</b>';
   } else {
     read.innerHTML = 'So there is no quantum backup. <b>Copying is off the table.</b> That\'s why the next step, spreading information across many qubits, is the only way out.';
-    document.getElementById("q4try").textContent = "✗ Copying is impossible";
-    document.getElementById("q4try").disabled = true;
-    document.getElementById("q4try").style.opacity = ".7";
+    document.getElementById("q5try").textContent = "✗ Copying is impossible";
+    document.getElementById("q5try").disabled = true;
+    document.getElementById("q5try").style.opacity = ".7";
   }
   say(read.textContent);
 });
@@ -488,6 +571,7 @@ q1set("0");
 
 // Shortcuts for this page
 QEC.shortcuts([
+  { combo: "Drag", label: "Rotate any Bloch sphere" },
   { combo: "?", label: "Open the keyboard cheat sheet" },
 ]);
 </script>
