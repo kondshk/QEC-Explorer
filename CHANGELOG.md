@@ -4,6 +4,38 @@ All notable changes to **QEC Explorer** are recorded here. The format
 follows [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-07-24 · Module 4: qLDPC and the gross code
+
+### Added
+- **`qldpc.html` (Module 4)** - the first module off the surface-code grid.
+  It builds the real **[[144,12,12]] bivariate-bicycle "gross code"** (Bravyi
+  et al., *Nature* 627, 2024) live from its defining polynomials
+  `A = x^3 + y + y^2`, `B = y^3 + x + x^2`, and presents it two ways:
+  - an **"Explore the code" tab** that draws the code as a force-directed
+    Tanner graph (144 data qubits, 144 checks, 864 edges) laid out by a real
+    spring simulation. Hovering a check highlights the 6 data qubits it
+    measures and reports that they span both sublattices, making the
+    long-range (non-local) connectivity visible instead of hidden.
+  - a **"Decode a real error" tab**: a live lab that injects Pauli errors,
+    shows the exact syndrome, and runs a real **BP-OSD** decode. It always
+    returns to the codespace, and honestly reports when a heavy error slips a
+    logical operator through rather than faking a success.
+- **`qldpc-core.js`** - the single source of truth for the gross code, the way
+  `lattice-core.js` is for the surface code. Builds `Hx`/`Hz` from the
+  polynomials, computes syndromes, and decodes with belief propagation plus
+  OSD-0 post-processing run directly on the sparse parity-check matrices.
+- **`tests/qldpc.test.js`** (15 tests, wired into `tests/test-runner.html`):
+  the code invariants (qubit/check counts, weight-6 checks, `Hx·Hz^T = 0`,
+  `k = 12`), syndrome extraction, and the decoder guarantees (every
+  single-qubit error corrected, never leaves the codespace on heavy random
+  errors, `H·e = syndrome` exactly). Full suite is now 68/68.
+
+### Changed
+- The project spine (`0 → 1 → 2 → 3 → 4 → Notebooks`) now includes Module 4 in
+  the step strip on every page, the landing module grid, the research
+  throughline, and the notebooks gallery (Notebook 4 links to its interactive
+  companion).
+
 ## [2.1.0] - 2026-07-23 · Research-grade decoding + classroom tooling
 
 ### Added

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer · qLDPC and the Gross Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/qec-modal.css">
+<style>
+/* Page-specific styles. Tokens consumed from shared theme.css. */
+
+/* Two-column stage: graph/lab on the left, rail on the right */
+.stage { display: grid; grid-template-columns: 1fr 330px; gap: 20px; align-items: start; }
+@media (max-width: 940px) { .stage { grid-template-columns: 1fr; } }
+
+/* Section tabs (Explore the code / Decode a real error) */
+.modetabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.modetabs button { background: var(--surface-2); border: 1px solid var(--border-subtle);
+  color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
+  text-transform: uppercase; padding: 10px 16px; border-radius: 6px; cursor: pointer;
+  transition: all 150ms ease; }
+.modetabs button:hover { border-color: var(--border-default); color: var(--text-primary); }
+.modetabs button.on { background: var(--surface-3); border-color: var(--warning); color: var(--text-primary); }
+.modetabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.graph-card { background: var(--surface-1); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 6px; position: relative; overflow: hidden; }
+#graph { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+#graph.dragging { cursor: grabbing; }
+
+.legend { position: absolute; top: 14px; left: 14px; display: flex; flex-direction: column; gap: 6px;
+  background: var(--surface-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 9px 11px; font-size: 11px; color: var(--text-secondary);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none; }
+.legend .row { display: flex; align-items: center; gap: 7px; }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.legend .sq { width: 10px; height: 10px; border-radius: 2px; flex: none; transform: rotate(45deg); }
+.legend .k-data { background: var(--qubit-stroke); }
+.legend .k-xchk { background: var(--stab-x); }
+.legend .k-zchk { background: var(--stab-z); }
+.legend .k-err  { background: var(--pauli-x); }
+
+.readout { position: absolute; bottom: 14px; left: 14px; right: 14px;
+  background: var(--surface-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 10px 12px; font-size: 12.5px; color: var(--text-secondary);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  min-height: 40px; line-height: 1.5; pointer-events: none; }
+.readout b { color: var(--text-primary); font-weight: 600; }
+.readout .mono { font-family: var(--font-mono); color: var(--syndrome); }
+
+.rail { display: flex; flex-direction: column; gap: 16px; }
+.rail .panel h3 { margin-bottom: 14px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 10px 12px; }
+.stat .v { font-family: var(--font-mono); font-size: 20px; color: var(--text-primary); line-height: 1.1; }
+.stat .k { font-size: 10.5px; color: var(--text-hint); margin-top: 4px; letter-spacing: 0.3px; }
+.stat.wide { grid-column: 1 / -1; }
+.stat.good .v { color: var(--success); }
+
+.rail .btn { margin-top: 0; }
+.rail label.check { display: flex; align-items: center; gap: 9px; font-size: 12.5px;
+  color: var(--text-secondary); cursor: pointer; margin-top: 4px; }
+.rail label.check input { width: auto; }
+.rail .btn + .btn { margin-top: 8px; }
+
+.prose { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+.prose b { color: var(--text-primary); font-weight: 600; }
+.prose .mono { font-family: var(--font-mono); color: var(--warning); font-size: 12px; }
+.prose p + p { margin-top: 10px; }
+
+.compare { display: flex; align-items: stretch; gap: 0; margin-top: 6px;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; }
+.compare .col { flex: 1; padding: 12px; text-align: center; }
+.compare .col + .col { border-left: 1px solid var(--border-subtle); }
+.compare .col.a { background: rgba(255,131,137,0.06); }
+.compare .col.b { background: rgba(66,190,101,0.06); }
+.compare .col .big { font-family: var(--font-mono); font-size: 22px; color: var(--text-primary); }
+.compare .col.b .big { color: var(--success); }
+.compare .col .sm { font-size: 10.5px; color: var(--text-hint); margin-top: 4px; }
+
+.verify-list { list-style: none; font-size: 12px; color: var(--text-secondary); line-height: 1.9; }
+.verify-list li::before { content: "\2713"; color: var(--success); font-weight: 700; margin-right: 8px; }
+.verify-list .mono { font-family: var(--font-mono); color: var(--text-primary); font-size: 11.5px; }
+
+/* Decode-lab controls */
+.lab-controls { display: flex; gap: 12px 16px; flex-wrap: wrap; align-items: flex-end;
+  background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  padding: 14px 16px; margin-bottom: 16px; }
+.lab-controls .grp { display: flex; flex-direction: column; gap: 6px; }
+.lab-controls .grp .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-secondary); }
+.lab-controls .seg { margin-bottom: 0; gap: 5px; flex-wrap: nowrap; }
+.lab-controls .seg button { flex: 0 0 auto; min-width: 0; }
+.lab-controls .btn { width: auto; margin-top: 0; white-space: nowrap; padding: 9px 14px; }
+.lab-controls .grp.run { margin-left: auto; }
+.lab-controls .grp.run .btn { padding: 10px 22px; }
+.seg.errtype button.on[data-v="X"] { background: var(--pauli-x); border-color: var(--pauli-x); color: var(--text-on-color); }
+.seg.errtype button.on[data-v="Z"] { background: var(--pauli-z); border-color: var(--pauli-z); color: var(--text-on-color); }
+.seg.errtype button.on[data-v="Y"] { background: var(--pauli-y); border-color: var(--pauli-y); color: var(--text-on-color); }
+@media (max-width: 640px) {
+  .lab-controls .grp.run { margin-left: 0; flex: 1 1 100%; }
+  .lab-controls .grp.run .btn { width: 100%; }
+}
+
+/* Decode result banner */
+.result { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  padding: 18px 22px; margin-bottom: 18px; min-height: 60px; }
+.result .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.result .body { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.result .body b { color: var(--text-primary); font-weight: 600; }
+.result .body code { font-family: var(--font-mono); font-size: 12.5px; background: var(--surface-3);
+  padding: 1px 6px; border-radius: 3px; color: var(--warning); }
+.badge.osd { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+.badge.cs  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.badge.logfail { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+
+/* Insight + next-card reuse patterns from decoder.html */
+.insight { max-width: 900px; margin: 30px auto 0; background: var(--surface-1);
+  border: 1px solid var(--border-subtle); border-radius: 10px; padding: 26px 30px;
+  position: relative; overflow: hidden; }
+.insight::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(to bottom, var(--warning), var(--stab-z)); }
+.insight .kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--warning); margin-bottom: 10px; }
+.insight h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin-bottom: 10px; }
+.insight p { color: var(--text-secondary); font-size: 14.5px; line-height: 1.7; }
+.insight p b { color: var(--text-primary); font-weight: 500; }
+.insight p + p { margin-top: 12px; }
+
+.next-card { max-width: 900px; margin: 30px auto 0; background: var(--surface-1);
+  border: 1px solid var(--border-subtle); border-radius: 10px; padding: 28px 30px;
+  position: relative; overflow: hidden; }
+.next-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(to bottom, var(--syndrome), var(--stab-z)); }
+.next-card .kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--syndrome); margin-bottom: 10px; }
+.next-card h3 { font-family: var(--font-display); font-size: 26px; font-weight: 400; margin-bottom: 18px; }
+.next-card .links { display: flex; gap: 12px; flex-wrap: wrap; }
+.next-card .links a { flex: 1; min-width: 220px; background: var(--surface-2);
+  border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px 18px;
+  text-decoration: none; transition: all 150ms ease; }
+.next-card .links a:hover { border-color: var(--warning); }
+.next-card .links a .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--warning); margin-bottom: 6px; }
+.next-card .links a .t { font-family: var(--font-display); font-size: 18px; color: var(--text-primary); margin-bottom: 4px; }
+.next-card .links a .d { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span class="module">qLDPC · Gross Code</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="noise.html">← Back to noise</a>
+    <a href="research.html">Research</a>
+  </div>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Module 4 · qLDPC</div>
+    <div class="steps">
+      <a class="pill" href="basics.html">0 · Basics</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="index.html">1 · Detect errors</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="decoder.html">2 · Decoder race</a>
+      <span class="arrow">→</span>
+      <a class="pill" href="noise.html">3 · Noise explorer</a>
+      <span class="arrow">→</span>
+      <span class="pill now">4 · qLDPC</span>
+      <span class="arrow">→</span>
+      <a class="pill" href="notebooks.html">Notebooks</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Interactive · The real [[144,12,12]] gross code · Runs in your browser</div>
+    <h1>Beyond the grid: the <em>gross code</em></h1>
+    <p>
+      Every module so far lived on the surface code, a flat grid you can click. The
+      <b>gross code</b> is the frontier: it stores <b>12 logical qubits in 144 physical ones</b>,
+      where a surface code would need thousands. The price is that its stabilizers reach
+      <b>across the whole code</b>, not just to neighbors, so it cannot honestly be drawn as a
+      tidy grid. Here it is two ways: as the <b>Tanner graph</b> its decoder actually sees, and
+      as a <b>live decode lab</b> where you inject real errors and watch real BP-OSD clean them up.
+    </p>
+  </div>
+
+  <div class="modetabs" role="tablist" aria-label="Module sections">
+    <button id="tabExplore" class="on" role="tab" aria-selected="true">Explore the code</button>
+    <button id="tabDecode" role="tab" aria-selected="false">Decode a real error</button>
+  </div>
+
+  <!-- ============ SECTION A: EXPLORE ============ -->
+  <section id="sectionExplore">
+    <div class="stage">
+      <div class="graph-card">
+        <svg id="graph" viewBox="0 0 760 620" role="img"
+             aria-label="Force-directed Tanner graph of the 144,12,12 gross code: 144 data-qubit nodes and 144 check nodes connected by edges. Hovering a check highlights the six data qubits it measures.">
+          <g id="edges"></g>
+          <g id="nodes"></g>
+        </svg>
+        <div class="legend">
+          <div class="row"><span class="dot k-data"></span> data qubit (144)</div>
+          <div class="row"><span class="sq k-xchk"></span> X-check (72)</div>
+          <div class="row"><span class="sq k-zchk"></span> Z-check (72)</div>
+        </div>
+        <div class="readout" id="readout" aria-live="polite">
+          Hover any <b>diamond</b> to highlight the 6 data qubits one stabilizer measures.
+          Notice how far apart they can land: that reach is exactly what a grid cannot show.
+        </div>
+      </div>
+
+      <div class="rail">
+        <div class="panel">
+          <h3>The code, verified</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="v" id="s-n">144</div><div class="k">physical qubits</div></div>
+            <div class="stat good"><div class="v" id="s-k">12</div><div class="k">logical qubits</div></div>
+            <div class="stat"><div class="v" id="s-d">12</div><div class="k">code distance</div></div>
+            <div class="stat"><div class="v" id="s-w">6</div><div class="k">check weight</div></div>
+            <div class="stat wide"><div class="v" id="s-checks">144</div><div class="k">stabilizer checks (72 X + 72 Z)</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Why it matters</h3>
+          <div class="prose">
+            <p>To protect <b>12</b> logical qubits this well, a surface code would need roughly:</p>
+            <div class="compare">
+              <div class="col a"><div class="big">~1700</div><div class="sm">surface-code qubits</div></div>
+              <div class="col b"><div class="big">144</div><div class="sm">gross-code qubits</div></div>
+            </div>
+            <p style="margin-top:12px;">That order-of-magnitude saving is the whole point of qLDPC, and the price is the long-range wiring you see in the graph.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Controls</h3>
+          <button class="btn" id="btnShuffle">Re-run the layout</button>
+          <button class="btn" id="btnPulse">Pulse a random check</button>
+          <label class="check"><input type="checkbox" id="tglSpin"> Freeze the simulation</label>
+        </div>
+
+        <div class="panel">
+          <h3>Built from the real polynomials</h3>
+          <ul class="verify-list">
+            <li><span class="mono">A = x^3 + y + y^2</span></li>
+            <li><span class="mono">B = y^3 + x + x^2</span></li>
+            <li>every check has weight <span class="mono">6</span></li>
+            <li>Hx times Hz-transpose is <span class="mono">0</span> (valid CSS)</li>
+            <li><span class="mono">k = 144 - 66 - 66 = 12</span></li>
+          </ul>
+          <div class="prose" style="margin-top:12px;">
+            <p>Bravyi et al., <em>Nature</em> 627 (2024). Everything here is computed live in <span class="mono">qldpc-core.js</span>, the same engine the decode lab uses.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECTION B: DECODE ============ -->
+  <section id="sectionDecode" class="hidden">
+    <div class="lab-controls">
+      <div class="grp">
+        <span class="lbl">Error type</span>
+        <div class="seg errtype" id="labErrType" role="group" aria-label="Error type to inject">
+          <button data-v="X" class="on" aria-pressed="true">X</button>
+          <button data-v="Z" aria-pressed="false">Z</button>
+          <button data-v="Y" aria-pressed="false">Y</button>
+        </div>
+      </div>
+      <div class="grp">
+        <span class="lbl">Add errors</span>
+        <div class="seg">
+          <button class="btn" id="labAdd1">+1 random</button>
+          <button class="btn" id="labAdd3">+3 random</button>
+        </div>
+      </div>
+      <div class="grp">
+        <span class="lbl">Presets</span>
+        <div class="seg">
+          <button class="btn" id="labLight">Light (w=3)</button>
+          <button class="btn" id="labHeavy">Heavy (w=8)</button>
+        </div>
+      </div>
+      <div class="grp">
+        <span class="lbl">Reset</span>
+        <div class="seg">
+          <button class="btn danger" id="labClear">Clear</button>
+        </div>
+      </div>
+      <div class="grp run">
+        <span class="lbl">&nbsp;</span>
+        <button class="btn primary" id="labDecode">▶ Run BP-OSD</button>
+      </div>
+    </div>
+
+    <div class="result" id="labResult" aria-live="polite">
+      <div class="body">Inject one or more errors, then run <b>BP-OSD</b>. It will report the exact syndrome, whether the correction returned the code to the codespace, and whether a logical error slipped through.</div>
+    </div>
+
+    <div class="stage">
+      <div class="graph-card">
+        <svg id="latticeSvg" viewBox="0 0 760 620" role="img"
+             aria-label="Grid of the 144 gross-code data qubits. Click a qubit to add or remove an error; lit rings mark the checks that fire.">
+          <g id="latQubits"></g>
+        </svg>
+        <div class="legend">
+          <div class="row"><span class="dot k-data"></span> clean qubit</div>
+          <div class="row"><span class="dot k-err"></span> injected error</div>
+          <div class="row"><span class="sq k-xchk"></span> fired X-check</div>
+          <div class="row"><span class="sq k-zchk"></span> fired Z-check</div>
+        </div>
+        <div class="readout" id="latReadout" aria-live="polite">
+          Click any dot to toggle an error on that qubit. The panel on the right tracks the live syndrome.
+        </div>
+      </div>
+
+      <div class="rail">
+        <div class="panel">
+          <h3>Live syndrome</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="v" id="d-weight">0</div><div class="k">error weight</div></div>
+            <div class="stat"><div class="v" id="d-synd">0</div><div class="k">checks fired</div></div>
+            <div class="stat"><div class="v" id="d-xsynd">0</div><div class="k">X-checks lit</div></div>
+            <div class="stat"><div class="v" id="d-zsynd">0</div><div class="k">Z-checks lit</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>What BP-OSD is doing</h3>
+          <div class="prose">
+            <p><b>Belief propagation</b> passes reliabilities along the Tanner graph you just explored. On qLDPC codes BP alone often stalls, so <b>OSD-0</b> post-processing solves the syndrome equations exactly over GF(2). The result always returns to the codespace.</p>
+            <p>But returning to the codespace is not the same as being right: the correction can differ from the true error by a <b>logical operator</b>, which no syndrome-only decoder can detect. The lab reports that honestly.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>The honest limit</h3>
+          <div class="prose">
+            <p>This code has distance <span class="mono">12</span>, so it is guaranteed to fix any error of weight up to <span class="mono">5</span>. Past that, even a perfect decoder starts to guess. Try the <b>Heavy (w=8)</b> preset a few times and you will eventually see a logical error slip through, which is real, not a bug.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The honest insight -->
+  <div class="insight">
+    <div class="kicker">The point worth understanding</div>
+    <h3>qLDPC trades geometry for efficiency</h3>
+    <p>The surface code is easy to build because every check is local: neighboring qubits, short wires, a clean 2D chip. The gross code throws that away. Its checks are <b>long-range</b>, which is why it looks like a web instead of a grid, and why it needs long-distance connections that are hard to fabricate. In exchange, it protects the same information with <b>roughly ten times fewer qubits</b>.</p>
+    <p>That is the central bet of the qLDPC program: if the hardware can be built, the qubit savings are enormous. The decoder does not care about geometry at all. <b>BP-OSD reads the Tanner graph directly</b>, which is exactly why the same algorithm you saw win the surface-code race also drives the frontier codes. The physics on this page is computed live from the code's defining polynomials, and checked against its invariants in the test suite.</p>
+  </div>
+
+  <!-- What's next -->
+  <div class="next-card">
+    <div class="kicker">Keep going</div>
+    <h3>Where this connects</h3>
+    <div class="links">
+      <a href="notebooks.html">
+        <div class="k">Notebook 4</div>
+        <div class="t">qLDPC by hand</div>
+        <div class="d">Rebuild the bivariate-bicycle construction from scratch in plain Python.</div>
+      </a>
+      <a href="notebooks.html">
+        <div class="k">Notebook 5</div>
+        <div class="t">Learned decoding</div>
+        <div class="d">A real graph-neural-network decoder, trained and benchmarked honestly.</div>
+      </a>
+      <a href="research.html">
+        <div class="k">Research</div>
+        <div class="t">How this maps to real QEC</div>
+        <div class="d">Where the toy connects to what IBM, Google, and others are actually building.</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  QEC Explorer · Module 4 · Open-source · The [[144,12,12]] gross code is built live from its defining polynomials and decoded with a real BP-OSD, view source.<br>
+  <a href="noise.html">← Back to the noise explorer</a>
+</footer>
+
+<script src="qldpc-core.js"></script>
+<script>
+"use strict";
+/* ============================================================
+   Module 4 page controller.
+   All physics comes from qldpc-core.js (window.QLDPC). This file
+   only handles layout, rendering, and interaction.
+   ============================================================ */
+const CODE = QLDPC.buildGrossCode();
+const N = CODE.n, LM = CODE.lm;
+
+/* --- fill verified stats (from the live code object) --- */
+document.getElementById('s-n').textContent = N;
+document.getElementById('s-k').textContent = QLDPC.logicalCount(CODE);
+document.getElementById('s-checks').textContent = CODE.numXChecks + CODE.numZChecks;
+
+/* ============================================================
+   Section tabs
+   ============================================================ */
+const secExplore = document.getElementById('sectionExplore');
+const secDecode = document.getElementById('sectionDecode');
+const tabExplore = document.getElementById('tabExplore');
+const tabDecode = document.getElementById('tabDecode');
+function showSection(which) {
+  const explore = which === 'explore';
+  secExplore.classList.toggle('hidden', !explore);
+  secDecode.classList.toggle('hidden', explore);
+  tabExplore.classList.toggle('on', explore);
+  tabDecode.classList.toggle('on', !explore);
+  tabExplore.setAttribute('aria-selected', explore ? 'true' : 'false');
+  tabDecode.setAttribute('aria-selected', explore ? 'false' : 'true');
+  if (explore) { graphRunning = true; kick(); }
+  else { layoutLattice(); }
+}
+tabExplore.addEventListener('click', () => showSection('explore'));
+tabDecode.addEventListener('click', () => showSection('decode'));
+
+/* ============================================================
+   SECTION A: force-directed Tanner graph
+   ============================================================ */
+const W = 760, H = 620;
+const gEdges = document.getElementById('edges');
+const gNodes = document.getElementById('nodes');
+const svg = document.getElementById('graph');
+const readout = document.getElementById('readout');
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const dataStart = 0, xStart = N, zStart = N + CODE.numXChecks;
+let nodes = [], edges = [], edgeEls = [], nodeEls = [];
+let hoverCheck = -1, temperature = 1, frozen = false, graphRunning = true;
+
+let seed = 20240917;
+function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+
+function initGraph() {
+  nodes = []; edges = [];
+  for (let q = 0; q < N; q++) {
+    const block = q < LM ? 0 : 1;
+    const local = q < LM ? q : q - LM;
+    const ang = (local / LM) * Math.PI * 2;
+    const R = block === 0 ? 150 : 235;
+    nodes.push({ id: q, type: 'data',
+      x: W / 2 + Math.cos(ang) * R + (rnd() - 0.5) * 40,
+      y: H / 2 + Math.sin(ang) * R + (rnd() - 0.5) * 40, vx: 0, vy: 0, pinned: false });
+  }
+  for (let c = 0; c < CODE.numXChecks; c++) {
+    const ang = (c / CODE.numXChecks) * Math.PI * 2;
+    nodes.push({ id: xStart + c, type: 'x',
+      x: W / 2 + Math.cos(ang) * 70 + (rnd() - 0.5) * 30,
+      y: H / 2 + Math.sin(ang) * 70 + (rnd() - 0.5) * 30, vx: 0, vy: 0, pinned: false });
+  }
+  for (let c = 0; c < CODE.numZChecks; c++) {
+    const ang = (c / CODE.numZChecks) * Math.PI * 2 + Math.PI / CODE.numZChecks;
+    nodes.push({ id: zStart + c, type: 'z',
+      x: W / 2 + Math.cos(ang) * 100 + (rnd() - 0.5) * 30,
+      y: H / 2 + Math.sin(ang) * 100 + (rnd() - 0.5) * 30, vx: 0, vy: 0, pinned: false });
+  }
+  CODE.xChecks.forEach((qs, c) => qs.forEach(q => edges.push({ a: xStart + c, b: dataStart + q })));
+  CODE.zChecks.forEach((qs, c) => qs.forEach(q => edges.push({ a: zStart + c, b: dataStart + q })));
+  nodes.forEach(n => (n.adj = []));
+  edges.forEach(e => { nodes[e.a].adj.push(e.b); nodes[e.b].adj.push(e.a); });
+}
+
+function step() {
+  const kRep = 4200, kAtt = 0.010, ideal = 46, grav = 0.006, damp = 0.86;
+  const CS = 80, buckets = new Map();
+  const key = (cx, cy) => cx * 10007 + cy;
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i], cx = (n.x / CS) | 0, cy = (n.y / CS) | 0, kk = key(cx, cy);
+    if (!buckets.has(kk)) buckets.set(kk, []);
+    buckets.get(kk).push(i);
+  }
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i]; let fx = 0, fy = 0;
+    const cx = (n.x / CS) | 0, cy = (n.y / CS) | 0;
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      const arr = buckets.get(key(cx + dx, cy + dy)); if (!arr) continue;
+      for (const j of arr) {
+        if (j === i) continue;
+        const m = nodes[j]; let ddx = n.x - m.x, ddy = n.y - m.y, d2 = ddx * ddx + ddy * ddy;
+        if (d2 < 0.01) { ddx = rnd() - 0.5; ddy = rnd() - 0.5; d2 = 0.01; }
+        if (d2 > 26000) continue;
+        const inv = kRep / d2, d = Math.sqrt(d2);
+        fx += (ddx / d) * inv; fy += (ddy / d) * inv;
+      }
+    }
+    fx += (W / 2 - n.x) * grav; fy += (H / 2 - n.y) * grav;
+    n.vx = (n.vx + fx) * damp; n.vy = (n.vy + fy) * damp;
+  }
+  for (const e of edges) {
+    const a = nodes[e.a], b = nodes[e.b];
+    const ddx = b.x - a.x, ddy = b.y - a.y, d = Math.hypot(ddx, ddy) || 0.01;
+    const f = kAtt * (d - ideal), ux = ddx / d, uy = ddy / d;
+    a.vx += ux * f * d * 0.02; a.vy += uy * f * d * 0.02;
+    b.vx -= ux * f * d * 0.02; b.vy -= uy * f * d * 0.02;
+  }
+  const maxStep = 14 * temperature + 2;
+  for (const n of nodes) {
+    if (n.pinned) { n.vx = 0; n.vy = 0; continue; }
+    let vx = n.vx, vy = n.vy; const sp = Math.hypot(vx, vy);
+    if (sp > maxStep) { vx = vx / sp * maxStep; vy = vy / sp * maxStep; }
+    n.x += vx; n.y += vy;
+    n.x = Math.max(16, Math.min(W - 16, n.x));
+    n.y = Math.max(16, Math.min(H - 16, n.y));
+  }
+  if (temperature > 0.02) temperature *= 0.992;
+}
+
+const COLOR = { data: 'var(--qubit-stroke)', x: 'var(--stab-x)', z: 'var(--stab-z)' };
+function buildGraphDOM() {
+  gEdges.textContent = ''; gNodes.textContent = '';
+  edgeEls = edges.map(() => {
+    const ln = document.createElementNS(SVG_NS, 'line');
+    ln.setAttribute('stroke', 'var(--border-default)');
+    ln.setAttribute('stroke-width', '1'); ln.setAttribute('stroke-opacity', '0.32');
+    gEdges.appendChild(ln); return ln;
+  });
+  nodeEls = nodes.map((n, i) => {
+    let el;
+    if (n.type === 'data') {
+      el = document.createElementNS(SVG_NS, 'circle');
+      el.setAttribute('r', '4.4'); el.setAttribute('fill', COLOR.data); el.setAttribute('fill-opacity', '0.9');
+    } else {
+      el = document.createElementNS(SVG_NS, 'rect');
+      el.setAttribute('width', '9'); el.setAttribute('height', '9'); el.setAttribute('rx', '1.5');
+      el.setAttribute('fill', n.type === 'x' ? COLOR.x : COLOR.z);
+    }
+    el.style.cursor = 'pointer'; el.dataset.i = i;
+    gNodes.appendChild(el); return el;
+  });
+}
+function renderGraph() {
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i], a = nodes[e.a], b = nodes[e.b], ln = edgeEls[i];
+    ln.setAttribute('x1', a.x.toFixed(1)); ln.setAttribute('y1', a.y.toFixed(1));
+    ln.setAttribute('x2', b.x.toFixed(1)); ln.setAttribute('y2', b.y.toFixed(1));
+    const lit = hoverCheck >= 0 && (e.a === hoverCheck || e.b === hoverCheck);
+    ln.setAttribute('stroke', lit ? 'var(--syndrome)' : 'var(--border-default)');
+    ln.setAttribute('stroke-opacity', lit ? '0.95' : (hoverCheck >= 0 ? '0.08' : '0.32'));
+    ln.setAttribute('stroke-width', lit ? '2' : '1');
+  }
+  const litSet = hoverCheck >= 0 ? new Set(nodes[hoverCheck].adj) : null;
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i], el = nodeEls[i];
+    if (n.type === 'data') {
+      el.setAttribute('cx', n.x.toFixed(1)); el.setAttribute('cy', n.y.toFixed(1));
+      const lit = litSet && litSet.has(i);
+      el.setAttribute('r', lit ? '7' : '4.4');
+      el.setAttribute('fill', lit ? 'var(--syndrome)' : COLOR.data);
+      el.setAttribute('fill-opacity', hoverCheck < 0 ? '0.9' : (lit ? '1' : '0.28'));
+    } else {
+      const isHover = i === hoverCheck;
+      const s = isHover ? 6.5 : 4.5, w = isHover ? 13 : 9;
+      el.setAttribute('x', (n.x - s).toFixed(1)); el.setAttribute('y', (n.y - s).toFixed(1));
+      el.setAttribute('width', w); el.setAttribute('height', w);
+      el.setAttribute('transform', `rotate(45 ${n.x.toFixed(1)} ${n.y.toFixed(1)})`);
+      el.setAttribute('fill-opacity', hoverCheck < 0 || isHover ? '1' : '0.25');
+    }
+  }
+}
+
+function toSvgPt(target, evt) {
+  const pt = target.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  const p = pt.matrixTransform(target.getScreenCTM().inverse());
+  return { x: p.x, y: p.y };
+}
+function nearestNode(x, y, maxD) {
+  let best = -1, bd = maxD * maxD;
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i], dx = n.x - x, dy = n.y - y, d = dx * dx + dy * dy;
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+function describeCheck(i) {
+  const n = nodes[i]; if (!n || n.type === 'data') return;
+  const kind = n.type === 'x' ? 'X-check' : 'Z-check';
+  const local = n.id - (n.type === 'x' ? xStart : zStart);
+  const qs = n.adj.map(a => nodes[a].id).slice().sort((a, b) => a - b);
+  const spanL = qs.filter(q => q < LM).length, spanR = qs.length - spanL;
+  readout.innerHTML = `<b>${kind} #${local}</b> measures <span class="mono">${qs.length}</span> data qubits: ` +
+    `<span class="mono">${qs.join(', ')}</span>. ` +
+    `They span <b>both</b> sublattices (${spanL} left, ${spanR} right), which is why no flat grid can place them all next to this check.`;
+}
+function resetReadout() {
+  readout.innerHTML = 'Hover any <b>diamond</b> to highlight the 6 data qubits one stabilizer measures. ' +
+    'Notice how far apart they can land: that reach is exactly what a grid cannot show.';
+}
+let dragging = -1;
+svg.addEventListener('pointermove', (e) => {
+  const { x, y } = toSvgPt(svg, e);
+  if (dragging >= 0) {
+    nodes[dragging].x = Math.max(16, Math.min(W - 16, x));
+    nodes[dragging].y = Math.max(16, Math.min(H - 16, y));
+    nodes[dragging].vx = 0; nodes[dragging].vy = 0;
+    temperature = Math.max(temperature, 0.35); kick(); return;
+  }
+  const i = nearestNode(x, y, 13);
+  const isCheck = i >= 0 && nodes[i].type !== 'data';
+  const newHover = isCheck ? i : -1;
+  if (newHover !== hoverCheck) {
+    hoverCheck = newHover;
+    if (hoverCheck >= 0) describeCheck(hoverCheck); else resetReadout();
+    renderGraph();
+  }
+});
+svg.addEventListener('pointerdown', (e) => {
+  const { x, y } = toSvgPt(svg, e);
+  const i = nearestNode(x, y, 14);
+  if (i >= 0) { dragging = i; nodes[i].pinned = true; svg.classList.add('dragging'); svg.setPointerCapture(e.pointerId); kick(); }
+});
+function endDrag() { if (dragging >= 0) { nodes[dragging].pinned = false; dragging = -1; svg.classList.remove('dragging'); } }
+svg.addEventListener('pointerup', endDrag);
+svg.addEventListener('pointercancel', endDrag);
+svg.addEventListener('pointerleave', () => { if (dragging < 0 && hoverCheck >= 0) { hoverCheck = -1; resetReadout(); renderGraph(); } });
+
+document.getElementById('btnShuffle').addEventListener('click', () => {
+  seed = (seed ^ 0x9e3779b9) >>> 0;
+  initGraph(); buildGraphDOM(); temperature = 1; frozen = false;
+  document.getElementById('tglSpin').checked = false; kick();
+});
+document.getElementById('btnPulse').addEventListener('click', () => {
+  const idx = xStart + Math.floor(rnd() * (CODE.numXChecks + CODE.numZChecks));
+  hoverCheck = idx; describeCheck(idx); renderGraph();
+  temperature = Math.max(temperature, 0.2); kick();
+  setTimeout(() => { if (hoverCheck === idx) { hoverCheck = -1; resetReadout(); renderGraph(); } }, 2400);
+});
+document.getElementById('tglSpin').addEventListener('change', (e) => { frozen = e.target.checked; if (!frozen) kick(); });
+
+/* rAF loop that self-suspends when settled (so it does not burn CPU). */
+let rafPending = false;
+function kick() { if (!rafPending) { rafPending = true; requestAnimationFrame(loop); } }
+function loop() {
+  rafPending = false;
+  if (secExplore.classList.contains('hidden')) return; // paused when not visible
+  if (!frozen && (temperature > 0.02 || dragging >= 0)) { step(); renderGraph(); kick(); }
+  else { renderGraph(); }
+}
+
+/* ============================================================
+   SECTION B: decode lab (grid of qubits + live syndrome + BP-OSD)
+   ============================================================ */
+const latSvg = document.getElementById('latticeSvg');
+const gLat = document.getElementById('latQubits');
+const latReadout = document.getElementById('latReadout');
+let labErr = QLDPC.blankError(CODE);
+let labPauli = 'X';
+let latEls = [];
+let latLaidOut = false;
+
+/* Grid layout for the 144 qubits: two 12x6 blocks side by side, so the
+   left/right sublattice split is visible. This is a LAYOUT choice only,
+   not a claim that the code is local. */
+function latticePos(q) {
+  const block = q < LM ? 0 : 1;
+  const local = q < LM ? q : q - LM;      // 0..71
+  const row = Math.floor(local / 6);       // 0..11
+  const col = local % 6;                    // 0..5
+  const blockW = 300, gap = 80, x0 = 60;
+  const bx = x0 + block * (blockW + gap);
+  const x = bx + col * (blockW / 5);
+  const y = 60 + row * ((H - 120) / 11);
+  return { x, y };
+}
+function layoutLattice() {
+  if (latLaidOut) { renderLattice(); return; }
+  gLat.textContent = '';
+  latEls = [];
+  for (let q = 0; q < N; q++) {
+    const { x, y } = latticePos(q);
+    const c = document.createElementNS(SVG_NS, 'circle');
+    c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
+    c.setAttribute('r', '7'); c.setAttribute('fill', 'var(--qubit-rest)');
+    c.setAttribute('stroke', 'var(--qubit-stroke)'); c.setAttribute('stroke-width', '1.3');
+    c.style.cursor = 'pointer'; c.dataset.q = q;
+    gLat.appendChild(c); latEls.push(c);
+  }
+  // block labels
+  ['L sublattice', 'R sublattice'].forEach((label, b) => {
+    const t = document.createElementNS(SVG_NS, 'text');
+    const p = latticePos(b === 0 ? 0 : LM);
+    t.setAttribute('x', p.x - 8); t.setAttribute('y', 40);
+    t.setAttribute('fill', 'var(--text-hint)'); t.setAttribute('font-size', '12');
+    t.setAttribute('font-family', 'var(--font-mono)'); t.textContent = label;
+    gLat.appendChild(t);
+  });
+  latLaidOut = true;
+  renderLattice();
+}
+function renderLattice() {
+  for (let q = 0; q < N; q++) {
+    const el = latEls[q];
+    const hasX = labErr.x[q], hasZ = labErr.z[q];
+    let fill = 'var(--qubit-rest)';
+    if (hasX && hasZ) fill = 'var(--pauli-y)';
+    else if (hasX) fill = 'var(--pauli-x)';
+    else if (hasZ) fill = 'var(--pauli-z)';
+    el.setAttribute('fill', fill);
+    el.setAttribute('r', (hasX || hasZ) ? '8.5' : '7');
+  }
+  updateSyndromeReadout();
+}
+function updateSyndromeReadout() {
+  const s = QLDPC.syndrome(CODE, labErr);
+  const xLit = [...s.x].reduce((a, v) => a + v, 0);
+  const zLit = [...s.z].reduce((a, v) => a + v, 0);
+  const w = QLDPC.weight(labErr);
+  document.getElementById('d-weight').textContent = w;
+  document.getElementById('d-synd').textContent = xLit + zLit;
+  document.getElementById('d-xsynd').textContent = xLit;
+  document.getElementById('d-zsynd').textContent = zLit;
+}
+
+latSvg.addEventListener('click', (e) => {
+  const { x, y } = toSvgPt(latSvg, e);
+  // find nearest qubit within radius
+  let best = -1, bd = 16 * 16;
+  for (let q = 0; q < N; q++) {
+    const p = latticePos(q), dx = p.x - x, dy = p.y - y, d = dx * dx + dy * dy;
+    if (d < bd) { bd = d; best = q; }
+  }
+  if (best < 0) return;
+  QLDPC.toggle(labErr, best, labPauli);
+  renderLattice();
+  latReadout.innerHTML = `Toggled <b>${labPauli}</b> on qubit <span class="mono">${best}</span>. ` +
+    `Error weight is now <b>${QLDPC.weight(labErr)}</b>. Run BP-OSD when ready.`;
+  clearResult();
+});
+
+/* lab controls */
+document.querySelectorAll('#labErrType button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#labErrType button').forEach(b => { b.classList.remove('on'); b.setAttribute('aria-pressed', 'false'); });
+    btn.classList.add('on'); btn.setAttribute('aria-pressed', 'true');
+    labPauli = btn.dataset.v;
+  });
+});
+function addRandom(count) {
+  for (let i = 0; i < count; i++) {
+    const q = Math.floor(rnd() * N);
+    QLDPC.toggle(labErr, q, labPauli);
+  }
+  renderLattice(); clearResult();
+}
+document.getElementById('labAdd1').addEventListener('click', () => addRandom(1));
+document.getElementById('labAdd3').addEventListener('click', () => addRandom(3));
+document.getElementById('labClear').addEventListener('click', () => {
+  labErr = QLDPC.blankError(CODE); renderLattice(); clearResult();
+  latReadout.textContent = 'Cleared. Click any dot to toggle an error on that qubit.';
+});
+function preset(weight) {
+  labErr = QLDPC.blankError(CODE);
+  const used = new Set();
+  for (let i = 0; i < weight;) {
+    const q = Math.floor(rnd() * N);
+    if (used.has(q)) continue; used.add(q); i++;
+    const p = ['X', 'Z', 'Y'][Math.floor(rnd() * 3)];
+    QLDPC.toggle(labErr, q, p);
+  }
+  renderLattice(); clearResult();
+  latReadout.innerHTML = `Loaded a random <b>weight-${weight}</b> error. Run BP-OSD to decode it.`;
+}
+document.getElementById('labLight').addEventListener('click', () => preset(3));
+document.getElementById('labHeavy').addEventListener('click', () => preset(8));
+
+function clearResult() {
+  document.getElementById('labResult').innerHTML =
+    '<div class="body">Inject one or more errors, then run <b>BP-OSD</b>. It will report the exact syndrome, whether the correction returned the code to the codespace, and whether a logical error slipped through.</div>';
+}
+document.getElementById('labDecode').addEventListener('click', () => {
+  const w = QLDPC.weight(labErr);
+  if (w === 0) {
+    document.getElementById('labResult').innerHTML =
+      '<div class="body">No error injected. Add at least one error first, then run BP-OSD.</div>';
+    return;
+  }
+  const r = QLDPC.decode(CODE, labErr);
+  const badges = [];
+  if (r.usedOsdX || r.usedOsdZ) badges.push('<span class="badge osd">OSD rescue used</span>');
+  if (r.inCodespace) badges.push('<span class="badge cs">Back in codespace</span>');
+  if (r.inCodespace && !r.logicalOk) badges.push('<span class="badge logfail">Logical error slipped through</span>');
+  if (r.logicalOk) badges.push('<span class="badge fixed">Fully corrected</span>');
+
+  let body;
+  if (r.logicalOk) {
+    body = `BP-OSD decoded the <b>weight-${w}</b> error with a correction of weight ` +
+      `<b>${r.correctionWeight}</b> and <b>recovered the original state exactly</b>. ` +
+      `The residual is the identity: no logical error. ` +
+      `(BP ran <code>${r.itersX}</code>/<code>${r.itersZ}</code> iterations on the X/Z channels` +
+      `${(r.usedOsdX || r.usedOsdZ) ? ', then OSD-0 solved the syndrome exactly' : ''}.)`;
+  } else {
+    body = `BP-OSD returned the code to the codespace, but the correction differs from the true error by a ` +
+      `<b>logical operator</b> (residual weight <b>${r.residualWeight}</b>). ` +
+      `This is a genuine <b>logical error</b>: the syndrome was satisfied, yet the encoded information flipped. ` +
+      `No syndrome-only decoder can rule this out, and it gets more likely as the error weight approaches the code distance (12). ` +
+      `This is exactly the failure mode a real fault-tolerant system fights with lower error rates and repeated rounds.`;
+  }
+  document.getElementById('labResult').innerHTML =
+    `<div class="badges">${badges.join('')}</div><div class="body">${body}</div>`;
+});
+
+/* ============================================================
+   Boot
+   ============================================================ */
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+initGraph();
+buildGraphDOM();
+if (reduceMotion) {
+  for (let k = 0; k < 400; k++) step();
+  frozen = true;
+  document.getElementById('tglSpin').checked = true;
+}
+renderGraph();
+kick();
+</script>
+</body>
+</html>

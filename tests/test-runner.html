@@ -36,7 +36,7 @@
 
 <h1>QEC Explorer · Test Runner</h1>
 
-<p class="meta">Browser-based unit tests for <code>lattice-core.js</code> (rotated-surface-code physics) and <code>decoders.js</code> (lookup, MWPM, BP). Runs offline, no build step.</p>
+<p class="meta">Browser-based unit tests for <code>lattice-core.js</code> (rotated-surface-code physics), <code>decoders.js</code> (lookup, MWPM, BP, BP-OSD), and <code>qldpc-core.js</code> (the [[144,12,12]] gross code and its BP-OSD decoder). Runs offline, no build step.</p>
 
 <p><button class="run-btn" id="runBtn">▶ Run all tests</button>
    <button class="run-btn" id="runBtnAgain" style="background: var(--surface-3); color: var(--text-primary); border: 1px solid var(--border-default);">Re-run</button></p>
@@ -53,6 +53,8 @@
 <!-- Load the SAME physics and decoders that the production pages use. -->
 <script src="../lattice-core.js"></script>
 <script src="../decoders.js"></script>
+<!-- Module 4 physics: the [[144,12,12]] gross code + its BP-OSD decoder. -->
+<script src="../qldpc-core.js"></script>
 <!-- Pure OpenQASM 3 emitter shared by the production export buttons. -->
 <script src="../assets/qec-openqasm.js"></script>
 <!-- Tiny test framework: QECT.describe / it / assert. Must load BEFORE the test
@@ -63,6 +65,7 @@
 <script src="./syndrome.test.js"></script>
 <script src="./decoder.test.js"></script>
 <script src="./lookup.test.js"></script>
+<script src="./qldpc.test.js"></script>
 
 <!-- Boot -->
 <script>

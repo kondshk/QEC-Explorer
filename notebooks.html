@@ -185,6 +185,8 @@
       <span class="arrow">→</span>
       <a class="pill" href="noise.html">3 · Noise</a>
       <span class="arrow">→</span>
+      <a class="pill" href="qldpc.html">4 · qLDPC</a>
+      <span class="arrow">→</span>
       <span class="pill now">Notebooks</span>
     </div>
   </div>
@@ -233,7 +235,7 @@
       <li>Notebook 5 trains a small neural network and installs <code>torch</code> in its first cell. It runs fine on Colab's free CPU; a GPU runtime is faster but optional.</li>
     </ol>
     <p>Prefer to just read? <b>View on GitHub</b> shows the notebook with its saved output already baked in, no run needed. Every notebook re-derives the exact code behind the interactive pages and asserts it matches, so what you read here is the same physics you clicked through.</p>
-    <p style="font-size:13px;color:var(--text-hint)">On honesty: Notebooks 1 to 3 are fully worked and self-checking. Notebook 4 is conceptual (it explains qLDPC and bivariate-bicycle codes without a from-scratch build). Notebook 5 trains a real but deliberately small decoder, and reports where it wins and where it doesn't, rather than claiming a clean victory.</p>
+    <p style="font-size:13px;color:var(--text-hint)">On honesty: Notebooks 1 to 3 are fully worked and self-checking. Notebook 4 is conceptual, but its interactive companion (<a href="qldpc.html">Module 4</a>) builds the real [[144,12,12]] gross code live and decodes it with BP-OSD. Notebook 5 trains a real but deliberately small decoder, and reports where it wins and where it doesn't, rather than claiming a clean victory.</p>
   </div>
 </div>
 
@@ -294,8 +296,9 @@ const NOTEBOOKS = [
     idx: "4", level: "adv", levelName: "Advanced",
     title: "Beyond the surface code: qLDPC",
     time: "~20 min", cells: "conceptual",
-    desc: "The surface code needs a lot of physical qubits per logical one. Can we do better? This conceptual notebook introduces quantum low-density parity-check (qLDPC) codes and IBM's bivariate-bicycle family, and the overhead problem they aim to solve.",
-    tags: ["qLDPC", "bivariate-bicycle", "overhead", "conceptual"],
+    desc: "The surface code needs a lot of physical qubits per logical one. Can we do better? This notebook introduces quantum low-density parity-check (qLDPC) codes and IBM's bivariate-bicycle family, and the overhead problem they aim to solve. Its interactive companion, Module 4, builds the real [[144,12,12]] gross code live and decodes it with BP-OSD.",
+    module: { href: "qldpc.html", label: "Open Module 4 (interactive)" },
+    tags: ["qLDPC", "bivariate-bicycle", "overhead", "gross code"],
   },
   {
     file: "notebook05_gnn_decoding.ipynb",
@@ -331,6 +334,7 @@ function cardHtml(nb) {
           <span class="ic">▦</span> nbviewer</a>
         <a class="act" href="${nb.file}" download>
           <span class="ic">⬇</span> Download .ipynb</a>
+        ${nb.module ? `<a class="act" href="${nb.module.href}"><span class="ic">◈</span> ${nb.module.label}</a>` : ""}
       </div>
     </div>
   </article>`;

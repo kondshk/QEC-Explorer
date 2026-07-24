@@ -2,7 +2,7 @@
 
 **An open-source, interactive tool for seeing how quantum error correction actually works, in real time, in your browser.**
 
-Click qubits to inject errors on a real rotated surface code, watch the stabilizers light up to detect them, race four real decoders (including research-grade BP-OSD) to fix the damage, and run a live Monte Carlo hunt for the error threshold. Then rebuild every piece from scratch in plain Python with the companion Colab notebooks.
+Click qubits to inject errors on a real rotated surface code, watch the stabilizers light up to detect them, race four real decoders (including research-grade BP-OSD) to fix the damage, run a live Monte Carlo hunt for the error threshold, and step up to the frontier with the real [[144,12,12]] qLDPC gross code. Then rebuild every piece from scratch in plain Python with the companion Colab notebooks.
 
 <p align="center">
   <a href="https://qec-explorer-iota.vercel.app/"><b>▶ Open the live tool</b></a>
@@ -40,6 +40,7 @@ Everything runs client-side. No accounts, no server, no build step.
 | **1 · Detection** | Inject X / Z / Y errors on a surface code and watch the syndrome fire | ✅ Live |
 | **2 · Decoder race** | Four real decoders (lookup, MWPM, belief propagation, and BP-OSD) compete on the same syndrome | ✅ Live |
 | **3 · Noise explorer** | A live Monte Carlo over error rate and bias; hunt the threshold yourself | ✅ Live |
+| **4 · qLDPC** | The real [[144,12,12]] gross code as a force-directed Tanner graph, plus a live BP-OSD decode lab | ✅ Live |
 
 A plain-English [landing page](https://qec-explorer-iota.vercel.app/) and a [research-connection page](https://qec-explorer-iota.vercel.app/research) tie the whole thing together.
 
@@ -65,6 +66,16 @@ The lattice connectivity, stabilizer construction, and syndrome parity are physi
 - Logical operators (a spanning column of X, or row of Z) correctly produce a silent syndrome
 
 You can run those checks yourself: open `tests/test-runner.html` in a browser and the full suite runs on load.
+
+## The frontier: qLDPC and the gross code
+
+Module 4 steps off the grid. It builds the real **[[144,12,12]] bivariate-bicycle "gross code"** (Bravyi et al., *Nature* 627, 2024) live in the browser from its defining polynomials `A = x³ + y + y²`, `B = y³ + x + x²`, and draws it as a **force-directed Tanner graph**, the way its decoder actually sees it. Because the code is not planar, its stabilizers reach across the whole code; hovering any check lights up the six data qubits it measures, wherever they land, which is exactly the long-range structure a flat grid cannot show.
+
+A second tab is a **live decode lab**: inject Pauli errors, watch the exact syndrome, and run a real **BP-OSD** decoder (`qldpc-core.js`). It always returns the code to the codespace, and when a heavy error slips a logical operator through, the lab says so rather than faking a success. The construction and the decoder are both checked in `tests/qldpc.test.js`:
+
+- 144 physical qubits, 72 + 72 weight-6 checks, every qubit in 3 X-checks and 3 Z-checks
+- `Hx · Hzᵀ = 0` (a valid CSS code) and `k = 144 − 66 − 66 = 12` logical qubits
+- BP-OSD corrects every single-qubit error exactly and never leaves the codespace, and its OSD-0 solve satisfies `H · e = syndrome` over GF(2)
 
 ## Export and import your work
 
@@ -101,6 +112,7 @@ index.html          Module 1, surface-code detection playground
 basics.html         Module 0, beginner on-ramp with a 3D Bloch sphere
 decoder.html        Module 2, the four-decoder race
 noise.html          Module 3, Monte Carlo noise and threshold explorer
+qldpc.html          Module 4, the [[144,12,12]] gross code and BP-OSD decode lab
 research.html       How the toy connects to real QEC research
 notebooks.html      Gallery linking every companion notebook
 puzzle.html         A deterministic daily decoding puzzle
@@ -109,6 +121,7 @@ landing.html        Plain-English front door
 
 lattice-core.js     Single source of truth for the surface-code physics
 decoders.js         Lookup, MWPM, belief-propagation, and BP-OSD decoders
+qldpc-core.js       The gross-code construction, syndrome, and BP-OSD decoder
 assets/             Shared theme, the Bloch-sphere engine, the OpenQASM emitter
 notebook0*.ipynb    Six companion Colab notebooks
 tests/              Browser-based unit tests (open tests/test-runner.html)
