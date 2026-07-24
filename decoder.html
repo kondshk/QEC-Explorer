@@ -11,13 +11,29 @@
 <link rel="stylesheet" href="assets/qec-modal.css">
 <style>
 /* Page-specific styles. Tokens/consumed from shared theme.css. */
-.controls{display:flex;gap:var(--space-5);flex-wrap:wrap;align-items:flex-end;
+/* Compact control bar: groups size to their content and wrap tightly,
+   so there is no dead space and "Run race" sits inline with the rest. */
+.controls{display:flex;gap:14px 18px;flex-wrap:wrap;align-items:flex-end;
   background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
-  padding:var(--space-5) var(--space-5);margin-bottom:14px}
-.ctrl-group{display:flex;flex-direction:column;gap:7px}
-.ctrl-group .lbl{font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);
+  padding:16px 18px;margin-bottom:14px}
+.ctrl-group{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.ctrl-group .lbl{font-size:10px;color:var(--text-secondary);font-family:var(--font-mono);
   letter-spacing:1px;text-transform:uppercase}
-.spacer{flex:1}
+/* segmented + single-button groups: shrink-wrap, don't stretch to fill */
+.controls .seg{margin-bottom:0;gap:5px;flex-wrap:nowrap}
+.controls .seg button{flex:0 0 auto;min-width:0}
+/* override theme's width:100% so single-action buttons are content-sized */
+.controls .seg .btn{width:auto;margin-top:0;white-space:nowrap;padding:9px 13px}
+/* "Run race" hugs the trailing edge via margin-left:auto — this adds NO
+   vertical space when groups wrap (unlike a flex:1 spacer, which eats a
+   whole wrapped line). The old .spacer div is now inert. */
+.spacer{display:none}
+.ctrl-group.run{flex:0 0 auto;margin-left:auto;align-self:flex-end}
+.ctrl-group.run .btn{width:auto;white-space:nowrap;padding:10px 24px}
+@media(max-width:640px){
+  .ctrl-group.run{margin-left:0;flex:1 1 100%}
+  .ctrl-group.run .btn{width:100%}
+}
 /* Per-value segmented button colors (theme provides the base .seg button styles) */
 .seg.errtype button.on[data-v="X"]{background:var(--pauli-x);border-color:var(--pauli-x)}
 .seg.errtype button.on[data-v="Z"]{background:var(--pauli-z);border-color:var(--pauli-z)}
@@ -207,7 +223,7 @@ body.guiding .decoder{cursor:help}
       </div>
     </div>
     <div class="spacer"></div>
-    <div class="ctrl-group">
+    <div class="ctrl-group run">
       <span class="lbl">&nbsp;</span>
       <button class="btn primary" id="raceBtn">▶ Run race</button>
     </div>
