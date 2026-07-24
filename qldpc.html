@@ -518,7 +518,7 @@ function step() {
     n.x = Math.max(16, Math.min(W - 16, n.x));
     n.y = Math.max(16, Math.min(H - 16, n.y));
   }
-  if (temperature > 0.02) temperature *= 0.992;
+  if (temperature > 0.02) temperature *= 0.965;
 }
 
 const COLOR = { data: 'var(--qubit-stroke)', x: 'var(--stab-x)', z: 'var(--stab-z)' };
@@ -631,7 +631,9 @@ svg.addEventListener('pointerleave', () => { if (dragging < 0 && hoverCheck >= 0
 
 document.getElementById('btnShuffle').addEventListener('click', () => {
   seed = (seed ^ 0x9e3779b9) >>> 0;
-  initGraph(); buildGraphDOM(); temperature = 1; frozen = false;
+  initGraph(); buildGraphDOM();
+  for (let k = 0; k < 60; k++) step();
+  temperature = 0.6; frozen = false;
   document.getElementById('tglSpin').checked = false; kick();
 });
 document.getElementById('btnPulse').addEventListener('click', () => {
@@ -824,6 +826,12 @@ if (reduceMotion) {
   for (let k = 0; k < 400; k++) step();
   frozen = true;
   document.getElementById('tglSpin').checked = true;
+} else {
+  /* Pre-settle most of the way before the first paint, so the graph appears
+     already arranged and the visitor only sees a short, calm final tightening
+     rather than the whole cluster exploding out of its starting rings. */
+  for (let k = 0; k < 90; k++) step();
+  temperature = 0.55;
 }
 renderGraph();
 kick();
