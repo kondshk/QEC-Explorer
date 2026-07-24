@@ -2,7 +2,7 @@
 
 > Thank you for your interest in making quantum error correction more
 > accessible. QEC Explorer is a community project; we welcome
-> contributions of all sizes — typo fixes, new test cases, full
+> contributions of all sizes - typo fixes, new test cases, full
 > decoder implementations, or a new educational module.
 
 ## Code of conduct
@@ -64,7 +64,7 @@ node -e "
 - [ ] All tests pass in `tests/test-runner.html`
 - [ ] The change keeps the "no build step, no dependencies, no CDN" contract
       (Google Fonts is the only external request, and even that is
-      optional — pages should look acceptable with system fallbacks)
+      optional - pages should look acceptable with system fallbacks)
 - [ ] No new global pollution besides the `QEC.*` namespace
 - [ ] New class names are prefixed and live in `theme.css`
       (avoid scattering new design tokens across pages)
@@ -121,7 +121,7 @@ overhead:
 | `docs` | `#0075ca` | Documentation only (no code change). |
 | `design` | `#bfd4f2` | UX / visual / accessibility. |
 | `algorithm` | `#fbca04` | Quantum-physics correctness. |
-| `wontfix` | `#ffffff` | Considered and declined — please read the conversation. |
+| `wontfix` | `#ffffff` | Considered and declined - please read the conversation. |
 | `duplicate` | `#cfd3d7` | Already covered. |
 
 ## Release process

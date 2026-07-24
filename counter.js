@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — counter.js  (Phase 3: community counter)
+   QEC EXPLORER - counter.js  (Phase 3: community counter)
    ------------------------------------------------------------
    Anonymous, no-accounts aggregate counters for a STATIC site
    (deployed on Vercel, no backend). Uses an external counter
@@ -8,7 +8,7 @@
    DEPLOYMENT NOTE: this project is a static site, NOT a Claude
    React artifact, so the artifact `window.storage` API does not
    exist here. A backend-free static site needs an external
-   service. We use Abacus (abacus.jasoncameron.dev) — a free,
+   service. We use Abacus (abacus.jasoncameron.dev) - a free,
    account-less, CORS-enabled counter with /hit and /get endpoints
    returning {value:N}. (The older CountAPI was verified DOWN, so
    it was replaced with this maintained service.) Cross-request

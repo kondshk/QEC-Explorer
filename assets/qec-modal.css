@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------
-   QEC EXPLORER — assets/qec-modal.css
+   QEC EXPLORER - assets/qec-modal.css
    Modal/cheat-sheet styles, layered on top of theme.css.
    ------------------------------------------------------------ */
 .qec-modal {
@@ -14,7 +14,11 @@
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-.qec-modal.show { display: flex; }
+/* Visible state. The keyboard cheat-sheet opens via `.show`; the export
+   dialogs (OpenQASM / Qiskit template) open via `.open`. Support both so
+   every modal that toggles either class actually renders. */
+.qec-modal.show,
+.qec-modal.open { display: flex; }
 .qec-modal-card {
   background: var(--surface-1);
   border: 1px solid var(--border-default);

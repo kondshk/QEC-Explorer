@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — assets/theme.css
+   QEC EXPLORER - assets/theme.css
    ------------------------------------------------------------
    Shared design system. Loaded by every page in place of the
    inline per-page CSS so colors, typography, and components stay
@@ -9,7 +9,7 @@
    ----------------
    Token names and color scale inspired by IBM's Carbon Design
    System (Apache-2.0 / MIT-licensed Token API). All colors are
-   tuned for a dark, scientific instrument feel — cool grays,
+   tuned for a dark, scientific instrument feel - cool grays,
    a vivid interactive blue, plus domain-specific semantic colors
    for X / Z / Y Pauli errors and syndrome detection.
 

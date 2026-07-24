@@ -28,7 +28,7 @@
 .seg.model button.on{background:var(--stab-z);border-color:var(--stab-z)}
 .seg.decoder button.on{background:var(--pauli-z);border-color:var(--pauli-z)}
 
-/* Control labels — slightly different layout from theme's default */
+/* Control labels - slightly different layout from theme's default */
 .ctrl-label{font-size:12px;color:var(--text-secondary);margin:16px 0 7px;
   display:flex;justify-content:space-between;align-items:baseline}
 .ctrl-label span{font-family:var(--font-mono);color:var(--text-primary);font-size:12px}
@@ -505,7 +505,7 @@ function describeThreshold(curves, dists) {
     txt += `Low-p ordering (d7≤d5≤d3): <b>${lowOrdered ? "yes" : "no, noisy"}</b>. ` +
       `High-p order-flip (d7≥d3): <b>${highFlipped ? "yes" : "no"}</b>. ` +
       (crossP ? `A d3/d5 crossover appears near p≈${crossP}. ` : `No clean d3/d5 crossover in range. `) +
-      `At d=3–7 with ${trials} trials the curves typically cross in a band rather than fanning out, this is the real, expected muddiness, not a bug.`;
+      `At d=3-7 with ${trials} trials the curves typically cross in a band rather than fanning out, this is the real, expected muddiness, not a bug.`;
   } else {
     txt += `Lookup runs at d=3 only, so there's a single curve, switch to MWPM to compare distances.`;
   }

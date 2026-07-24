@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — tests/syndrome.test.js
+   QEC EXPLORER - tests/syndrome.test.js
    ------------------------------------------------------------
    Tests for the canonical physics functions in lattice-core.js:
    buildCode, computeSyndrome, logicalStatus, hasAnyError,
@@ -9,7 +9,7 @@
 
 QECT.describe("lattice-core.js · buildCode", () => {
 
-  QECT.it("produces d×d data qubits and d²−1 stabilizers for d=3", () => {
+  QECT.it("produces d×d data qubits and d²-1 stabilizers for d=3", () => {
     const code = buildCode(3);
     QECT.assert.equal(code.data.length, 9, "data count at d=3");
     QECT.assert.equal(code.stabs.length, 8, "stab count at d=3");
@@ -85,7 +85,7 @@ QECT.describe("lattice-core.js · syndrome & logic", () => {
 
   QECT.it("a single X on an interior (4-neighbor) data qubit triggers BOTH adjacent Z-type stabs (lit=2)", () => {
     // Real rotated-surface-code geometry: corner (1,1) touches four
-    // stabilizers in the d=3 lattice — 2 Z-type + 2 X-type. That's why a
+    // stabilizers in the d=3 lattice - 2 Z-type + 2 X-type. That's why a
     // single X error fires 2 Z-type stabs (its 2 Z-type neighbors), and
     // symmetrically a single Z error fires 2 X-type stabs. Bulk qubits
     // have 4 neighbors; qubits on the rotated-code boundary have fewer.

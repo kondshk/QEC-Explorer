@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — assets/bloch.js
+   QEC EXPLORER - assets/bloch.js
    ------------------------------------------------------------
    A self-contained, dependency-free 3D Bloch sphere.
 
@@ -140,7 +140,7 @@
   function create(svg, opts) {
     opts = opts || {};
     const R = opts.radius || 96;         // sphere radius in SVG units
-    const CX = opts.cx || 130;           // fixed centre — never moves
+    const CX = opts.cx || 130;           // fixed centre - never moves
     const CY = opts.cy || 130;
     const interactive = opts.interactive !== false;
 
@@ -175,7 +175,7 @@
     svg.appendChild(gFront);
     svg.appendChild(gVec);
 
-    // outline circle (silhouette) — always the sphere's rim, fixed
+    // outline circle (silhouette) - always the sphere's rim, fixed
     const rim = el("circle", {
       cx: CX, cy: CY, r: R, fill: "var(--surface-2)",
       "fill-opacity": "0.35",
@@ -233,9 +233,9 @@
       { v: { x: 0, y: 0, z: 1 }, ket: "|0⟩", col: "var(--pauli-z)", off: [0, -12] },
       { v: { x: 0, y: 0, z: -1 }, ket: "|1⟩", col: "var(--pauli-x)", off: [0, 16] },
       { v: { x: 1, y: 0, z: 0 }, ket: "|+⟩", col: "var(--text-tertiary)", off: [12, 4] },
-      { v: { x: -1, y: 0, z: 0 }, ket: "|−⟩", col: "var(--text-tertiary)", off: [-12, 4] },
+      { v: { x: -1, y: 0, z: 0 }, ket: "|-⟩", col: "var(--text-tertiary)", off: [-12, 4] },
       { v: { x: 0, y: 1, z: 0 }, ket: "|i⟩", col: "var(--text-tertiary)", off: [10, -6] },
-      { v: { x: 0, y: -1, z: 0 }, ket: "|−i⟩", col: "var(--text-tertiary)", off: [-12, -6] },
+      { v: { x: 0, y: -1, z: 0 }, ket: "|-i⟩", col: "var(--text-tertiary)", off: [-12, -6] },
     ];
     const axisNodes = AXES.map((ax) => {
       const line = el("line", {
@@ -364,9 +364,9 @@
       if (near(v.z, 1)) return "|0⟩";
       if (near(v.z, -1)) return "|1⟩";
       if (near(v.x, 1)) return "|+⟩";
-      if (near(v.x, -1)) return "|−⟩";
+      if (near(v.x, -1)) return "|-⟩";
       if (near(v.y, 1)) return "|i⟩";
-      if (near(v.y, -1)) return "|−i⟩";
+      if (near(v.y, -1)) return "|-i⟩";
       // general point on the sphere: give the polar readout
       const theta = Math.acos(Math.max(-1, Math.min(1, v.z))) * 180 / Math.PI;
       const phi = Math.atan2(v.y, v.x) * 180 / Math.PI;

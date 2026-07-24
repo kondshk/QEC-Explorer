@@ -24,7 +24,7 @@
 .controls .seg button{flex:0 0 auto;min-width:0}
 /* override theme's width:100% so single-action buttons are content-sized */
 .controls .seg .btn{width:auto;margin-top:0;white-space:nowrap;padding:9px 13px}
-/* "Run race" hugs the trailing edge via margin-left:auto — this adds NO
+/* "Run race" hugs the trailing edge via margin-left:auto - this adds NO
    vertical space when groups wrap (unlike a flex:1 spacer, which eats a
    whole wrapped line). The old .spacer div is now inert. */
 .spacer{display:none}
@@ -985,7 +985,7 @@ document.addEventListener("keydown", (e) => {
 if (location.hash) loadFromHash(true);
 
 /* ============================================================
-   OpenQASM 3 export (Module 2 — decoder race)
+   OpenQASM 3 export (Module 2 - decoder race)
    Re-runs the three decoders against current state at click time and
    emits ONE QASM 3 string containing all three corrections, each
    labeled (LOOKUP / MWPM / BP). Pure-function emitter lives in

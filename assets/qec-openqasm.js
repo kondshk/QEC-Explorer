@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — assets/qec-openqasm.js
+   QEC EXPLORER - assets/qec-openqasm.js
    ------------------------------------------------------------
    Pure emitter: turns a QEC Explorer state (errors injected on
    a rotated surface code) into an OpenQASM 3.0 string that can
@@ -164,7 +164,7 @@
       throw new Error("QecOQ3.emit: d must be 3, 5, or 7 (got " + d + ")");
     }
     if (typeof global.buildCode !== "function") {
-      throw new Error("QecOQ3.emit: buildCode() not found — load lattice-core.js first");
+      throw new Error("QecOQ3.emit: buildCode() not found - load lattice-core.js first");
     }
     const code = global.buildCode(d);
     const header = makeHeader({
@@ -209,7 +209,7 @@
     var isBiased = opts.model === "biased";
     var lines = [
       "# ============================================================",
-      "# QEC Explorer — Noise-Model Template",
+      "# QEC Explorer - Noise-Model Template",
       "# ============================================================",
       "#  Distance D = " + opts.d,
       "#  Noise model = " + opts.model +
@@ -219,7 +219,7 @@
       "#",
       "#  The OpenQASM 3 string below imports cleanly into Qiskit via",
       "#     QuantumCircuit.from_qasm3_str(QEC_OQ3)",
-      "#  The circuit contains only the syndrome-extraction round — errors",
+      "#  The circuit contains only the syndrome-extraction round - errors",
       "#  are injected programmatically and a noise model is applied at run time.",
       "# ============================================================",
       "",

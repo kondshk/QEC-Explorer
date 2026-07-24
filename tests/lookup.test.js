@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — tests/lookup.test.js
+   QEC EXPLORER - tests/lookup.test.js
    ------------------------------------------------------------
    Tests for the syndrome-table decoder at d=3 and its
    explicit unavailability at d != 3.

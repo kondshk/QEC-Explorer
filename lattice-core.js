@@ -1,14 +1,14 @@
 /* ============================================================
-   QEC EXPLORER — lattice-core.js
+   QEC EXPLORER - lattice-core.js
    Shared physics for the rotated surface code.
    ------------------------------------------------------------
    This file is the SINGLE SOURCE OF TRUTH for the code's physics.
    It is loaded as a plain <script src="lattice-core.js"> by both
-   index.html (Module 1 — detection) and decoder.html (Module 2 —
+   index.html (Module 1 - detection) and decoder.html (Module 2 -
    decoder race). No bundler, no modules, no build step.
 
-   The four functions below — buildCode, computeSyndrome,
-   logicalStatus, hasAnyError — were EXTRACTED VERBATIM from
+   The four functions below - buildCode, computeSyndrome,
+   logicalStatus, hasAnyError - were EXTRACTED VERBATIM from
    index.html. Their logic is unchanged byte-for-byte; only their
    location moved. They read the global `state.errors`, exactly as
    before, so Module 1 behaves identically.
@@ -17,7 +17,7 @@
    (the original error, a decoder's proposed correction, and the
    two XOR-combined), thin NEW helpers are provided at the bottom
    (computeSyndromeFor / logicalStatusFor / ...). These do NOT
-   modify the originals — they temporarily swap state.errors,
+   modify the originals - they temporarily swap state.errors,
    delegate to the untouched original, then restore. This keeps the
    verified physics canonical while letting decoders run on any set.
    ============================================================ */

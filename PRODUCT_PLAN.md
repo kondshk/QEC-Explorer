@@ -17,7 +17,7 @@
 
 If two things are true after v2.0 ships, we've succeeded:
 
-1. Plug "QEC visualizer" into a search engine — ours is what's returned.
+1. Plug "QEC visualizer" into a search engine - ours is what's returned.
 2. A reading-level-10 student can finish Module 1 with a working
    intuition for what a stabilizer is, and a specialist can finish
    Module 3 with the same number that `decoders.js` returns on the same
@@ -25,7 +25,7 @@ If two things are true after v2.0 ships, we've succeeded:
 
 ---
 
-## 2 · Current state — what's working
+## 2 · Current state - what's working
 
 | Feature | Where it lives | Status |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ If two things are true after v2.0 ships, we've succeeded:
 | Native Share Sheet + clipboard fallback | various | ✅ Yes |
 | Keyboard nav, screen-reader live, reduced-motion | inline | ✅ Yes, partial |
 
-## 3 · Current state — what was missing
+## 3 · Current state - what was missing
 
 | Gap | What this fixes |
 | --- | --- |
@@ -58,15 +58,15 @@ v2.0 ships the foundations for all six.
 
 ---
 
-## 4 · The technical stack — what we're keeping, what we're adding
+## 4 · The technical stack - what we're keeping, what we're adding
 
 ### Kept (load-bearing, do not replace)
 
-- **lattice-core.js** — surface-code physics. Verified exports
+- **lattice-core.js** - surface-code physics. Verified exports
   include `buildCode`, `computeSyndromeFor`, `logicalStatusFor`,
   `cloneErrors`, `combineErrors`, `errorWeight`, `diffErrorKeys`.
-- **decoders.js** — lookup, MWPM, BP decoders + `evaluateCorrection`.
-- **Notebooks** — six Python notebooks proving the math from scratch.
+- **decoders.js** - lookup, MWPM, BP decoders + `evaluateCorrection`.
+- **Notebooks** - six Python notebooks proving the math from scratch.
 
 ### Replaced
 
@@ -81,11 +81,11 @@ v2.0 ships the foundations for all six.
 
 ### Added (v2.0)
 
-- **`tests/`** — tiny browser test runner. Open `tests/test-runner.html`
+- **`tests/`** - tiny browser test runner. Open `tests/test-runner.html`
   in any browser; no build, no install.
-- **`CHANGELOG.md`** — Keep-a-Changelog 1.1 format.
-- **`CONTRIBUTING.md`** — modeled on Qiskit community standards.
-- **`PRODUCT_PLAN.md`** — this document.
+- **`CHANGELOG.md`** - Keep-a-Changelog 1.1 format.
+- **`CONTRIBUTING.md`** - modeled on Qiskit community standards.
+- **`PRODUCT_PLAN.md`** - this document.
 
 ### Explicitly **not** adding (and why)
 
@@ -93,7 +93,7 @@ v2.0 ships the foundations for all six.
 | --- | --- |
 | React / Vue / any framework | Breaks the "view source is the docs" promise. |
 | TypeScript | Same. Adds a compiler step. |
-| MathJax for equations | Most physics content stays prose. Where it's needed, plain Unicode (`|0⟩`, `β`, `–`) is enough. |
+| MathJax for equations | Most physics content stays prose. Where it's needed, plain Unicode (`|0⟩`, `β`, `-`) is enough. |
 | 3D canvas / WebGL | Surface code is a 2-D layout and that visual language is correct. |
 | A real SQL-backed user account system | The counter and puzzle are sufficient, no accounts means GDPR-clean. |
 
@@ -194,9 +194,9 @@ Future tests that haven't yet landed:
 
 ---
 
-## 10 · Roadmap — *90 days*
+## 10 · Roadmap - *90 days*
 
-### Week 1–2 · v2.0 (this release)
+### Week 1-2 · v2.0 (this release)
 
 - [x] Shared theme system (`assets/theme.css`, `qec-shared.js`,
       `qec-modal.css`)
@@ -204,25 +204,25 @@ Future tests that haven't yet landed:
 - [x] `CHANGELOG.md`, `CONTRIBUTING.md`, `PRODUCT_PLAN.md`
 - [x] `?` keyboard shortcut overlay on every page
 
-### Week 3–6 · v2.1 — *Look like it was made for IBM Quantum*
+### Week 3-6 · v2.1 - *Look like it was made for IBM Quantum*
 
 - [ ] Screenshot pass: 14 images (one per module) under `docs/img/`
-- [ ] Light theme equivalent of `theme.css` — `media (prefers-color-scheme: light)`
+- [ ] Light theme equivalent of `theme.css` - `media (prefers-color-scheme: light)`
 - [ ] WCAG 2.1 AA audit pass; contrast fixes
 - [ ] Extract strings to `assets/i18n/en.json` (en only at first)
 - [ ] New optional decoder: **BP-OSD** (post-processing by ordered
-      statistics on Gaussian-eliminated stabilizers — the workhorse of
+      statistics on Gaussian-eliminated stabilizers - the workhorse of
       real-life decoding)
 
-### Week 7–10 · v2.2 — *Live with qiskit*
+### Week 7-10 · v2.2 - *Live with qiskit*
 
-- [ ] A "load a Pauli error from a string" importer — paste from a
+- [ ] A "load a Pauli error from a string" importer - paste from a
       Qiskit `SparsePauliOp` into the playground.
 - [ ] Python companion: `qec_explorer.py` with a Jupyter-friendly
       API that wraps `lattice-core.js` (via Pyodide) and `decoders.js`
       (via the existing `module.exports`).
 
-### Week 11–14 · v3.0 — *The real frontier*
+### Week 11-14 · v3.0 - *The real frontier*
 
 - [ ] Module 4 · **qLDPC lattice**: a bivariate-bicycle
       [[144,12,12]] code, the GNN-OSD decoder wired up, and
@@ -244,13 +244,13 @@ Future tests that haven't yet landed:
 | IBM/Carbon trademark concerns | We deliberately do NOT use IBM or Qiskit logos. We use IBM Plex (open font) and design idioms inspired by Carbon. |
 | Performance regression on mobile | Theme.css is 9 KB gzipped; no extra DOM nodes added. |
 | External counter dependency | Already gracefully degrades to hidden UI on failure. |
-| Future Qiskit SDK breakage | None — no SDK dependency; only our own JS. |
+| Future Qiskit SDK breakage | None - no SDK dependency; only our own JS. |
 | Browser compat | Target evergreen: Chrome, Firefox, Safari 14+. No IE. No outbound compat Shim. |
 | AI-generated content flags | All content is original, manually written; sources cited. |
 
 ---
 
-## 12 · Acceptance criteria — when is v2.0 "done"?
+## 12 · Acceptance criteria - when is v2.0 "done"?
 
 A reviewer should be able to say yes to each:
 

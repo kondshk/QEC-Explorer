@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — tests/qec-tests.js
+   QEC EXPLORER - tests/qec-tests.js
    ------------------------------------------------------------
    Tiny vanilla-JS test framework. No dependencies. Designed so
    each test file attaches suites to a global `QECT` namespace

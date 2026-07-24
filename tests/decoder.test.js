@@ -1,10 +1,10 @@
 /* ============================================================
-   QEC EXPLORER — tests/decoder.test.js
+   QEC EXPLORER - tests/decoder.test.js
    ------------------------------------------------------------
    Tests for the three decoders in decoders.js:
      lookup table decoder (baseline)
-     MWPM — minimum-weight perfect matching
-     BP   — iterative belief propagation
+     MWPM - minimum-weight perfect matching
+     BP   - iterative belief propagation
    Plus tests for the universal evaluateCorrection() outcome
    reporter (Fixed | logical-error | left-codespace).
    ============================================================ */
@@ -22,7 +22,7 @@ QECT.describe("decoder utilities · evaluateCorrection", () => {
   QECT.it("flags a 'broken chain' correction as LEFT-CODESPACE (syndrome still fires)", () => {
     // Real error: single X on (1,1). Decoder proposes a 3-qubit correction
     // {(0,1)X, (1,1)X, (2,1)X}. residual = error XOR correction = {(0,1)X, (2,1)X}
-    // — the middle flakes cancel, leaving a BROKEN CHAIN with a gap at (1,1).
+    // - the middle flakes cancel, leaving a BROKEN CHAIN with a gap at (1,1).
     // The two endpoint stabs still fire (parity 1 each), so the syndrome is
     // NOT silent: evaluateCorrection correctly returns "left-codespace".
     //
@@ -30,7 +30,7 @@ QECT.describe("decoder utilities · evaluateCorrection", () => {
     // SILENT (zero syndrome) AND to anti-commute with a logical observable.
     // That needs a residue equal to (some stabilizer product) * (logical),
     // which a 3-qubit correction cannot reach from a single (1,1)X error.
-    // Such a case is rare in practice — the much more common failure is a
+    // Such a case is rare in practice - the much more common failure is a
     // broken chain or a non-matching pair, both producing left-codespace.
     const code = buildCode(3);
     const err = { "1,1": { x: true, z: false } };
@@ -42,7 +42,7 @@ QECT.describe("decoder utilities · evaluateCorrection", () => {
     const res = evaluateCorrection(code, err, badCorrection);
     QECT.assert.equal(res.status, "left-codespace");
     QECT.assert.equal(res.ok, false);
-    // Sanity: residual syndrome actually still fires — proves we are
+    // Sanity: residual syndrome actually still fires - proves we are
     // counting this as left-codespace and not a logical flip.
     const resStab = computeSyndromeFor(code, res.residual);
     QECT.assert.ok(resStab.some(v => v === 1),

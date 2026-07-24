@@ -4,25 +4,25 @@ All notable changes to **QEC Explorer** are recorded here. The format
 follows [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] · The Platform Release — *v2.0*
+## [Unreleased] · The Platform Release - *v2.0*
 
 This is the cutoff where QEC Explorer stops being "a single page plus a few
 companion pages" and becomes a coherent platform with shared infrastructure,
 tests, and developer-facing tooling.
 
 ### Added
-- **`assets/theme.css`** — single source of truth for design tokens,
+- **`assets/theme.css`** - single source of truth for design tokens,
   component styles, and lattice visuals. Token vocabulary inspired by
   IBM Carbon Design System (MIT-licensed patterns), tuned for a dark,
   scientific instrument feel. Quantum-domain semantics preserved (X / Z / Y
   Pauli colors, syndrome-detection purple, Z- and X-stabilizer colors).
-- **`assets/qec-shared.js`** — tiny vanilla-JS helpers shared across
+- **`assets/qec-shared.js`** - tiny vanilla-JS helpers shared across
   pages: `QEC.toast()`, `QEC.announce()` (screen-reader live region),
   `QEC.modal()`, `QEC.shortcuts(...)`, `QEC.encodeHash/decodeHash`,
   `QEC.debounce()`. Zero dependencies, progressively-enhanced.
-- **`assets/qec-modal.css`** — modal + keyboard-shortcut cheat sheet
+- **`assets/qec-modal.css`** - modal + keyboard-shortcut cheat sheet
   styles. Press `?` on any page to open the cheat sheet.
-- **`assets/qec-openqasm.js` + OpenQASM 3 export** — pure emitter
+- **`assets/qec-openqasm.js` + OpenQASM 3 export** - pure emitter
   that turns a QEC Explorer state (errors + code distance) into an
   OpenQASM 3.0 string parseable by `QuantumCircuit.from_qasm3_str(...)`.
   Module 1 (`index.html`) exports the injected error pattern with the
@@ -31,31 +31,31 @@ tests, and developer-facing tooling.
   separated by header comments so a learner can compare them on the
   same circuit. Module 3 (`noise.html`) exports a parameterised
   Python template that runs the same experiment under
-  `qiskit_aer.NoiseModel` — directly pasteable into a Jupyter cell.
+  `qiskit_aer.NoiseModel` - directly pasteable into a Jupyter cell.
   Every page ships with a one-click "📋 Export" button that opens a
   modal, copies to clipboard, and downloads as a `.qasm` / `.py` file.
-- **`tests/openqasm.test.js`** — unit tests for the emitter: header
+- **`tests/openqasm.test.js`** - unit tests for the emitter: header
   validity, qubit-index round-trip, syndrome-block completeness, all
   four schema kinds (`correction` / `corrections[]` / `corrections[]`
   empty / clean-circuit), and noise-template shape.
 - **`tests/`** directory with:
-  - `tests/test-runner.html` — browser-based unit test runner.
+  - `tests/test-runner.html` - browser-based unit test runner.
     Open it in any browser to run every suite and view results.
-  - `tests/qec-tests.js` — tiny vanilla-JS test framework
+  - `tests/qec-tests.js` - tiny vanilla-JS test framework
     (`QECT.describe / it / assert / run`).
-  - `tests/syndrome.test.js` — physics tests for `buildCode`,
+  - `tests/syndrome.test.js` - physics tests for `buildCode`,
     `computeSyndrome`, `logicalStatus`, `cloneErrors`,
     `combineErrors`, `diffErrorKeys`, `errorWeight`. Includes
     verification that every pair of stabilizers commutes (valid
     CSS quantum code definition).
-  - `tests/decoder.test.js` — MWPM and BP decoder behavior tests
+  - `tests/decoder.test.js` - MWPM and BP decoder behavior tests
     including `evaluateCorrection` outcomes (Fixed, logical-error
     introduced, left-codespace).
-  - `tests/lookup.test.js` — lookup-table decoder tests.
-- **`CONTRIBUTING.md`** — gold-standard contributing guide modeled on
+  - `tests/lookup.test.js` - lookup-table decoder tests.
+- **`CONTRIBUTING.md`** - gold-standard contributing guide modeled on
   Qiskit community guides. Covers code of conduct, dev setup, the
   test loop, PR template, and a label taxonomy.
-- **`PRODUCT_PLAN.md`** — the master product plan: vision, scope,
+- **`PRODUCT_PLAN.md`** - the master product plan: vision, scope,
   technical choices, gap analysis, staging roadmap, and the next
   90-day delivery schedule.
 
@@ -97,7 +97,7 @@ tests, and developer-facing tooling.
 
 ---
 
-## [1.x] · The Module Era — *Sep 2025*
+## [1.x] · The Module Era - *Sep 2025*
 
 > Module-by-module release notes. The 1.x line shipped each module in
 > sequence, with growing test coverage and feature scope.

@@ -1,9 +1,9 @@
 /* ============================================================
-   QEC EXPLORER — decoders.js  (Module 2)
+   QEC EXPLORER - decoders.js  (Module 2)
    Three REAL decoders for the rotated surface code:
-     1. Lookup   — exhaustive syndrome->correction table (d=3 only)
-     2. MWPM     — minimum-weight perfect matching on the defect graph
-     3. BP       — iterative belief propagation on the Tanner graph
+     1. Lookup   - exhaustive syndrome->correction table (d=3 only)
+     2. MWPM     - minimum-weight perfect matching on the defect graph
+     3. BP       - iterative belief propagation on the Tanner graph
    ------------------------------------------------------------
    Depends on lattice-core.js (buildCode, computeSyndromeFor, etc.).
 
@@ -17,7 +17,7 @@
      four) data qubits at the integer corners around it. Two
      stabilizers of the same type are "adjacent" iff they are two
      grid units apart in one axis and share exactly one data qubit;
-     flipping that shared qubit toggles both — this is the edge used
+     flipping that shared qubit toggles both - this is the edge used
      for path tracing.
    ============================================================ */
 
@@ -172,7 +172,7 @@ function buildLookupTable(code) {
          shares the syndrome (the stored canonical is one of several
          equally minimal-weight valid corrections).
        - `exact`: a Map<errKey, entryRef> where each value points back to
-         this entry — so when the user calls lookupDecode(err), we can
+         this entry - so when the user calls lookupDecode(err), we can
          find the EXACT match for their input among alternatives. */
   const consider = (errors) => {
     const key = syndKey(errors);
@@ -224,13 +224,13 @@ function buildLookupTable(code) {
 /* Decode one syndrome via the prebuilt table. Returns {correction, note}.
    When the user's exact error pattern was one of the weights≤2 patterns
    we enumerated, the table's `exact` sub-index maps us back to the
-   stored canonical for THAT specific error — so residual = identity and
+   stored canonical for THAT specific error - so residual = identity and
    evaluateCorrection reports a clean "Fixed ✓". For error weights the
    table does not enumerate (rare at d=3), we fall back to the syndrome's
    lowest-weight canonical and surface the degeneracy flag honestly. */
 function lookupDecode(code, table, errors) {
   if (!table) {
-    return { available: false, correction: {}, note: "Lookup decoder is only practical at d=3 — the table size grows exponentially with code distance." };
+    return { available: false, correction: {}, note: "Lookup decoder is only practical at d=3 - the table size grows exponentially with code distance." };
   }
   const key = computeSyndromeFor(code, errors).join("");
   const hit = table.get(key);
@@ -243,14 +243,14 @@ function lookupDecode(code, table, errors) {
   // natural repair is then the input itself: applying it cancels the
   // input perfectly (residual = identity) so evaluateCorrection reports
   // a clean "Fixed ✓". We surface degeneracy separately for transparency
-  // — the same syndrome may also admit other equally-likely chains, even
+  // - the same syndrome may also admit other equally-likely chains, even
   // when *this* particular input is a clean exact match.
   const inputKey = errKey(errors);
   const exact = hit.exact.get(inputKey);
   if (exact) {
     const note = hit.degenerate
-      ? "Syndrome map: this pattern was enumerated — exact match. (The syndrome also admits other equally-likely chains; degeneracy is noted.)"
-      : "Syndrome map: exact match — your input is a known weight≤2 pattern, returning it as the natural repair.";
+      ? "Syndrome map: this pattern was enumerated - exact match. (The syndrome also admits other equally-likely chains; degeneracy is noted.)"
+      : "Syndrome map: exact match - your input is a known weight≤2 pattern, returning it as the natural repair.";
     return { available: true, correction: cloneErrors(errors), note,
       degenerate: !!hit.degenerate, steps: ["Looked up syndrome → returned your exact input as the natural repair"] };
   }
@@ -260,8 +260,8 @@ function lookupDecode(code, table, errors) {
   // lookup as a non-unique repair. Residual may be a logical operator,
   // which evaluateCorrection will flag.
   const note = hit.degenerate
-    ? "Syndrome map: input was NOT enumerated — returning the minimum-weight canonical correction (syndrome is degenerate; residual may be logical)."
-    : "Syndrome map: input was NOT enumerated — returning the minimum-weight canonical correction.";
+    ? "Syndrome map: input was NOT enumerated - returning the minimum-weight canonical correction (syndrome is degenerate; residual may be logical)."
+    : "Syndrome map: input was NOT enumerated - returning the minimum-weight canonical correction.";
   return { available: true, correction: cloneErrors(hit.correction), note,
     degenerate: !!hit.degenerate, steps: ["Looked up syndrome → canonical minimum-weight correction"] };
 }
@@ -399,7 +399,7 @@ function mwpmDecode(code, errors) {
   const approximate = x.approximate || z.approximate;
   const paths = [...x.paths, ...z.paths];
   let note = approximate
-    ? "Approximate (greedy) — exact matching skipped above " + MWPM_EXACT_LIMIT + " defects for performance."
+    ? "Approximate (greedy) - exact matching skipped above " + MWPM_EXACT_LIMIT + " defects for performance."
     : "Exact minimum-weight perfect matching.";
   return { available: true, correction, paths, approximate, note };
 }
@@ -511,7 +511,7 @@ function bpDecode(code, errors, trace) {
   const converged = x.converged && z.converged;
   let note = converged
     ? `Converged after ${iters} iteration${iters !== 1 ? "s" : ""}.`
-    : `BP did not converge after ${BP_MAX_ITERS} iterations — showing best estimate.`;
+    : `BP did not converge after ${BP_MAX_ITERS} iterations - showing best estimate.`;
   return {
     available: true, correction, iters, converged, note,
     channels: { X: x, Z: z }
@@ -523,7 +523,7 @@ function bpDecode(code, errors, trace) {
    ------------------------------------------------------------
    Given the original error and a proposed correction, the residual is
    their XOR. The decoder SUCCEEDS iff the residual has trivial logical
-   effect — i.e. logicalStatusFor(residual).logical === false AND the
+   effect - i.e. logicalStatusFor(residual).logical === false AND the
    residual leaves zero syndrome (it returns the code to the codespace
    with no logical flip). We report:
      - clean: residual silent & no logical flip  -> "Fixed ✓"

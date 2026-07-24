@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QEC Explorer · Surface Code Playground</title>
 
-<!-- Load IBM Plex (SIL OFL) — the institutional typeface for serious quantum documentation. -->
+<!-- Load IBM Plex (SIL OFL) - the institutional typeface for serious quantum documentation. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/qec-modal.css">
 
-<!-- Page-specific CSS — only what `assets/theme.css` does not already cover. -->
+<!-- Page-specific CSS - only what `assets/theme.css` does not already cover. -->
 <style>
   /* Three-column app layout: controls | stage | readout */
   .app { display: grid; grid-template-columns: 300px 1fr 320px; gap: var(--space-4); align-items: start; }
@@ -98,7 +98,7 @@
   .stat .v.warn { color: var(--pauli-x); }
   .stat .v.ok   { color: var(--stab-z); }
 
-  /* Distance segmented control — active button is the syndrome purple */
+  /* Distance segmented control - active button is the syndrome purple */
   .seg.dist button.on { background: var(--syndrome); border-color: var(--syndrome); }
 
   /* Pulse animation when a syndrome lights up */
@@ -422,7 +422,7 @@
 <script src="assets/qec-openqasm.js"></script>
 <script>
 /* ============================================================
-   Module 1 — Surface Code Playground: physics, rendering, glue.
+   Module 1 - Surface Code Playground: physics, rendering, glue.
    Same logic that powers every page; only the page-specific
    state and UI live inline here so the file can be read top-to-
    bottom in one sitting.
@@ -431,13 +431,13 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 const lattice = document.getElementById("lattice");
 
-/* Page state — `state` global is provided by lattice-core.js */
+/* Page state - `state` global is provided by lattice-core.js */
 state.d = 3;
 state.paint = "X";        // "X" | "Z" | "Y"
 state.errors = {};        // key "r,c" -> {x:bool, z:bool}
 
 /* Geometry + color helpers (theme tokens, kept here because they
-   are used inside SVG attributes — CSS vars work in modern browsers). */
+   are used inside SVG attributes - CSS vars work in modern browsers). */
 function geometry(d) {
   const PAD = 70;
   const span = 560 - PAD * 2;
@@ -557,7 +557,7 @@ function buildLattice() {
 function paint(popKeys = new Set()) {
   const synd = computeSyndrome(CODE);
 
-  // plaquettes — animate newly-lit ones
+  // plaquettes - animate newly-lit ones
   nodeMap.plaqs.forEach((node, i) => {
     const fired = synd[i] === 1;
     const { poly, label, type } = node;
@@ -652,11 +652,11 @@ function updateReadout(synd) {
   sEl.textContent = lit;
   sEl.className = "v" + (lit > 0 ? " warn" : "");
 
-  // Logical-state readout — three honest states, not a binary.
+  // Logical-state readout - three honest states, not a binary.
   // The physics (logicalStatus, in lattice-core.js) is unchanged; we
   // just stop collapsing "clean" and "errors present but detected" into
   // one word. A lit syndrome means the errors ARE being tracked and are
-  // still correctable — that is NOT the same as a clean, untouched code.
+  // still correctable - that is NOT the same as a clean, untouched code.
   const { logical } = logicalStatus(CODE);
   const lEl = document.getElementById("rLogical");
   const noteEl = document.getElementById("logicalNote");
@@ -668,7 +668,7 @@ function updateReadout(synd) {
     if (noteEl) noteEl.innerHTML =
       'A <b>logical error</b> has occurred. Your errors form an unbroken chain across the code, so every stabilizer reads clear again, but the stored information has flipped. This is exactly the failure decoders exist to prevent.';
   } else if (nErr === 0) {
-    // Nothing placed — genuinely untouched.
+    // Nothing placed - genuinely untouched.
     lEl.textContent = "Clean ✓";
     lEl.className = "v ok";
     if (noteEl) noteEl.innerHTML =

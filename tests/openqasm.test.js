@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — tests/openqasm.test.js
+   QEC EXPLORER - tests/openqasm.test.js
    ------------------------------------------------------------
    Pure-assertion tests for the OpenQASM 3 emitter in
    assets/qec-openqasm.js. Asserts that emitted text:

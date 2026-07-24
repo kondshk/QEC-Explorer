@@ -1,5 +1,5 @@
 /* ============================================================
-   QEC EXPLORER — assets/qec-shared.js
+   QEC EXPLORER - assets/qec-shared.js
    ------------------------------------------------------------
    Tiny vanilla-JS helpers used by every page:
 
@@ -13,7 +13,7 @@
      - encodeHash(obj)       : encode key=value pairs to a URL hash
      - decodeHash(str)       : decode key=value pairs from a hash
 
-   No external dependencies. Optional to use — pages may also
+   No external dependencies. Optional to use - pages may also
    handle their own state. Designed to be progressively enhanced.
 
    License: same MIT as the rest of this project.
@@ -116,7 +116,7 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  // Treat a target as "typing" if it's a form field or a contentEditable node —
+  // Treat a target as "typing" if it's a form field or a contentEditable node;
   // we don't want the cheat-sheet keybinding to hijack an actual "?" character.
   function _isTypingTarget(target) {
     if (!target) return false;
@@ -134,7 +134,7 @@
       e.preventDefault();
       return;
     }
-    // ESC closes modals even from inside an input — Escape is never typed, so safe to handle.
+    // ESC closes modals even from inside an input - Escape is never typed, so safe to handle.
     if (e.key === "Escape") closeAllModals();
   });
 
