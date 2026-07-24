@@ -51,8 +51,9 @@
   padding:12px 16px;font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:22px}
 .shared-note b{color:var(--text-primary);font-weight:500}
 
-.race{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
-@media(max-width:1040px){.race{grid-template-columns:1fr}}
+.race{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
+@media(max-width:1180px){.race{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.race{grid-template-columns:1fr}}
 .decoder{background:var(--surface-1);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
   padding:18px;display:flex;flex-direction:column}
 .decoder h3{font-family:var(--font-display);font-size:22px;font-weight:400;margin-bottom:2px}
@@ -61,6 +62,11 @@
 .decoder .sub.x{color:var(--syndrome)}
 .decoder .sub.m{color:var(--stab-z)}
 .decoder .sub.b{color:var(--pauli-z)}
+.decoder .sub.o{color:var(--warning)}
+/* "Research-grade" flag on the BP-OSD panel header */
+.decoder .flag{display:inline-block;font-family:var(--font-mono);font-size:8.5px;letter-spacing:1px;
+  text-transform:uppercase;vertical-align:middle;margin-left:7px;padding:2px 6px;border-radius:3px;
+  background:rgba(241,194,27,.14);color:var(--warning);border:1px solid rgba(241,194,27,.3)}
 .mini-wrap{display:flex;align-items:center;justify-content:center;padding:6px 0 12px}
 svg.mini{width:100%;height:auto;max-width:300px}
 .mini .bond{stroke:var(--border-default);stroke-width:1.3}
@@ -174,9 +180,9 @@ body.guiding .decoder{cursor:help}
 
 <div class="wrap">
   <div class="lead">
-    <div class="eyebrow">Interactive · Three real decoders · Runs in your browser</div>
-    <h1>Watch three decoders <em>race</em> to fix it</h1>
-    <p>Inject an error, then hit <b>Run race</b>. The same syndrome goes to three different decoding algorithms (a <b>lookup table</b>, <b>minimum-weight matching</b>, and <b>belief propagation</b>), and each guesses a correction on its own. See where they agree, where they diverge, and which ones actually return the code to safety.</p>
+    <div class="eyebrow">Interactive · Four real decoders · Runs in your browser</div>
+    <h1>Watch four decoders <em>race</em> to fix it</h1>
+    <p>Inject an error, then hit <b>Run race</b>. The same syndrome goes to four different decoding algorithms (a <b>lookup table</b>, <b>minimum-weight matching</b>, <b>belief propagation</b>, and research-grade <b>BP-OSD</b>), and each guesses a correction on its own. See where they agree, where they diverge, and which ones actually return the code to safety.</p>
   </div>
 
   <!-- Controls: same interaction model as module 1 -->
@@ -217,6 +223,12 @@ body.guiding .decoder{cursor:help}
       </div>
     </div>
     <div class="ctrl-group">
+      <span class="lbl">Import</span>
+      <div class="seg">
+        <button class="btn" id="importBtn">📥 Import Pauli string</button>
+      </div>
+    </div>
+    <div class="ctrl-group">
       <span class="lbl">Learn</span>
       <div class="seg">
         <button class="btn" id="guideBtn" aria-pressed="false">🧭 Guide me</button>
@@ -238,7 +250,7 @@ body.guiding .decoder{cursor:help}
   </div>
 
   <div class="shared-note">
-    <b>Same error, same syndrome, three guesses.</b> Click qubits on any panel below to paint the error; all three panels share the identical injected error and resulting syndrome. The colored dashed rings each decoder adds are <i>its</i> proposed correction.
+    <b>Same error, same syndrome, four guesses.</b> Click qubits on any panel below to paint the error; all four panels share the identical injected error and resulting syndrome. The colored dashed rings each decoder adds are <i>its</i> proposed correction.
   </div>
 
   <div class="legend-bar">
@@ -249,14 +261,14 @@ body.guiding .decoder{cursor:help}
     <div class="item"><span class="sw ring"></span> Proposed correction (dashed ring)</div>
   </div>
 
-  <!-- THREE DECODER PANELS -->
+  <!-- FOUR DECODER PANELS -->
   <div class="race">
     <!-- Lookup -->
     <div class="decoder" id="panel-lookup">
       <h3>Lookup</h3>
       <div class="sub x">Exhaustive syndrome table</div>
-      <div class="mini-wrap"><svg class="mini" id="svg-lookup" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
-      <div class="status">
+      <div class="mini-wrap"><svg class="mini" id="svg-lookup" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Surface-code lattice with the shared injected error and the lookup decoder's proposed correction"></svg></div>
+      <div class="status" aria-live="polite">
         <span class="badge idle" id="badge-lookup">Idle</span>
         <div class="meta" id="meta-lookup">Press “Run race”.</div>
       </div>
@@ -265,8 +277,8 @@ body.guiding .decoder{cursor:help}
     <div class="decoder" id="panel-mwpm">
       <h3>MWPM</h3>
       <div class="sub m">Min-weight perfect matching</div>
-      <div class="mini-wrap"><svg class="mini" id="svg-mwpm" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
-      <div class="status">
+      <div class="mini-wrap"><svg class="mini" id="svg-mwpm" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Surface-code lattice with the shared injected error and the minimum-weight matching decoder's proposed correction"></svg></div>
+      <div class="status" aria-live="polite">
         <span class="badge idle" id="badge-mwpm">Idle</span>
         <div class="meta" id="meta-mwpm">Press “Run race”.</div>
       </div>
@@ -275,10 +287,20 @@ body.guiding .decoder{cursor:help}
     <div class="decoder" id="panel-bp">
       <h3>Belief propagation</h3>
       <div class="sub b">Iterative message passing</div>
-      <div class="mini-wrap"><svg class="mini" id="svg-bp" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg"></svg></div>
-      <div class="status">
+      <div class="mini-wrap"><svg class="mini" id="svg-bp" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Surface-code lattice with the shared injected error and the belief-propagation decoder's proposed correction"></svg></div>
+      <div class="status" aria-live="polite">
         <span class="badge idle" id="badge-bp">Idle</span>
         <div class="meta" id="meta-bp">Press “Run race”.</div>
+      </div>
+    </div>
+    <!-- BP-OSD -->
+    <div class="decoder" id="panel-bposd">
+      <h3>BP + OSD<span class="flag">research-grade</span></h3>
+      <div class="sub o">Belief propagation, then ordered-statistics cleanup</div>
+      <div class="mini-wrap"><svg class="mini" id="svg-bposd" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Surface-code lattice with the shared injected error and the BP-OSD decoder's proposed correction"></svg></div>
+      <div class="status" aria-live="polite">
+        <span class="badge idle" id="badge-bposd">Idle</span>
+        <div class="meta" id="meta-bposd">Press “Run race”.</div>
       </div>
     </div>
   </div>
@@ -310,7 +332,7 @@ body.guiding .decoder{cursor:help}
       <div class="step now">
         <div class="lbl">Module 2 · You are here</div>
         <div class="t">Decoder race</div>
-        <div class="d">Three real decoders compete on the same syndrome.</div>
+        <div class="d">Four real decoders compete on the same syndrome.</div>
         <span class="badge2 live">Live now</span>
       </div>
       <a class="step later" href="noise.html">
@@ -327,23 +349,58 @@ body.guiding .decoder{cursor:help}
 <div class="guide-pop" id="guidePop" role="status"></div>
 
 <footer>
-  QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation), view source.<br>
+  QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation, and BP-OSD), view source.<br>
   <a href="index.html">← Back to the detection module</a>
 </footer>
 
 <!-- OpenQASM 3 export modal (decoder race).
-     Re-runs all three decoders at click time and emits a single QASM 3
-     string containing the injected errors + all three corrections,
+     Re-runs all four decoders at click time and emits a single QASM 3
+     string containing the injected errors + all four corrections,
      separated by labeled header comments. -->
 <div class="qec-modal" id="qasmModal" role="dialog" aria-modal="true" aria-labelledby="qasmModalTitle" aria-hidden="true">
   <div class="qec-modal-card" style="max-width:760px">
     <h3 id="qasmModalTitle">OpenQASM 3 export</h3>
-    <p class="hint">Paste into <code>QuantumCircuit.from_qasm3_str(...)</code> and run locally with Qiskit. The string below contains your injected errors plus the corrections proposed by <b>Lookup</b>, <b>MWPM</b>, and <b>BP</b>, separated by headers. Qubit indices follow <code>data[r·D + c]</code>.</p>
+    <p class="hint">Paste into <code>QuantumCircuit.from_qasm3_str(...)</code> and run locally with Qiskit. The string below contains your injected errors plus the corrections proposed by <b>Lookup</b>, <b>MWPM</b>, <b>BP</b>, and <b>BP-OSD</b>, separated by headers. Qubit indices follow <code>data[r·D + c]</code>.</p>
     <pre id="qasmPre" style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:14px; max-height:60vh; overflow:auto; font-size:11.5px; font-family:var(--font-mono); white-space:pre; line-height:1.45;"></pre>
     <p style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
       <button class="btn" id="qasmCopyBtn" style="margin-top:0">📋 Copy to clipboard</button>
       <button class="btn" id="qasmDownloadBtn" style="margin-top:0">⬇ Download .qasm</button>
       <button class="btn" id="qasmCloseBtn" style="margin-top:0; background:var(--surface-3); border-color:var(--border-default)">Close</button>
+    </p>
+  </div>
+</div>
+
+<!-- Pauli-string import modal (decoder race).
+     Accepts a Qiskit-style Pauli label and loads it as the injected error,
+     closing the loop with the OpenQASM export. Two accepted forms:
+       - dense  : a length-D^2 string of I/X/Y/Z, row-major (qubit r*D+c),
+                  exactly like a qiskit.quantum_info.Pauli label.
+       - sparse : whitespace/comma-separated tokens like "X0 Z4 Y8"
+                  (also accepts X_0, Z(4), etc.). -->
+<div class="qec-modal" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle" aria-hidden="true">
+  <div class="qec-modal-card" style="max-width:640px">
+    <h3 id="importModalTitle">Import a Pauli string</h3>
+    <p class="hint" style="margin-bottom:14px">
+      Paste a Pauli error for a <b>d=<span id="importD">3</span></b> code (<span id="importN">9</span> data qubits, index <code>r·D + c</code>).
+      Two formats work:
+    </p>
+    <ul style="margin:0 0 16px 18px; padding:0; font-size:12.5px; color:var(--text-secondary); line-height:1.7">
+      <li><b>Dense</b> (like a Qiskit <code>Pauli</code> label): a string of <code>I X Y Z</code> of length <span id="importN2">9</span>, e.g. <code>IXIIZIIIY</code>.</li>
+      <li><b>Sparse</b>: tokens like <code>X0 Z4 Y8</code> (also accepts <code>X_0</code>, commas, or spaces).</li>
+    </ul>
+    <label for="importInput" class="sr-only">Pauli string</label>
+    <textarea id="importInput" rows="3" spellcheck="false" autocomplete="off"
+      placeholder="e.g.  IXIIZIIIY   or   X0 Z4 Y8"
+      style="width:100%; box-sizing:border-box; background:var(--surface-2); border:1px solid var(--border-default);
+             border-radius:var(--radius-sm); padding:12px 14px; color:var(--text-primary); font-family:var(--font-mono);
+             font-size:13px; line-height:1.5; resize:vertical"></textarea>
+    <div id="importError" style="display:none; margin-top:10px; font-size:12.5px; color:var(--danger)"></div>
+    <p style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+      <label style="margin-right:auto; display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-secondary)">
+        <input type="checkbox" id="importRun" checked> Run the race after import
+      </label>
+      <button class="btn primary" id="importLoadBtn" style="margin-top:0">Load error</button>
+      <button class="btn" id="importCloseBtn" style="margin-top:0; background:var(--surface-3); border-color:var(--border-default)">Cancel</button>
     </p>
   </div>
 </div>
@@ -356,8 +413,8 @@ body.guiding .decoder{cursor:help}
 <script>
 /* ============================================================
    decoder.html UI, Module 2
-   Renders three mini-lattices sharing one injected error, runs the
-   three real decoders from decoders.js, and animates the race.
+   Renders four mini-lattices sharing one injected error, runs the
+   four real decoders from decoders.js, and animates the race.
    ============================================================ */
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -369,7 +426,7 @@ state.errors = {};   // the SHARED injected error, used by all 3 panels
 let CODE = buildCode(state.d);
 let lookupTable = buildLookupTable(CODE);
 
-const DECODERS = ["lookup", "mwpm", "bp"];
+const DECODERS = ["lookup", "mwpm", "bp", "bposd"];
 const svgs = {};
 const nodeMaps = {}; // id -> { qubits:{key:{circle,ring}}, plaqs:[poly], pathLayer }
 
@@ -531,7 +588,7 @@ function toggleSharedError(key) {
 }
 
 /* ---------- correction ring colors per decoder ---------- */
-const RING_COLOR = { lookup: "var(--syndrome)", mwpm: "var(--stab-z)", bp: "var(--pauli-z)" };
+const RING_COLOR = { lookup: "var(--syndrome)", mwpm: "var(--stab-z)", bp: "var(--pauli-z)", bposd: "var(--warning)" };
 
 /* show a decoder's correction as dashed rings on its panel */
 function showCorrection(id, correction) {
@@ -582,19 +639,25 @@ function resetBadges() {
 }
 
 /* ---------- BP marginal animation: tint qubits by P(error) ---------- */
-function applyBpMarginals(margX, margZ, varKeys) {
-  const nm = nodeMaps.bp;
+/* Generic: animate belief glow on ANY panel (BP and BP-OSD both use it).
+   The glow color matches that panel's correction-ring color. */
+function applyBpMarginalsOn(id, margX, margZ, varKeys) {
+  const nm = nodeMaps[id];
+  if (!nm) return;
+  const glow = RING_COLOR[id] || "var(--pauli-z)";
   varKeys.forEach((k, i) => {
     const pErr = Math.max(margX[i], margZ[i]); // show the stronger channel's belief
-    // intensity 0..1 -> blue glow on the ring
     const ring = nm.qubits[k].ring;
     if (pErr > 0.5) {
-      ring.setAttribute("stroke", "var(--pauli-z)");
+      ring.setAttribute("stroke", glow);
       ring.style.opacity = String(0.3 + 0.7 * Math.min(1, (pErr - 0.5) * 2));
     } else {
       ring.setAttribute("stroke", "transparent");
     }
   });
+}
+function applyBpMarginals(margX, margZ, varKeys) {
+  applyBpMarginalsOn("bp", margX, margZ, varKeys);
 }
 
 /* ============================================================
@@ -608,11 +671,12 @@ async function runRace() {
   const errors = cloneErrors(state.errors);
   paintShared();
 
-  // launch all three concurrently
+  // launch all four concurrently
   await Promise.all([
     runLookup(myToken, errors),
     runMwpm(myToken, errors),
     runBp(myToken, errors),
+    runBposd(myToken, errors),
   ]);
   if (myToken !== raceToken) return;
   computeAgreement(errors);
@@ -671,6 +735,33 @@ async function runBp(token, errors) {
   finishPanel(id, errors, res.correction, res.note);
 }
 
+async function runBposd(token, errors) {
+  const id = "bposd";
+  setBadge(id, "idle", "Iterating…");
+  const res = bpOsdDecode(CODE, errors, true); // trace=true for per-iteration marginals
+  const itX = res.channels.X.iterMarginals;
+  const itZ = res.channels.Z.iterMarginals;
+  const varKeys = res.channels.X.varKeys;
+  const steps = Math.max(itX.length, itZ.length);
+  // Phase 1: animate the BP message-passing exactly like the BP panel.
+  for (let i = 0; i < steps; i++) {
+    if (token !== raceToken) return;
+    setMeta(id, `Message-passing… <span class="itchip">iter ${i + 1}/${res.iters}</span>`);
+    applyBpMarginalsOn(id, itX[Math.min(i, itX.length - 1)] || [], itZ[Math.min(i, itZ.length - 1)] || [], varKeys);
+    await sleep(360);
+  }
+  if (token !== raceToken) return;
+  // Phase 2: if OSD had to step in, show that beat before settling.
+  if (res.usedOsd) {
+    setMeta(id, `BP stalled, running <span class="itchip">OSD-0 cleanup</span>`);
+    await sleep(520);
+    if (token !== raceToken) return;
+  }
+  // settle to the exact correction OSD guarantees
+  showCorrection(id, res.correction);
+  finishPanel(id, errors, res.correction, res.note);
+}
+
 function finishPanel(id, errors, correction, note) {
   const evalRes = evaluateCorrection(CODE, errors, correction);
   setBadge(id, evalRes.ok ? "fixed" : "failed", evalRes.label);
@@ -688,9 +779,10 @@ function computeAgreement(errors) {
   if (lookupAvail) got.lookup = lookupDecode(CODE, lookupTable, errors).correction;
   got.mwpm = mwpmDecode(CODE, errors).correction;
   got.bp = bpDecode(CODE, errors, false).correction;
+  got.bposd = bpOsdDecode(CODE, errors, false).correction;
 
   const names = Object.keys(got);
-  const label = { lookup: "lookup", mwpm: "MWPM", bp: "BP" };
+  const label = { lookup: "lookup", mwpm: "MWPM", bp: "BP", bposd: "BP-OSD" };
   const body = document.getElementById("agreement-body");
 
   // if no errors at all
@@ -709,7 +801,7 @@ function computeAgreement(errors) {
   }
 
   if (disagreements.length === 0) {
-    const which = lookupAvail ? "All three decoders" : "Both available decoders (MWPM and BP)";
+    const which = lookupAvail ? "All four decoders" : "All three available decoders (MWPM, BP, BP-OSD)";
     body.innerHTML = `<b>${which} agree</b>, identical corrections on every qubit.`;
     return;
   }
@@ -792,7 +884,8 @@ function rebuildAll() {
   // reset other badges
   setBadge("mwpm", "idle", "Idle"); setMeta("mwpm", "Press “Run race”.");
   setBadge("bp", "idle", "Idle"); setMeta("bp", "Press “Run race”.");
-  document.getElementById("agreement-body").innerHTML = "Run the race to compare the three corrections.";
+  setBadge("bposd", "idle", "Idle"); setMeta("bposd", "Press “Run race”.");
+  document.getElementById("agreement-body").innerHTML = "Run the race to compare the four corrections.";
 }
 
 /* ============================================================
@@ -844,7 +937,7 @@ function scheduleHashSync() {
 document.getElementById("shareBtn").addEventListener("click", async () => {
   history.replaceState(null, "", "#" + encodeState());
   const url = location.origin + location.pathname + "#" + encodeState();
-  const shareText = "Watch three real decoders race on this exact error pattern:";
+  const shareText = "Watch four real decoders race on this exact error pattern:";
   if (navigator.share) {
     try { await navigator.share({ title: "QEC Explorer, Decoder Race", text: shareText, url });
       QEC.toast(`Shared, <b>this exact race</b>.`); return;
@@ -884,6 +977,7 @@ const GUIDE_DECODER = {
   lookup: { k: "Lookup decoder", t: "The <b>lookup table</b> precomputes the best correction for <i>every</i> possible syndrome ahead of time. Exact, but only practical at d=3, the table explodes with code size. It's the perfect baseline to judge the others against." },
   mwpm: { k: "MWPM decoder", t: "<b>Minimum-weight matching</b> treats lit detectors as points to pair up, then connects each pair along the shortest path. It's the real workhorse of surface-code decoding, fast and usually optimal." },
   bp: { k: "Belief-propagation decoder", t: "<b>Belief propagation</b> passes probability messages around the code's graph until beliefs settle. It scales to huge codes, but it <i>struggles</i> on the surface code, which is part of what makes this race interesting to watch." },
+  bposd: { k: "BP + OSD decoder", t: "<b>BP-OSD</b> runs belief propagation first, then, if BP's guess doesn't actually reproduce the syndrome, it runs an <b>ordered-statistics</b> cleanup that solves the syndrome equations exactly. This is the real workhorse behind modern qLDPC and surface-code decoding, and unlike plain BP it <i>always</i> returns the code to a valid state." },
 };
 function guideQubit(err) {
   if (!err) return { k: "Shared data qubit", t: "This qubit is shared across all three panels. With Guide off, clicking paints an error here, and the <i>same</i> error and syndrome go to every decoder." };
@@ -918,7 +1012,7 @@ document.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideGuidePop(); });
 
 // decoder-panel guide handlers (panels exist from page load, not rebuilt)
-["lookup", "mwpm", "bp"].forEach(id => {
+["lookup", "mwpm", "bp", "bposd"].forEach(id => {
   const panel = document.getElementById("panel-" + id);
   if (panel) panel.addEventListener("click", (ev) => {
     if (!guideMode) return;
@@ -952,6 +1046,7 @@ toggleSharedError = function (key) { if (guideMode) return; return _origToggleSh
 svgs.lookup = document.getElementById("svg-lookup");
 svgs.mwpm = document.getElementById("svg-mwpm");
 svgs.bp = document.getElementById("svg-bp");
+svgs.bposd = document.getElementById("svg-bposd");
 rebuildAll();
 wireQubitGuide();
 // re-wire qubit guide handlers whenever the lattices rebuild (distance change)
@@ -964,6 +1059,7 @@ QEC.shortcuts([
   { combo: "C", label: "Clear all injected errors" },
   { combo: "X / Z / Y", label: "Switch the paint tool" },
   { combo: "3 / 5 / 7", label: "Switch code distance" },
+  { combo: "I", label: "Import a Pauli string" },
   { combo: "G", label: "Toggle Guide-me mode" },
   { combo: "?", label: "Show this cheat sheet" },
 ]);
@@ -980,15 +1076,16 @@ document.addEventListener("keydown", (e) => {
     const btn = document.querySelector(`#errType button[data-v="${k.toUpperCase()}"]`);
     if (btn) { e.preventDefault(); btn.click(); }
   } else if (k === "g") { e.preventDefault(); document.getElementById("guideBtn").click(); }
+  else if (k === "i") { e.preventDefault(); document.getElementById("importBtn").click(); }
 });
 // If arriving via a shared link, load that pattern and auto-run the race.
 if (location.hash) loadFromHash(true);
 
 /* ============================================================
    OpenQASM 3 export (Module 2 - decoder race)
-   Re-runs the three decoders against current state at click time and
-   emits ONE QASM 3 string containing all three corrections, each
-   labeled (LOOKUP / MWPM / BP). Pure-function emitter lives in
+   Re-runs the four decoders against current state at click time and
+   emits ONE QASM 3 string containing all four corrections, each
+   labeled (LOOKUP / MWPM / BP / BP-OSD). Pure-function emitter lives in
    assets/qec-openqasm.js.
    ============================================================ */
 const QASM_MODAL_2 = document.getElementById("qasmModal");
@@ -1024,6 +1121,10 @@ document.getElementById("qasmBtn").addEventListener("click", () => {
     corrections.push({
       correction: bpDecode(CODE, errs, false).correction,
       decoderLabel: "BP",
+    });
+    corrections.push({
+      correction: bpOsdDecode(CODE, errs, false).correction,
+      decoderLabel: "BP-OSD",
     });
     const text = QecOQ3.emit({
       d: state.d,
@@ -1067,6 +1168,135 @@ QASM_DL_2.addEventListener("click", () => {
 document.getElementById("qasmCloseBtn").addEventListener("click", hideQasmModal);
 QASM_MODAL_2.addEventListener("click", (e) => {
   if (e.target === QASM_MODAL_2) hideQasmModal();
+});
+
+/* ============================================================
+   PAULI-STRING IMPORT (Module 2)
+   Parse a Qiskit-style Pauli label (dense or sparse) into the shared
+   error set and load it, closing the loop with the OpenQASM export.
+   Pure parser -> {errors} | throws Error(message). Index = r*D + c.
+   ============================================================ */
+const IMPORT_MODAL = document.getElementById("importModal");
+const IMPORT_INPUT = document.getElementById("importInput");
+const IMPORT_ERR   = document.getElementById("importError");
+
+/* Turn a linear qubit index into an "r,c" key for the CURRENT distance. */
+function indexToKey(idx) {
+  const d = state.d;
+  const r = Math.floor(idx / d), c = idx % d;
+  return `${r},${c}`;
+}
+
+/* Map a single Pauli letter to an {x,z} flip. I -> null (no error). */
+function pauliFlip(letter) {
+  switch (letter) {
+    case "I": return null;
+    case "X": return { x: true, z: false };
+    case "Z": return { x: false, z: true };
+    case "Y": return { x: true, z: true };
+    default:  return undefined; // signal "not a Pauli"
+  }
+}
+
+/* Parse a Pauli string for the current distance. Returns an error set
+   { "r,c": {x,z} }. Throws Error(msg) on anything malformed so the modal
+   can show a precise reason. */
+function parsePauliString(raw) {
+  const d = state.d, n = d * d;
+  const s = (raw || "").trim();
+  if (!s) throw new Error("Nothing to import - paste a Pauli string first.");
+
+  // Qiskit labels may carry a leading phase like "+", "-", "i", "-i".
+  // Strip it for the dense form. NOTE: only a LOWERCASE "i" is treated as
+  // the phase unit - an uppercase "I" is the identity Pauli, so stripping
+  // it case-insensitively would silently eat a real qubit. The sign/phase
+  // chars (+ - i) never appear inside a body of I/X/Y/Z Paulis.
+  const dense = s.replace(/^[+-]?i?/, "").replace(/\s+/g, "");
+  const looksDense = /^[IXYZ]+$/i.test(dense) && !/\d/.test(s);
+
+  const errors = {};
+
+  if (looksDense) {
+    const label = dense.toUpperCase();
+    if (label.length !== n) {
+      throw new Error(`Dense label has ${label.length} Paulis but a d=${d} code needs exactly ${n} (one per data qubit).`);
+    }
+    // Qiskit prints Pauli labels MOST-significant-qubit first (qubit n-1 on
+    // the left, qubit 0 on the right). Reverse so index 0 = rightmost char.
+    for (let i = 0; i < n; i++) {
+      const letter = label[n - 1 - i];
+      const flip = pauliFlip(letter);
+      if (flip === undefined) throw new Error(`Unexpected character "${letter}" - dense labels use only I, X, Y, Z.`);
+      if (flip) errors[indexToKey(i)] = flip;
+    }
+    return errors;
+  }
+
+  // Sparse form: tokens of a Pauli letter + an index, e.g. X0, Z_4, Y(8).
+  const tokens = s.split(/[\s,;]+/).filter(Boolean);
+  let matched = 0;
+  for (const tok of tokens) {
+    const m = tok.match(/^([IXYZ])[_\s(]*?(\d+)\)?$/i);
+    if (!m) throw new Error(`Couldn't read token "${tok}". Use forms like X0, Z4, or Y8.`);
+    const flip = pauliFlip(m[1].toUpperCase());
+    const idx = parseInt(m[2], 10);
+    if (idx < 0 || idx >= n) throw new Error(`Qubit index ${idx} is out of range - a d=${d} code has qubits 0..${n - 1}.`);
+    matched++;
+    if (!flip) continue; // an explicit "I3" is a no-op
+    const key = indexToKey(idx);
+    // compose (so "X0 Z0" => Y on qubit 0)
+    const cur = errors[key] || { x: false, z: false };
+    errors[key] = { x: cur.x || flip.x, z: cur.z || flip.z };
+  }
+  if (matched === 0) throw new Error("No valid Pauli tokens found.");
+  return errors;
+}
+
+function showImportModal() {
+  document.getElementById("importD").textContent = state.d;
+  const n = state.d * state.d;
+  document.getElementById("importN").textContent = n;
+  document.getElementById("importN2").textContent = n;
+  IMPORT_ERR.style.display = "none";
+  IMPORT_INPUT.value = "";
+  IMPORT_MODAL.classList.add("open");
+  IMPORT_MODAL.setAttribute("aria-hidden", "false");
+  setTimeout(() => IMPORT_INPUT.focus(), 30);
+}
+function hideImportModal() {
+  IMPORT_MODAL.classList.remove("open");
+  IMPORT_MODAL.setAttribute("aria-hidden", "true");
+}
+
+document.getElementById("importBtn").addEventListener("click", showImportModal);
+document.getElementById("importCloseBtn").addEventListener("click", hideImportModal);
+IMPORT_MODAL.addEventListener("click", (e) => { if (e.target === IMPORT_MODAL) hideImportModal(); });
+
+function doImport() {
+  let parsed;
+  try {
+    parsed = parsePauliString(IMPORT_INPUT.value);
+  } catch (err) {
+    IMPORT_ERR.textContent = err.message;
+    IMPORT_ERR.style.display = "block";
+    QEC.announce("Import error: " + err.message);
+    return;
+  }
+  state.errors = parsed;
+  resetBadges();
+  paintShared();
+  scheduleHashSync();
+  hideImportModal();
+  const w = errorWeight(parsed);
+  QEC.toast(`Imported a Pauli error of weight <b>${w}</b>.`);
+  if (window.QECCounter) QECCounter.bumpErrorsExplored();
+  if (document.getElementById("importRun").checked && w > 0) runRace();
+  else document.getElementById("agreement-body").innerHTML = "Press “Run race” to decode this pattern.";
+}
+document.getElementById("importLoadBtn").addEventListener("click", doImport);
+// Ctrl/Cmd+Enter inside the textarea submits the import.
+IMPORT_INPUT.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); doImport(); }
 });
 </script>
 

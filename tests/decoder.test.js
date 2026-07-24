@@ -159,3 +159,80 @@ QECT.describe("BP decoder", () => {
     QECT.assert.ok(allMargs.every(m => m >= 0 && m <= 1));
   });
 });
+
+QECT.describe("BP-OSD decoder (BP + ordered-statistics post-processing)", () => {
+
+  QECT.it("exactly repairs a single X error at d=3, 5, 7", () => {
+    for (const d of [3, 5, 7]) {
+      const code = buildCode(d);
+      const errors = { "1,1": { x: true, z: false } };
+      const res = bpOsdDecode(code, errors, false);
+      const evalRes = evaluateCorrection(code, errors, res.correction);
+      QECT.assert.ok(evalRes.ok, "BP-OSD fixed a single X error at d=" + d);
+    }
+  });
+
+  QECT.it("repairs a single Y error (X + Z on one qubit)", () => {
+    const code = buildCode(5);
+    const errors = { "2,2": { x: true, z: true } };
+    const res = bpOsdDecode(code, errors, false);
+    QECT.assert.ok(evaluateCorrection(code, errors, res.correction).ok);
+  });
+
+  QECT.it("ALWAYS returns to the codespace, even on heavy random patterns", () => {
+    // OSD-0's defining guarantee: the proposed correction satisfies
+    // H·e = syndrome exactly, so the residual is silent (never
+    // 'left-codespace'). This is precisely where raw BP can fail.
+    function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    let leftCodespace = 0, trials = 0;
+    for (const d of [3, 5, 7]) {
+      const code = buildCode(d);
+      const r = rng(4242 + d);
+      for (let t = 0; t < 80; t++) {
+        const errors = {};
+        code.data.forEach(({ r: rr, c }) => {
+          if (r() < 0.2) { const roll = r();
+            errors[`${rr},${c}`] = roll < 0.4 ? { x: true, z: false } : roll < 0.8 ? { x: false, z: true } : { x: true, z: true }; }
+        });
+        if (errorWeight(errors) === 0) continue;
+        trials++;
+        const res = bpOsdDecode(code, errors, false);
+        if (evaluateCorrection(code, errors, res.correction).status === "left-codespace") leftCodespace++;
+      }
+    }
+    QECT.assert.ok(trials > 50, "ran a meaningful number of trials");
+    QECT.assert.equal(leftCodespace, 0, "BP-OSD never leaves the codespace");
+  });
+
+  QECT.it("is never strictly worse than MWPM on single errors", () => {
+    for (const d of [3, 5]) {
+      const code = buildCode(d);
+      for (const key of ["1,1", "0,1", "2,0", "1,0"]) {
+        for (const p of [{ x: true, z: false }, { x: false, z: true }]) {
+          const errors = { [key]: { ...p } };
+          const osdEv = evaluateCorrection(code, errors, bpOsdDecode(code, errors, false).correction);
+          const mwpmEv = evaluateCorrection(code, errors, mwpmDecode(code, errors).correction);
+          QECT.assert.ok(!(mwpmEv.ok && !osdEv.ok),
+            `BP-OSD worse than MWPM on ${JSON.stringify(p)}@${key} d=${d}`);
+        }
+      }
+    }
+  });
+
+  QECT.it("OSD-0 solve satisfies H·e = syndrome over GF(2)", () => {
+    const code = buildCode(5);
+    const errors = { "1,1": { x: true, z: false }, "3,2": { x: true, z: false }, "2,4": { x: true, z: false } };
+    const { H, checks, varKeys } = channelParityCheck(code, "X");
+    const synd = checks.map(ch => computeSyndromeFor(code, errors)[ch.idx]);
+    const order = varKeys.map((k, i) => i);
+    const e = osd0Solve(H, synd, order);
+    const He = H.map(row => { let s = 0; for (let i = 0; i < e.length; i++) s ^= (row[i] & e[i]); return s; });
+    QECT.assert.ok(He.every((v, i) => v === synd[i]), "H·e reproduces the syndrome exactly");
+  });
+
+  QECT.it("proposes no correction for a clear syndrome", () => {
+    const code = buildCode(3);
+    const res = bpOsdDecode(code, {}, false);
+    QECT.assert.equal(errorWeight(res.correction), 0);
+  });
+});

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QEC Explorer · Printable Worksheet</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="assets/theme.css">
+
+<style>
+  /* ----------------------------------------------------------
+     worksheet.html - instructor / classroom print mode.
+     Generates N surface-code decoding puzzles from a seed, each with
+     an injected error, a named decoder, and the REAL outcome computed
+     by evaluateCorrection (from decoders.js). The answer key prints at
+     the end. Designed to print to clean black-on-white PDF.
+     ---------------------------------------------------------- */
+  .wrap { max-width: 900px; }
+
+  .lead { margin-bottom: var(--space-5); }
+  .lead .eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--warning); margin-bottom: 10px; }
+  .lead h1 { font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.08; font-weight: 400; margin-bottom: 10px; }
+  .lead h1 em { font-style: italic; color: var(--syndrome); }
+  .lead p { color: var(--text-secondary); font-size: 15px; line-height: 1.65; max-width: 680px; }
+
+  /* Instructor control panel (screen only) */
+  .controls {
+    display: flex; gap: 16px 20px; flex-wrap: wrap; align-items: flex-end;
+    background: var(--surface-1); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 22px;
+  }
+  .controls .field { display: flex; flex-direction: column; gap: 6px; }
+  .controls .field label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-secondary); }
+  .controls .field input, .controls .field select { width: auto; min-width: 120px; }
+  .controls .field.grow { flex: 1; min-width: 160px; }
+  .controls .field.grow input { width: 100%; }
+  .controls .actions { display: flex; gap: 10px; margin-left: auto; align-self: flex-end; }
+  .controls .actions .btn { width: auto; white-space: nowrap; margin-top: 0; }
+
+  .print-hint {
+    background: var(--surface-2); border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--warning); border-radius: 0 7px 7px 0;
+    padding: 12px 16px; font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55; margin-bottom: 24px;
+  }
+  .print-hint b { color: var(--text-primary); font-weight: 500; }
+
+  /* Worksheet header (shows on the printed page) */
+  .sheet-head { display: none; }
+  .sheet-head .row { display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 4px; }
+  .sheet-head h2 { font-family: var(--font-display); font-size: 22px; font-weight: 400; }
+  .sheet-head .fill { font-size: 13px; color: #444; }
+  .sheet-head .meta { font-size: 11px; color: #555; font-family: var(--font-mono); }
+
+  /* Puzzle grid */
+  .sheet { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 620px) { .sheet { grid-template-columns: 1fr; } }
+
+  .q {
+    background: var(--surface-1); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 16px 18px; break-inside: avoid;
+  }
+  .q .qhead { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .q .qnum { font-family: var(--font-display); font-size: 20px; color: var(--syndrome); }
+  .q .qtag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text-hint); }
+  .q .prompt { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 10px; }
+  .q .prompt b { color: var(--text-primary); font-weight: 500; }
+  .q .prompt .chip { font-family: var(--font-mono); font-size: 11.5px; background: var(--surface-3);
+    padding: 1px 7px; border-radius: 4px; color: var(--warning); }
+
+  .q .mini-wrap { display: flex; justify-content: center; padding: 4px 0 10px; }
+  .q svg.mini { width: 100%; height: auto; max-width: 220px; }
+  .q .bond { stroke: var(--border-default); stroke-width: 1.2; }
+  .q .plaq { stroke-width: 1; }
+
+  .q .answers { display: flex; gap: 10px; }
+  .q .abox { flex: 1; border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+    padding: 8px 6px; text-align: center; font-size: 12.5px; color: var(--text-secondary); }
+  .q .abox .b { font-weight: 600; color: var(--text-primary); display: block; font-size: 15px; }
+
+  /* Answer key */
+  .key {
+    margin-top: 30px; background: var(--surface-1); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 20px 24px; break-before: page;
+  }
+  .key h3 { font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--stab-z); margin-bottom: 14px; }
+  .key ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 40px; }
+  @media (max-width: 620px) { .key ol { columns: 1; } }
+  .key li { font-size: 13px; color: var(--text-secondary); line-height: 1.8;
+    break-inside: avoid; margin-bottom: 4px; }
+  .key li b { color: var(--text-primary); font-weight: 500; }
+  .key .ans-fixed { color: var(--success); font-weight: 600; }
+  .key .ans-error { color: var(--danger); font-weight: 600; }
+
+  /* ----- Print rules: clean black-on-white worksheet ----- */
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; color: #000; font-size: 11pt; }
+    .topbar, .project-strip, .controls, .print-hint, .lead p.screen-only, footer, .no-print { display: none !important; }
+    .lead { display: none; }
+    .sheet-head { display: block; }
+    .wrap { max-width: none; padding: 0; }
+    .sheet { gap: 12px; }
+    .q { background: #fff; border: 1px solid #bbb; padding: 10px 12px; }
+    .q .qnum { color: #000; }
+    .q .qtag { color: #666; }
+    .q .prompt { color: #000; }
+    .q .prompt .chip { background: #eee; color: #000; }
+    .q .bond { stroke: #999; }
+    .q svg.mini { max-width: 180px; }
+    .q .abox { border-color: #999; color: #000; }
+    .q .abox .b { color: #000; }
+    .key { background: #fff; border: 1px solid #bbb; }
+    .key h3 { color: #000; }
+    .key li { color: #000; }
+    .key .ans-fixed { color: #000; }
+    .key .ans-error { color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">QEC <em>Explorer</em><span class="module">Worksheet</span></div>
+  <div class="links">
+    <a href="landing.html">Home</a>
+    <a href="decoder.html">Decoder race</a>
+    <a href="puzzle.html">Daily puzzle</a>
+  </div>
+</div>
+
+<div class="project-strip">
+  <div class="project-strip-inner">
+    <div class="crumb">Part of <b>QEC Explorer</b> · Instructor mode</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="pill" href="basics.html">Basics</a>
+      <a class="pill" href="index.html">Detect</a>
+      <a class="pill" href="decoder.html">Decode</a>
+      <a class="pill" href="noise.html">Noise</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="lead">
+    <div class="eyebrow">Instructor mode · Prints to a clean PDF</div>
+    <h1>Printable <em>decoding</em> worksheet</h1>
+    <p class="screen-only">Generate a set of surface-code decoding puzzles for a classroom. Each question shows an
+    injected error and a named decoder; students predict whether the code is <b>fixed</b> or an
+    <b>error gets through</b>. Every answer is the real outcome computed by the same
+    <code>evaluateCorrection</code> the interactive tool uses. Set your options, then use your
+    browser's <b>Print</b> (Ctrl/Cmd+P) to save a PDF, the answer key is on the last page.</p>
+  </div>
+
+  <!-- Instructor controls (screen only) -->
+  <div class="controls no-print">
+    <div class="field">
+      <label for="wsCount">Questions</label>
+      <input type="number" id="wsCount" min="1" max="24" value="8">
+    </div>
+    <div class="field">
+      <label for="wsDist">Code distance</label>
+      <select id="wsDist">
+        <option value="mix" selected>Mixed (d=3 &amp; 5)</option>
+        <option value="3">d = 3</option>
+        <option value="5">d = 5</option>
+      </select>
+    </div>
+    <div class="field grow">
+      <label for="wsSeed">Seed (same seed = same worksheet)</label>
+      <input type="text" id="wsSeed" value="classroom-1" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="actions">
+      <button class="btn" id="wsRegen">↻ Regenerate</button>
+      <button class="btn primary" id="wsPrint">🖨 Print / Save PDF</button>
+    </div>
+  </div>
+
+  <div class="print-hint no-print">
+    <b>Tip:</b> the worksheet and its answer key are fully deterministic from the seed above, so
+    every student who uses seed <code id="hintSeed">classroom-1</code> gets the identical sheet.
+    Change the seed to make a fresh set; keep it to reprint the same one.
+  </div>
+
+  <!-- Printed worksheet header (hidden on screen, shown on paper) -->
+  <div class="sheet-head">
+    <div class="row">
+      <h2>Surface-Code Decoding Worksheet</h2>
+      <span class="fill">Name: ______________________</span>
+    </div>
+    <div class="meta" id="sheetMeta"></div>
+  </div>
+
+  <!-- Questions render here -->
+  <div class="sheet" id="sheet"></div>
+
+  <!-- Answer key -->
+  <div class="key" id="key">
+    <h3>Answer key</h3>
+    <ol id="keyList"></ol>
+  </div>
+</div>
+
+<footer class="no-print">
+  QEC Explorer · Instructor worksheet · Outcomes are computed by the same real
+  <code>evaluateCorrection</code> as the rest of the site.<br>
+  <a href="landing.html">Home</a> &nbsp;·&nbsp; <a href="decoder.html">Decoder race</a> &nbsp;·&nbsp;
+  <a href="https://github.com/kondshk/QEC-Explorer">GitHub</a>
+</footer>
+
+<!-- Real physics + decoders (no reimplementation) -->
+<script src="lattice-core.js"></script>
+<script src="decoders.js"></script>
+<script src="assets/qec-shared.js"></script>
+<script>
+/* ============================================================
+   worksheet.html - deterministic printable puzzle set.
+   Reuses the exact puzzle-generation approach from puzzle.html, but for
+   an arbitrary count and seed rather than the UTC date, and lays them
+   out for print with an answer key. Every outcome is computed by the
+   real solvePuzzle() -> evaluateCorrection() path, so the key is never
+   hand-written and always matches the interactive tool.
+   ============================================================ */
+const SVG_NS = "http://www.w3.org/2000/svg";
+state.errors = {};
+
+/* ---- seeded RNG (identical to puzzle.html so shared seeds line up) ---- */
+function hashStr(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+const DECODER_NAME = { lookup: "lookup table", mwpm: "minimum-weight matching", bp: "belief propagation", bposd: "BP + OSD" };
+
+/* Build one puzzle from a per-question RNG. distMode is "3" | "5" | "mix". */
+function makePuzzle(rng, distMode) {
+  const d = distMode === "3" ? 3 : distMode === "5" ? 5 : (rng() < 0.6 ? 3 : 5);
+  const code = buildCode(d);
+  const pool = d === 3 ? ["lookup", "mwpm", "bp", "bposd"] : ["mwpm", "bp", "bposd"];
+  const decoder = pool[Math.floor(rng() * pool.length)];
+  const nErr = 1 + Math.floor(rng() * 3);
+  const errors = {};
+  const keys = code.data.map(q => `${q.r},${q.c}`);
+  for (let i = 0; i < nErr; i++) {
+    const k = keys[Math.floor(rng() * keys.length)];
+    const roll = rng();
+    const e = errors[k] || { x: false, z: false };
+    if (roll < 0.45) e.x = true;
+    else if (roll < 0.9) e.z = true;
+    else { e.x = true; e.z = true; }
+    errors[k] = e;
+  }
+  return { d, decoder, errors };
+}
+
+/* Solve with the real decoders/evaluator (never hand-authored). */
+function solve(p) {
+  const code = buildCode(p.d);
+  let res;
+  if (p.decoder === "lookup") res = lookupDecode(code, buildLookupTable(code), p.errors);
+  else if (p.decoder === "mwpm") res = mwpmDecode(code, p.errors);
+  else if (p.decoder === "bposd") res = bpOsdDecode(code, p.errors, false);
+  else res = bpDecode(code, p.errors, false);
+  const evalRes = evaluateCorrection(code, p.errors, res.correction);
+  return { status: evalRes.status, bucket: evalRes.status === "fixed" ? "fixed" : "error" };
+}
+
+function describeErrors(errors) {
+  const parts = [];
+  for (const k of Object.keys(errors).sort()) {
+    const e = errors[k];
+    const t = e.x && e.z ? "Y" : e.x ? "X" : "Z";
+    parts.push(t + " on (" + k + ")");
+  }
+  return parts.join(", ");
+}
+
+/* Render one puzzle's mini-lattice (error + syndrome, no answer shown). */
+function renderMini(svg, p) {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const code = buildCode(p.d);
+  const PAD = 34, SIZE = 260, span = SIZE - PAD * 2, step = span / (p.d - 1);
+  const toX = c => PAD + c * step, toY = r => PAD + r * step;
+  const visR = p.d <= 3 ? 10 : 7;
+  svg.setAttribute("viewBox", `0 0 ${SIZE} ${SIZE}`);
+  const saved = state.errors; state.errors = p.errors;
+  const synd = computeSyndrome(code); state.errors = saved;
+  const el = (n, a) => { const e = document.createElementNS(SVG_NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  for (let r = 0; r < p.d; r++) for (let c = 0; c < p.d; c++) {
+    if (c < p.d - 1) svg.appendChild(el("line", { class: "bond", x1: toX(c), y1: toY(r), x2: toX(c + 1), y2: toY(r) }));
+    if (r < p.d - 1) svg.appendChild(el("line", { class: "bond", x1: toX(c), y1: toY(r), x2: toX(c), y2: toY(r + 1) }));
+  }
+  code.stabs.forEach((s, i) => {
+    const cx = toX(s.cx), cy = toY(s.cy);
+    const pts = s.data.map(k => { const [rr, cc] = k.split(",").map(Number); return [toX(cc), toY(rr)]; });
+    pts.sort((a, b) => Math.atan2(a[1] - cy, a[0] - cx) - Math.atan2(b[1] - cy, b[0] - cx));
+    const fired = synd[i] === 1;
+    const col = fired ? "var(--syndrome)" : (s.type === "Z" ? "var(--stab-z)" : "var(--stab-x)");
+    svg.appendChild(el("polygon", { class: "plaq", points: pts.map(p => p.join(",")).join(" "),
+      fill: col, "fill-opacity": fired ? 0.55 : 0.1, stroke: col }));
+  });
+  code.data.forEach(({ r, c }) => {
+    const e = p.errors[`${r},${c}`];
+    const fill = e && e.x && e.z ? "var(--pauli-y)" : e && e.x ? "var(--pauli-x)" : e && e.z ? "var(--pauli-z)" : "var(--qubit-rest)";
+    svg.appendChild(el("circle", { cx: toX(c), cy: toY(r), r: visR, fill, stroke: "var(--qubit-stroke)", "stroke-width": 1.3 }));
+  });
+}
+
+/* Read options -> generate -> render the whole worksheet + key. */
+function generate() {
+  const count = Math.max(1, Math.min(24, parseInt(document.getElementById("wsCount").value, 10) || 8));
+  const distMode = document.getElementById("wsDist").value;
+  const seed = document.getElementById("wsSeed").value.trim() || "worksheet";
+  document.getElementById("hintSeed").textContent = seed;
+
+  const sheet = document.getElementById("sheet");
+  const keyList = document.getElementById("keyList");
+  sheet.innerHTML = ""; keyList.innerHTML = "";
+
+  document.getElementById("sheetMeta").textContent =
+    `Seed: ${seed}   ·   ${count} questions   ·   Predict: will the decoder fix the error, or does an error get through?`;
+
+  for (let i = 0; i < count; i++) {
+    // A distinct RNG per question keeps each independent yet reproducible.
+    const rng = mulberry32(hashStr(`${seed}#${i}`));
+    const p = makePuzzle(rng, distMode);
+    const sol = solve(p);
+    const nErr = Object.keys(p.errors).length;
+
+    const q = document.createElement("div");
+    q.className = "q";
+    q.innerHTML =
+      `<div class="qhead"><span class="qnum">${i + 1}</span>` +
+      `<span class="qtag">d=${p.d} · ${DECODER_NAME[p.decoder]}</span></div>` +
+      `<div class="prompt">A distance-<b>${p.d}</b> surface code takes <b>${nErr} error${nErr > 1 ? "s" : ""}</b> ` +
+      `(<span class="chip">${describeErrors(p.errors)}</span>), then <b>${DECODER_NAME[p.decoder]}</b> decodes the lit syndrome below.</div>` +
+      `<div class="mini-wrap"><svg class="mini" xmlns="http://www.w3.org/2000/svg"></svg></div>` +
+      `<div class="answers">` +
+      `<div class="abox"><span class="b">☐</span>Fixed ✓</div>` +
+      `<div class="abox"><span class="b">☐</span>Error gets through ✗</div>` +
+      `</div>`;
+    sheet.appendChild(q);
+    renderMini(q.querySelector("svg.mini"), p);
+
+    // answer key entry
+    const li = document.createElement("li");
+    const statusWord = { "fixed": "Fixed", "logical-introduced": "Logical error introduced",
+      "left-codespace": "Left codespace (syndrome not cleared)" }[sol.status];
+    li.innerHTML = `<b>Q${i + 1}:</b> ` +
+      `<span class="${sol.bucket === "fixed" ? "ans-fixed" : "ans-error"}">` +
+      `${sol.bucket === "fixed" ? "Fixed ✓" : "Error gets through ✗"}</span> ` +
+      `<span style="color:var(--text-hint)">(${statusWord})</span>`;
+    keyList.appendChild(li);
+  }
+}
+
+document.getElementById("wsRegen").addEventListener("click", generate);
+document.getElementById("wsPrint").addEventListener("click", () => window.print());
+["wsCount", "wsDist", "wsSeed"].forEach(id =>
+  document.getElementById(id).addEventListener("change", generate));
+
+/* Allow deep-linking a specific worksheet: ?n=8&d=mix&seed=foo */
+(function initFromQuery() {
+  const q = new URLSearchParams(location.search);
+  if (q.has("n")) document.getElementById("wsCount").value = Math.max(1, Math.min(24, parseInt(q.get("n"), 10) || 8));
+  if (q.has("d") && ["3", "5", "mix"].includes(q.get("d"))) document.getElementById("wsDist").value = q.get("d");
+  if (q.has("seed")) document.getElementById("wsSeed").value = q.get("seed");
+})();
+
+generate();
+
+QEC.shortcuts([
+  { combo: "?", label: "Open the keyboard cheat sheet" },
+]);
+</script>
+</body>
+</html>

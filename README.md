@@ -2,7 +2,7 @@
 
 **An open-source, interactive tool for seeing how quantum error correction actually works, in real time, in your browser.**
 
-Click qubits to inject errors on a real rotated surface code, watch the stabilizers light up to detect them, race three real decoders to fix the damage, and run a live Monte Carlo hunt for the error threshold. Then rebuild every piece from scratch in plain Python with the companion Colab notebooks.
+Click qubits to inject errors on a real rotated surface code, watch the stabilizers light up to detect them, race four real decoders (including research-grade BP-OSD) to fix the damage, and run a live Monte Carlo hunt for the error threshold. Then rebuild every piece from scratch in plain Python with the companion Colab notebooks.
 
 <p align="center">
   <a href="https://qec-explorer-iota.vercel.app/"><b>▶ Open the live tool</b></a>
@@ -38,7 +38,7 @@ Everything runs client-side. No accounts, no server, no build step.
 |--------|-------------|--------|
 | **0 · Basics** | A beginner on-ramp: qubits, superposition, and gates on a 3D Bloch sphere | ✅ Live |
 | **1 · Detection** | Inject X / Z / Y errors on a surface code and watch the syndrome fire | ✅ Live |
-| **2 · Decoder race** | Three real decoders (lookup, MWPM, belief propagation) compete on the same syndrome | ✅ Live |
+| **2 · Decoder race** | Four real decoders (lookup, MWPM, belief propagation, and BP-OSD) compete on the same syndrome | ✅ Live |
 | **3 · Noise explorer** | A live Monte Carlo over error rate and bias; hunt the threshold yourself | ✅ Live |
 
 A plain-English [landing page](https://qec-explorer-iota.vercel.app/) and a [research-connection page](https://qec-explorer-iota.vercel.app/research) tie the whole thing together.
@@ -66,12 +66,17 @@ The lattice connectivity, stabilizer construction, and syndrome parity are physi
 
 You can run those checks yourself: open `tests/test-runner.html` in a browser and the full suite runs on load.
 
-## Export your work
+## Export and import your work
 
-Every interactive module can export what you built:
+Every interactive module can export what you built, and Module 2 can import too:
 
 - **Modules 1 and 2** export a runnable **OpenQASM 3** circuit (your injected errors, the syndrome-extraction round, and each decoder's proposed correction) that drops straight into `QuantumCircuit.from_qasm3_str(...)`.
+- **Module 2** also **imports a Pauli string** (a Qiskit-style `Pauli` label such as `IXIIZIIIY`, or a sparse form like `X0 Z4 Y8`) so you can paste an error straight from a `SparsePauliOp` and watch all four decoders take it on.
 - **Module 3** exports a parameterised **Qiskit / Aer** Python template that reproduces your noise experiment.
+
+## For instructors
+
+`worksheet.html` generates a **printable classroom worksheet**: a seeded set of surface-code decoding puzzles, each asking whether the decoder fixes the error or lets one through, with an answer key on the last page. Every answer is computed by the same real `evaluateCorrection` as the interactive tool, and the whole sheet is deterministic from its seed (so every student gets the identical set). Set the options and print to PDF, or deep-link a specific sheet with `worksheet.html?n=8&d=mix&seed=your-seed`.
 
 ## Run it locally
 
@@ -94,14 +99,16 @@ The production site is deployed on [Vercel](https://vercel.com) as a plain stati
 ```
 index.html          Module 1, surface-code detection playground
 basics.html         Module 0, beginner on-ramp with a 3D Bloch sphere
-decoder.html        Module 2, the three-decoder race
+decoder.html        Module 2, the four-decoder race
 noise.html          Module 3, Monte Carlo noise and threshold explorer
 research.html       How the toy connects to real QEC research
 notebooks.html      Gallery linking every companion notebook
+puzzle.html         A deterministic daily decoding puzzle
+worksheet.html      Printable, seeded classroom worksheet with answer key
 landing.html        Plain-English front door
 
 lattice-core.js     Single source of truth for the surface-code physics
-decoders.js         Lookup, MWPM, and belief-propagation decoders
+decoders.js         Lookup, MWPM, belief-propagation, and BP-OSD decoders
 assets/             Shared theme, the Bloch-sphere engine, the OpenQASM emitter
 notebook0*.ipynb    Six companion Colab notebooks
 tests/              Browser-based unit tests (open tests/test-runner.html)

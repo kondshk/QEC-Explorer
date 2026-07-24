@@ -67,8 +67,12 @@
     return true;
   }
   function closeAllModals() {
-    document.querySelectorAll(".qec-modal.show").forEach(function (el) {
+    // Modals open via either `.show` (cheat sheet) or `.open` (export /
+    // import dialogs). ESC should dismiss whichever is visible, so clear
+    // both classes and mark the dialog hidden for assistive tech.
+    document.querySelectorAll(".qec-modal.show, .qec-modal.open").forEach(function (el) {
       el.classList.remove("show");
+      el.classList.remove("open");
       el.setAttribute("aria-hidden", "true");
     });
   }

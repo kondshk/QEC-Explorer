@@ -4,6 +4,40 @@ All notable changes to **QEC Explorer** are recorded here. The format
 follows [Keep a Changelog 1.1](https://keepachangelog.com/en/1.1/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-07-23 · Research-grade decoding + classroom tooling
+
+### Added
+- **BP-OSD decoder** (`bpOsdDecode` in `decoders.js`) - belief propagation
+  followed by order-0 ordered-statistics post-processing. When plain BP
+  fails to reproduce the observed syndrome (its well-known surface-code
+  failure), OSD-0 Gaussian-eliminates the parity-check matrix ordered by BP
+  reliability and solves the syndrome equations exactly, so the correction
+  is guaranteed to return the code to the codespace. This is the workhorse
+  behind modern qLDPC and surface-code decoding. It joins the race in
+  `decoder.html` as a fourth panel, and is included in the OpenQASM export,
+  the agreement strip, Guide-me, and the printable worksheet.
+- **Pauli-string importer** (`decoder.html`) - paste a Qiskit-style `Pauli`
+  label (dense `IXIIZIIIY`, or sparse `X0 Z4 Y8`) to load an error straight
+  from a `SparsePauliOp`, closing the loop with the OpenQASM export. Tolerant
+  of phase prefixes, whitespace, and commas; validates length and index.
+- **`worksheet.html`** - a printable, seed-deterministic classroom worksheet.
+  Generates N surface-code decoding puzzles with an answer key computed by the
+  real `evaluateCorrection`. Configurable count / distance / seed, deep-linkable
+  via `?n=8&d=mix&seed=...`, and styled to print to clean black-on-white PDF.
+- New `decoder.test.js` suites for BP-OSD: single-error repair, the
+  never-leaves-codespace guarantee over random heavy patterns, parity with
+  MWPM, and the `H·e = syndrome` property of the OSD-0 solve.
+
+### Changed
+- **Accessibility (toward WCAG 2.1 AA):** lightened `--text-hint` from
+  `#6f6f7f` to `#858592` so small hint text clears the 4.5:1 contrast minimum
+  on the common surfaces. Added `aria-live` to each decoder panel's status,
+  descriptive `aria-label`s to the four race lattices, and made ESC close the
+  export / import dialogs (they open via `.open`, which `closeAllModals` now
+  handles alongside `.show`).
+- Copy across the site updated from "three decoders" to "four" wherever it
+  describes the Module 2 race (the notebooks still build the original three).
+
 ## [Unreleased] · The Platform Release - *v2.0*
 
 This is the cutoff where QEC Explorer stops being "a single page plus a few

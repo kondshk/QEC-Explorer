@@ -74,7 +74,12 @@ body {
   --text-primary: #f4f4f4;
   --text-secondary: #c6c6c6;
   --text-tertiary: #8d8d8d;
-  --text-hint: #6f6f7f;
+  /* --text-hint lightened from #6f6f7f to meet WCAG 2.1 AA (>= 4.5:1) for
+     small hint text on the common surfaces: 5.39 on --surface-bg, 5.02 on
+     --surface-1, 4.62 on --surface-2. Kept a slight cool tint so it stays
+     visually distinct from the neutral --text-tertiary tier. */
+  --text-hint: #858592;
+  /* Disabled text is exempt from WCAG contrast minimums by design. */
   --text-disabled: #525252;
   --text-on-color: #0b0b12;
 

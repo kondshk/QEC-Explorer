@@ -519,6 +519,159 @@ function bpDecode(code, errors, trace) {
 }
 
 /* ============================================================
+   4. BP + OSD  (belief propagation with ordered-statistics decoding)
+   ------------------------------------------------------------
+   Plain BP has a well-known failure on the surface code: it can settle
+   on a "split belief" that does NOT reproduce the observed syndrome, so
+   its bare correction leaves the code outside the codespace (a broken
+   chain). BP-OSD fixes this with a post-processing step that is
+   GUARANTEED to reproduce the syndrome exactly.
+
+   OSD-0 (the order-0 variant implemented here) works per channel:
+     1. Run BP to get a soft reliability (P(error)) for every data qubit.
+     2. Order the columns of the binary parity-check matrix H (rows =
+        detector stabilizers, columns = data qubits) from MOST reliable
+        error to least - i.e. by descending BP marginal.
+     3. Gaussian-eliminate H over GF(2) picking pivots greedily in that
+        order. The pivot columns form a set of independent qubits whose
+        error bits are fully DETERMINED by the syndrome; every non-pivot
+        qubit is set to 0 (the order-0 assumption).
+     4. Back-substitute to read off the error bits on the pivot columns.
+   The resulting bit-vector, by construction, satisfies H·e = syndrome
+   over GF(2), so applying it as a correction always returns the code to
+   the codespace. It may still be a logical operator away from the truth
+   (no decoder escapes that), but it never leaves a dangling syndrome.
+
+   References this mirrors: Panteleev & Kalachev (2021); Roffe's
+   `ldpc`/`bposd` library, which pairs BP with exactly this OSD step and
+   is the de-facto workhorse decoder for qLDPC and surface codes alike.
+   ============================================================ */
+
+/* GF(2) parity-check matrix for a channel: one row per detector
+   stabilizer, one column per data qubit. H[row][col] = 1 iff flipping
+   that qubit's `channel` component toggles that stabilizer. */
+function channelParityCheck(code, channel) {
+  const detType = DETECTOR_TYPE[channel];
+  const checks = stabsOfType(code, detType);           // rows (with .idx)
+  const varKeys = code.data.map(({ r, c }) => `${r},${c}`); // columns
+  const varIndex = new Map(varKeys.map((k, i) => [k, i]));
+  const H = checks.map(ch => {
+    const row = new Uint8Array(varKeys.length);
+    for (const k of ch.data) row[varIndex.get(k)] = 1;
+    return row;
+  });
+  return { H, checks, varKeys };
+}
+
+/* OSD-0 solve over GF(2).
+     H      : Array<Uint8Array>  (rows × cols parity-check matrix)
+     synd   : Array<0|1>         (length = rows) target syndrome
+     order  : Array<number>      column indices, MOST reliable first
+   Returns a Uint8Array error vector e (length = cols) with H·e = synd.
+   Greedy Gaussian elimination: walk columns in `order`, and whenever a
+   column has a leading 1 in an as-yet-unclaimed row, adopt it as a
+   pivot. Non-pivot columns stay 0 (order-0). Then back-substitute. */
+function osd0Solve(H, synd, order) {
+  const rows = H.length;
+  const cols = rows > 0 ? H[0].length : 0;
+  // Work on copies so we never mutate the caller's matrix.
+  const M = H.map(r => Uint8Array.from(r));
+  const b = Uint8Array.from(synd);
+
+  const pivotRowOfCol = new Int32Array(cols).fill(-1); // col -> row it pivots
+  const pivotColOfRow = new Int32Array(rows).fill(-1); // row -> its pivot col
+  let rowUsed = new Uint8Array(rows);
+
+  for (const col of order) {
+    // find an unused row with a 1 in this column
+    let pr = -1;
+    for (let r = 0; r < rows; r++) {
+      if (!rowUsed[r] && M[r][col] === 1) { pr = r; break; }
+    }
+    if (pr === -1) continue;              // column is dependent so far, skip
+    rowUsed[pr] = 1;
+    pivotRowOfCol[col] = pr;
+    pivotColOfRow[pr] = col;
+    // eliminate this column from every OTHER row
+    for (let r = 0; r < rows; r++) {
+      if (r !== pr && M[r][col] === 1) {
+        for (let c = 0; c < cols; c++) M[r][c] ^= M[pr][c];
+        b[r] ^= b[pr];
+      }
+    }
+  }
+
+  // Read the solution: pivot columns take the (now-reduced) rhs bit;
+  // all non-pivot columns are 0.
+  const e = new Uint8Array(cols);
+  for (let r = 0; r < rows; r++) {
+    const col = pivotColOfRow[r];
+    if (col >= 0) e[col] = b[r] & 1;
+  }
+  return e;
+}
+
+/* One channel of BP-OSD. Reuses bpChannel's soft marginals to order the
+   columns, then OSD-0 to snap the correction onto the exact syndrome. */
+function bpOsdChannel(code, errors, channel, trace) {
+  const bp = bpChannel(code, errors, channel, trace);
+  const { H, checks, varKeys } = channelParityCheck(code, channel);
+  const synd = checks.map(ch => computeSyndromeFor(code, errors)[ch.idx]);
+
+  // If the syndrome is already clear, no correction is needed in this
+  // channel - OSD would return the all-zero vector anyway.
+  const anyFired = synd.some(v => v === 1);
+  let correction = {};
+  let usedOsd = false;
+
+  if (anyFired) {
+    // Does plain BP already reproduce the syndrome exactly? If so, keep
+    // it (BP succeeded); OSD is only the safety net.
+    const bpSynd = computeSyndromeFor(code, bp.correction).length
+      ? checks.map(ch => computeSyndromeFor(code, bp.correction)[ch.idx])
+      : synd.map(() => 0);
+    const bpMatches = bpSynd.every((v, i) => v === synd[i]);
+
+    if (bpMatches) {
+      correction = cloneErrors(bp.correction);
+    } else {
+      // OSD-0 rescue: order columns by descending BP P(error).
+      const order = varKeys
+        .map((k, i) => i)
+        .sort((a, b) => bp.finalMarg[b] - bp.finalMarg[a]);
+      const e = osd0Solve(H, synd, order);
+      varKeys.forEach((k, i) => { if (e[i]) applyFlips(correction, [k], channel); });
+      usedOsd = true;
+    }
+  }
+
+  return { correction, iters: bp.iters, converged: bp.converged,
+           finalMarg: bp.finalMarg, iterMarginals: bp.iterMarginals,
+           varKeys, usedOsd };
+}
+
+function bpOsdDecode(code, errors, trace) {
+  const x = bpOsdChannel(code, errors, "X", trace);
+  const z = bpOsdChannel(code, errors, "Z", trace);
+  const correction = combineErrors(x.correction, z.correction);
+  const iters = Math.max(x.iters, z.iters);
+  const converged = x.converged && z.converged;
+  const usedOsd = x.usedOsd || z.usedOsd;
+  let note;
+  if (usedOsd) {
+    note = `BP left a residual syndrome, OSD post-processing solved it exactly (${iters} BP iteration${iters !== 1 ? "s" : ""} + OSD-0).`;
+  } else {
+    note = converged
+      ? `BP converged in ${iters} iteration${iters !== 1 ? "s" : ""}; OSD confirmed it already matched the syndrome.`
+      : `BP did not converge in ${BP_MAX_ITERS} iterations; OSD confirmed the estimate still matched the syndrome.`;
+  }
+  return {
+    available: true, correction, iters, converged, usedOsd, note,
+    channels: { X: x, Z: z }
+  };
+}
+
+/* ============================================================
    Outcome evaluation (shared by UI)
    ------------------------------------------------------------
    Given the original error and a proposed correction, the residual is
@@ -551,7 +704,9 @@ function evaluateCorrection(code, originalErrors, correction) {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     BP_CHANNEL_P, BP_MAX_ITERS, BP_CONVERGE_EPS, MWPM_EXACT_LIMIT,
-    buildLookupTable, lookupDecode, mwpmDecode, bpDecode, evaluateCorrection,
-    stabsOfType, DETECTOR_TYPE, buildChannelGraph, bfsFrom, reconstructQubits
+    buildLookupTable, lookupDecode, mwpmDecode, bpDecode, bpOsdDecode,
+    evaluateCorrection,
+    stabsOfType, DETECTOR_TYPE, buildChannelGraph, bfsFrom, reconstructQubits,
+    channelParityCheck, osd0Solve
   };
 }
