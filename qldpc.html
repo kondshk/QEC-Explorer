@@ -35,6 +35,11 @@
   background: var(--surface-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
   padding: 9px 11px; font-size: 11px; color: var(--text-secondary);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none; }
+/* Horizontal, in-flow legend used above the decode lattice, where the qubit
+   grid fills the whole card and an absolute overlay would cover the corner. */
+.legend.legend-top { position: static; flex-direction: row; flex-wrap: wrap;
+  gap: 8px 16px; margin: 2px 4px 8px; background: none; border: none; padding: 4px 2px;
+  backdrop-filter: none; -webkit-backdrop-filter: none; }
 .legend .row { display: flex; align-items: center; gap: 7px; }
 .legend .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .legend .sq { width: 10px; height: 10px; border-radius: 2px; flex: none; transform: rotate(45deg); }
@@ -312,16 +317,16 @@
 
     <div class="stage">
       <div class="graph-card">
-        <svg id="latticeSvg" viewBox="0 0 760 620" role="img"
-             aria-label="Grid of the 144 gross-code data qubits. Click a qubit to add or remove an error; lit rings mark the checks that fire.">
-          <g id="latQubits"></g>
-        </svg>
-        <div class="legend">
+        <div class="legend legend-top">
           <div class="row"><span class="dot k-data"></span> clean qubit</div>
           <div class="row"><span class="dot k-err"></span> injected error</div>
           <div class="row"><span class="sq k-xchk"></span> fired X-check</div>
           <div class="row"><span class="sq k-zchk"></span> fired Z-check</div>
         </div>
+        <svg id="latticeSvg" viewBox="0 0 760 560" role="img"
+             aria-label="Grid of the 144 gross-code data qubits. Click a qubit to add or remove an error; lit rings mark the checks that fire.">
+          <g id="latQubits"></g>
+        </svg>
         <div class="readout" id="latReadout" aria-live="polite">
           Click any dot to toggle an error on that qubit. The panel on the right tracks the live syndrome.
         </div>
@@ -668,15 +673,19 @@ let latLaidOut = false;
 /* Grid layout for the 144 qubits: two 12x6 blocks side by side, so the
    left/right sublattice split is visible. This is a LAYOUT choice only,
    not a claim that the code is local. */
+const LAT_H = 560;  // the lattice SVG's own viewBox height (independent of the Tanner graph's H)
 function latticePos(q) {
   const block = q < LM ? 0 : 1;
   const local = q < LM ? q : q - LM;      // 0..71
   const row = Math.floor(local / 6);       // 0..11
   const col = local % 6;                    // 0..5
+  // The legend now sits above the SVG, so the grid just needs a small top
+  // margin for the sublattice labels (pure layout, no physics).
+  const topMargin = 56, botMargin = 40;
   const blockW = 300, gap = 80, x0 = 60;
   const bx = x0 + block * (blockW + gap);
   const x = bx + col * (blockW / 5);
-  const y = 60 + row * ((H - 120) / 11);
+  const y = topMargin + row * ((LAT_H - topMargin - botMargin) / 11);
   return { x, y };
 }
 function layoutLattice() {
@@ -692,11 +701,12 @@ function layoutLattice() {
     c.style.cursor = 'pointer'; c.dataset.q = q;
     gLat.appendChild(c); latEls.push(c);
   }
-  // block labels
+  // Block labels sit just above the first row. The legend is no longer an
+  // overlay, so nothing can hide them.
   ['L sublattice', 'R sublattice'].forEach((label, b) => {
     const t = document.createElementNS(SVG_NS, 'text');
     const p = latticePos(b === 0 ? 0 : LM);
-    t.setAttribute('x', p.x - 8); t.setAttribute('y', 40);
+    t.setAttribute('x', p.x - 8); t.setAttribute('y', 36);
     t.setAttribute('fill', 'var(--text-hint)'); t.setAttribute('font-size', '12');
     t.setAttribute('font-family', 'var(--font-mono)'); t.textContent = label;
     gLat.appendChild(t);
