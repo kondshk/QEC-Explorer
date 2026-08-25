@@ -4,12 +4,12 @@
    ------------------------------------------------------------
    This file is the SINGLE SOURCE OF TRUTH for the code's physics.
    It is loaded as a plain <script src="lattice-core.js"> by both
-   index.html (Module 1 - detection) and decoder.html (Module 2 -
+   detection.html (Module 1 - detection) and decoder.html (Module 2 -
    decoder race). No bundler, no modules, no build step.
 
    The four functions below - buildCode, computeSyndrome,
    logicalStatus, hasAnyError - were EXTRACTED VERBATIM from
-   index.html. Their logic is unchanged byte-for-byte; only their
+   detection.html. Their logic is unchanged byte-for-byte; only their
    location moved. They read the global `state.errors`, exactly as
    before, so Module 1 behaves identically.
 
@@ -29,7 +29,7 @@ var state = (typeof state !== "undefined" && state) ? state : { errors: {} };
 if (!state.errors) state.errors = {};
 
 /* ============================================================
-   BELOW: extracted byte-for-byte from index.html (do not edit)
+   BELOW: extracted byte-for-byte from detection.html (do not edit)
    ============================================================ */
 
 /* ---- Build the code structure for a given distance ---- */

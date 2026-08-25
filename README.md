@@ -13,7 +13,7 @@ Click qubits to inject errors on a real rotated surface code, watch the stabiliz
 </p>
 
 <p align="center">
-  <img src="screenshots/index--desktop.png" alt="QEC Explorer, the surface-code detection playground" width="800">
+  <img src="screenshots/detection--desktop.png" alt="QEC Explorer, the surface-code detection playground" width="800">
 </p>
 
 <p align="center">
@@ -95,8 +95,8 @@ No install, no build step. Either:
 
 ```bash
 # just open it
-open index.html          # macOS
-start index.html         # Windows
+open detection.html      # macOS
+start detection.html     # Windows
 
 # or serve the folder (needed for the clean-URL links to resolve)
 python -m http.server 8000
@@ -108,7 +108,7 @@ The production site is deployed on [Vercel](https://vercel.com) as a plain stati
 ## Repository layout
 
 ```
-index.html          Module 1, surface-code detection playground
+detection.html      Module 1, surface-code detection playground
 basics.html         Module 0, beginner on-ramp with a 3D Bloch sphere
 decoder.html        Module 2, the four-decoder race
 noise.html          Module 3, Monte Carlo noise and threshold explorer

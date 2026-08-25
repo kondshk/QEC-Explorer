@@ -34,7 +34,7 @@ QEC Explorer has **zero build step** and **zero runtime dependencies**.
 git clone <repo>
 cd PASSION_PROJECT
 python -m http.server 8000      # any static file server works
-# then open http://localhost:8000/index.html
+# then open http://localhost:8000/detection.html
 ```
 
 For tests:

@@ -91,7 +91,7 @@ tests, and developer-facing tooling.
 - **`assets/qec-openqasm.js` + OpenQASM 3 export** - pure emitter
   that turns a QEC Explorer state (errors + code distance) into an
   OpenQASM 3.0 string parseable by `QuantumCircuit.from_qasm3_str(...)`.
-  Module 1 (`index.html`) exports the injected error pattern with the
+  Module 1 (`detection.html`) exports the injected error pattern with the
   full syndrome-extraction circuit. Module 2 (`decoder.html`) exports
   the same plus all three decoder corrections (Lookup, MWPM, BP),
   separated by header comments so a learner can compare them on the

@@ -169,7 +169,7 @@ body.guiding .decoder{cursor:help}
   <div class="brand">QEC <em>Explorer</em><span class="module">Decoder Race</span></div>
   <div class="links">
     <a href="landing.html">Home</a>
-    <a href="index.html">← Back to detection</a>
+    <a href="detection.html">← Back to detection</a>
     <a href="research.html">Research</a>
   </div>
 </div>
@@ -180,7 +180,7 @@ body.guiding .decoder{cursor:help}
     <div class="steps">
       <a class="pill" href="basics.html">0 · Basics</a>
       <span class="arrow">→</span>
-      <a class="pill" href="index.html">1 · Detect errors</a>
+      <a class="pill" href="detection.html">1 · Detect errors</a>
       <span class="arrow">→</span>
       <span class="pill now">2 · Decoder race</span>
       <span class="arrow">→</span>
@@ -338,7 +338,7 @@ body.guiding .decoder{cursor:help}
     <div class="kicker">Where this is going</div>
     <h3>Next: when does protection actually <em style="font-style:italic;color:var(--syndrome)">break</em>?</h3>
     <div class="roadmap">
-      <a class="step done" href="index.html">
+      <a class="step done" href="detection.html">
         <div class="lbl">Module 1 · Done</div>
         <div class="t">Surface-code detection</div>
         <div class="d">Inject errors, watch syndromes fire.</div>
@@ -368,14 +368,14 @@ body.guiding .decoder{cursor:help}
   <p>If this site helped you understand quantum error correction, or helped
   someone you shared it with, we would love to hear about it. Your stories help
   us make it better and show that open learning tools like this matter.</p>
-  <p>Want a high-quality, research-faithful simulation like the gross-code decoder
+  <p>Want a high-quality, research-faithful simulation like the gross-code simulation you see in Module 4,
   built for your own class, club, or project? Just ask and we will make one.</p>
   <a class="contact-email" href="mailto:qecexplorer@gmail.com">qecexplorer@gmail.com</a>
 </section>
 
 <footer>
   QEC Explorer · Module 2 · Open-source · The decoders are real algorithms (lookup table, minimum-weight matching, belief propagation, and BP-OSD), view source.<br>
-  <a href="index.html">← Back to the detection module</a>
+  <a href="detection.html">← Back to the detection module</a>
 </footer>
 
 <!-- OpenQASM 3 export modal (decoder race).
@@ -549,7 +549,7 @@ function fillForError(e) {
   return "#2a2a3a";
 }
 
-/* Same wording convention as index.html's errorWord(), keep in sync so
+/* Same wording convention as detection.html's errorWord(), keep in sync so
    the shared-error aria-labels read identically across both modules. */
 function errorWord(e) {
   if (!e) return "no error";
@@ -564,7 +564,7 @@ function paintShared() {
   for (const id of DECODERS) {
     const nm = nodeMaps[id];
     if (!nm) continue;
-    // qubit error colors + live aria-labels (match index.html: update the
+    // qubit error colors + live aria-labels (match detection.html: update the
     // label every time the error state changes, not just on build)
     for (const key in nm.qubits) {
       const e = state.errors[key];
@@ -914,7 +914,7 @@ function rebuildAll() {
 }
 
 /* ============================================================
-   SHARE: reuse index.html's EXACT hash scheme  d<distance>-<base64url>
+   SHARE: reuse detection.html's EXACT hash scheme  d<distance>-<base64url>
    (2 bits/qubit, X then Z, row-major). Same encoding so links are
    interchangeable between Module 1 and Module 2.
    ============================================================ */

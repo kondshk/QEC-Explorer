@@ -29,7 +29,7 @@ If two things are true after v2.0 ships, we've succeeded:
 
 | Feature | Where it lives | Status |
 | --- | --- | --- |
-| Surface-code playground | `index.html` · Module 1 | ✅ Polished |
+| Surface-code playground | `detection.html` · Module 1 | ✅ Polished |
 | Decoder race (lookup / MWPM / BP) | `decoder.html` · Module 2 | ✅ Polished |
 | Monte-Carlo threshold explorer | `noise.html` · Module 3 | ✅ Polished |
 | Quantum basics primer (5 steps) | `basics.html` · Module 0 | ✅ Polished |
@@ -105,9 +105,9 @@ The matrix below shows which feature each audience should hit first.
 
 | Audience | Start here | Then | Then |
 | --- | --- | --- | --- |
-| Curious newcomer | `landing.html` | `basics.html` | `index.html` |
-| High school / undergrad | `basics.html` | `index.html` | `decoder.html` |
-| Graduate student | `index.html` | `decoder.html` | `noise.html` + NB 02 / 03 |
+| Curious newcomer | `landing.html` | `basics.html` | `detection.html` |
+| High school / undergrad | `basics.html` | `detection.html` | `decoder.html` |
+| Graduate student | `detection.html` | `decoder.html` | `noise.html` + NB 02 / 03 |
 | Researcher / educator | `research.html` | `noise.html` | NB 04 (qLDPC) / NB 05 (GNN) |
 | Contributor | `CONTRIBUTING.md` | `tests/test-runner.html` | `PRODUCT_PLAN.md` |
 | Maintainer | `PRODUCT_PLAN.md` | `CHANGELOG.md` | `tests/` |
