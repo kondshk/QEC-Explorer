@@ -47,7 +47,9 @@
 .legend { position: absolute; top: 14px; left: 14px; display: flex; flex-direction: column; gap: 6px;
   background: var(--surface-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
   padding: 9px 11px; font-size: 11px; color: var(--text-secondary);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none; }
+  /* No backdrop-filter: this panel sits over an SVG that repaints every
+     animation frame, and a live blur would re-run on each of them. */
+  background: rgba(11, 11, 18, 0.9); pointer-events: none; }
 /* Horizontal, in-flow legend used above the decode lattice, where the qubit
    grid fills the whole card and an absolute overlay would cover the corner. */
 .legend.legend-top { position: static; flex-direction: row; flex-wrap: wrap;
@@ -64,7 +66,7 @@
 .readout { position: absolute; bottom: 14px; left: 14px; right: 14px;
   background: var(--surface-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
   padding: 10px 12px; font-size: 12.5px; color: var(--text-secondary);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: rgba(11, 11, 18, 0.9);
   min-height: 40px; line-height: 1.5; pointer-events: none; }
 .readout b { color: var(--text-primary); font-weight: 600; }
 .readout .mono { font-family: var(--font-mono); color: var(--syndrome); }
@@ -571,12 +573,16 @@ function buildGraphDOM() {
     el.style.cursor = 'pointer'; el.dataset.i = i;
     gNodes.appendChild(el); return el;
   });
+  applyGraphStyles();
 }
-function renderGraph() {
+/* Rendering is split in two so the per-frame work stays small:
+   - applyGraphStyles(): colour / opacity / size. Only changes when the hover
+     state changes, so it runs on hover, never inside the animation loop.
+   - renderGraph(): positions only (4 attributes per edge, 2 per data node,
+     1 per check). This is the only thing the animation loop calls. */
+function applyGraphStyles() {
   for (let i = 0; i < edges.length; i++) {
-    const e = edges[i], a = nodes[e.a], b = nodes[e.b], ln = edgeEls[i];
-    ln.setAttribute('x1', a.x.toFixed(1)); ln.setAttribute('y1', a.y.toFixed(1));
-    ln.setAttribute('x2', b.x.toFixed(1)); ln.setAttribute('y2', b.y.toFixed(1));
+    const e = edges[i], ln = edgeEls[i];
     const lit = hoverCheck >= 0 && (e.a === hoverCheck || e.b === hoverCheck);
     ln.setAttribute('stroke', lit ? 'var(--syndrome)' : 'var(--border-default)');
     ln.setAttribute('stroke-opacity', lit ? '0.95' : (hoverCheck >= 0 ? '0.08' : '0.32'));
@@ -586,21 +592,38 @@ function renderGraph() {
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i], el = nodeEls[i];
     if (n.type === 'data') {
-      el.setAttribute('cx', n.x.toFixed(1)); el.setAttribute('cy', n.y.toFixed(1));
       const lit = litSet && litSet.has(i);
       el.setAttribute('r', lit ? '7' : '4.4');
       el.setAttribute('fill', lit ? 'var(--syndrome)' : COLOR.data);
       el.setAttribute('fill-opacity', hoverCheck < 0 ? '0.9' : (lit ? '1' : '0.28'));
     } else {
+      // Check diamonds are drawn centred on the origin and moved with a single
+      // translate(), so the rect itself never has to be re-positioned.
       const isHover = i === hoverCheck;
       const s = isHover ? 6.5 : 4.5, w = isHover ? 13 : 9;
-      el.setAttribute('x', (n.x - s).toFixed(1)); el.setAttribute('y', (n.y - s).toFixed(1));
+      el.setAttribute('x', -s); el.setAttribute('y', -s);
       el.setAttribute('width', w); el.setAttribute('height', w);
-      el.setAttribute('transform', `rotate(45 ${n.x.toFixed(1)} ${n.y.toFixed(1)})`);
       el.setAttribute('fill-opacity', hoverCheck < 0 || isHover ? '1' : '0.25');
     }
   }
 }
+function renderGraph() {
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i], a = nodes[e.a], b = nodes[e.b], ln = edgeEls[i];
+    ln.setAttribute('x1', a.x.toFixed(1)); ln.setAttribute('y1', a.y.toFixed(1));
+    ln.setAttribute('x2', b.x.toFixed(1)); ln.setAttribute('y2', b.y.toFixed(1));
+  }
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i], el = nodeEls[i];
+    if (n.type === 'data') {
+      el.setAttribute('cx', n.x.toFixed(1)); el.setAttribute('cy', n.y.toFixed(1));
+    } else {
+      el.setAttribute('transform', `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)}) rotate(45)`);
+    }
+  }
+}
+/* Hover changed: restyle once, then redraw positions. */
+function refreshGraph() { applyGraphStyles(); renderGraph(); }
 
 function toSvgPt(target, evt) {
   const pt = target.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
@@ -644,7 +667,7 @@ svg.addEventListener('pointermove', (e) => {
   if (newHover !== hoverCheck) {
     hoverCheck = newHover;
     if (hoverCheck >= 0) describeCheck(hoverCheck); else resetReadout();
-    renderGraph();
+    refreshGraph();
   }
 });
 svg.addEventListener('pointerdown', (e) => {
@@ -655,7 +678,7 @@ svg.addEventListener('pointerdown', (e) => {
 function endDrag() { if (dragging >= 0) { nodes[dragging].pinned = false; dragging = -1; svg.classList.remove('dragging'); } }
 svg.addEventListener('pointerup', endDrag);
 svg.addEventListener('pointercancel', endDrag);
-svg.addEventListener('pointerleave', () => { if (dragging < 0 && hoverCheck >= 0) { hoverCheck = -1; resetReadout(); renderGraph(); } });
+svg.addEventListener('pointerleave', () => { if (dragging < 0 && hoverCheck >= 0) { hoverCheck = -1; resetReadout(); refreshGraph(); } });
 
 document.getElementById('btnShuffle').addEventListener('click', () => {
   seed = (seed ^ 0x9e3779b9) >>> 0;
@@ -666,9 +689,9 @@ document.getElementById('btnShuffle').addEventListener('click', () => {
 });
 document.getElementById('btnPulse').addEventListener('click', () => {
   const idx = xStart + Math.floor(rnd() * (CODE.numXChecks + CODE.numZChecks));
-  hoverCheck = idx; describeCheck(idx); renderGraph();
+  hoverCheck = idx; describeCheck(idx); refreshGraph();
   temperature = Math.max(temperature, 0.2); kick();
-  setTimeout(() => { if (hoverCheck === idx) { hoverCheck = -1; resetReadout(); renderGraph(); } }, 2400);
+  setTimeout(() => { if (hoverCheck === idx) { hoverCheck = -1; resetReadout(); refreshGraph(); } }, 2400);
 });
 document.getElementById('tglSpin').addEventListener('change', (e) => { frozen = e.target.checked; if (!frozen) kick(); });
 
